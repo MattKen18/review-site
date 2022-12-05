@@ -5,7 +5,7 @@ const Header = () => {
   return (
     <header className='flex flex-col lg:flex-row text-md px-5 py-5 lg:px-20 border-b-2 border-slate-200 items-center min-w-full sticky top-0 bg-white'>
       <div className='flex items-center space-x-4 mr-4 lg:mr-10 xl:mr-20'>
-        <h1 className='font-display text-3xl font-extrabold'>Weviews</h1>
+        <h1 className='font-display text-3xl font-extrabold'><a href='/'>Weviews</a></h1>
         <a href="/" className=''><PencilSquareIcon className='transition ease-in-out duration-300 w-7 hover:text-papaya hover:scale-110' /></a>
       </div>
       <div className='relative flex-1 items-center overflow-hidden rounded-3xl'>

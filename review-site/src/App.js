@@ -2,6 +2,7 @@ import Home from './components/pages/Home'
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import Header from './components/Header';
 import SidePane from './components/SidePane';
+import AddSpace from './components/AddSpace';
 
 const App = () => {
   return (
@@ -16,6 +17,9 @@ const App = () => {
               <Route path='/' element={<Home />} />
             </Routes>
           </Router>
+          <aside className='h-full basis-1/6'>
+            <AddSpace />
+          </aside>
         </div>
     </div>
   );

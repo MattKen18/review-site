@@ -1,8 +1,11 @@
-import React from 'react'
-import { StarIcon } from '@heroicons/react/24/solid'
+import React, { useEffect, useState } from 'react'
+import { XMarkIcon } from '@heroicons/react/24/solid'
+import { useDispatch, useSelector } from 'react-redux'
+import {clearFilter, removeFilter, selectFiltering } from '../slices/filterSlice'
+import Genre from './Genre'
+import Rating from './Rating'
 
 const SidePane = () => {
-
   const genres = [
     {
       title: 'Books',
@@ -44,49 +47,47 @@ const SidePane = () => {
       color: 'bg-gray-600',
       border: 'border-gray-600'
     },
-    // {
-    //   title: 'Hotels/Resorts',
-    //   color: 'bg-stone-700',
-    //   border: 'border-stone-700'
-    // },
-    // {
-    //   title: 'Hotels/Resorts',
-    //   color: 'bg-stone-700',
-    //   border: 'border-stone-700'
-    // },
+    {
+      title: 'Anime',
+      color: 'bg-teal-200',
+      border: 'border-teal-200'
+    },
   ]
+
+  const dispatch = useDispatch()
+  const isFiltering = useSelector(selectFiltering)
 
   return (
     <div className='h-screen border-r-2 border-slate-200 px-5 pt-10 fixed w-1/6'>
-      <h1 className='text-xl text-slate-500 font-bold px-2 py-1'>Genres</h1>
+      <div className='relative'>
+        <h1 className='text-xl text-slate-500 font-bold px-2 py-1'>Genres</h1>
+        {
+          isFiltering && 
+          <a href='#' className='absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2' onClick={() => dispatch(clearFilter())}>
+            <XMarkIcon className='w-6 text-red-700' />
+          </a>
+        }
+      </div>
+
       <ul className='mt-3 font-display'>
         {/* convert to map with dynamic background colors for each category pulled from database */}
         {genres.map((genre, key) => (
           <li key={key} className='my-3 ml-2 transition ease-in-out duration-300 hover:scale-110 inline-block'>
-            <a href="/" className={`p-2 mb-2 ${genre.color} text-sm text-white border-2 ${genre.border} rounded-full`}>
-              {genre.title}
-            </a>
+            <Genre genre={genre} />
           </li>
         ))}
       </ul>
-      <div className='mt-12 pl-2'>
-        <h1 className='font-bold text-xl text-slate-500'>Moss Score</h1>
-        <ul className='mt-3 border-2 border-slate-50 rounded-md bg-slate-50 w-fit'>
+      <div className='mt-12 pl-2 select-none'>
+        <h1 className='font-bold text-xl text-slate-500'>Moss Rating</h1>
+        <div className='flex flex-col mt-3 border-2 border-slate-50 rounded-md bg-slate-50 w-3/4 h-full'>
           {
-            [5, 4, 3, 2, 1].map(star => (
-              <li key={star} className='mb-1'>
-                <a href='/' className='flex items-center hover:bg-slate-200 hover:rounded-lg p-1'>
-                  <span className='mr-2 w-2 font-thin'>{star}.</span>
-                  <div className='flex'>
-                    {
-                      Array.from({ length: star }).map((a, i) => (<StarIcon key={i} className='w-4 text-moss'/>))
-                    }
-                  </div>
-                </a>
-              </li>
+            [5, 4, 3, 2, 1].map(mossRating => (
+              <div key={mossRating} className='basis-1/5 relative w-full p-1 mb-1 last:mb-0'>
+                <Rating mossRating={mossRating} />
+              </div>
             ))
           }
-        </ul>
+        </div>
       </div>
       <div className='mt-12'>
           <form action="/" className='font-light text-sm text-slate-500'>
