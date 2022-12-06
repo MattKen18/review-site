@@ -35,6 +35,24 @@ export const filterSlice = createSlice({
             state.mossFiltering = true
           }
           break
+        case 'authenticated':
+          if (!state.filters.includes(action.payload.title)) {
+            // add to filter
+            console.log('Add To Filter')
+            for (let i=0; i<state.filters.length; i++) {
+              console.log('replacing filer')
+              if (state.filters[i].startsWith('authenticated')) {
+                // replace existing authenticated filter (verified/unverified)
+                const newFilters = [...state.filters]
+                newFilters[i] = action.payload.title
+                state.filters = newFilters
+                return
+              }
+            }
+            console.log('adding new filter')
+            state.filters = [...state.filters, action.payload.title]
+          }
+          break
         default:
           return state
       }

@@ -19,22 +19,6 @@ const Rating = (props) => {
   const handleActive = () => {
     const mossRating = document.getElementById(`moss-${props.mossRating}`)
 
-    // if (!mossFiltering && isActive()) { //clears active moss status if the filter is cleared
-    //   const activeMoss = document.getElementsByClassName('active-moss')[0] //previous active moss
-    //   activeMoss.classList.remove('active-moss')
-    // }
-
-    // if (!mossFiltering && !isActive()) {
-    //   mossRating.classList.add('active-moss')
-    // } else if (!mossFiltering && isActive()) {
-    //   const activeMoss = document.getElementsByClassName('active-moss')[0] //previous active moss
-    //   activeMoss.classList.remove('active-moss')
-    // } else if (mossFiltering && isActive()) {
-    //   mossRating.classList.remove('active-moss')
-    // }
-
-
-
     if (isActive()) {
       //remove active if the user clicks on the active element
       mossRating.classList.remove('active-moss')
@@ -50,18 +34,6 @@ const Rating = (props) => {
   }
 
   const handleFilter = () => {
-
-    // if (!mossFiltering && !isActive(e)) {
-    //   //add moss to the applied filters
-    //   dispatch(addFilter({title: `moss-${props.mossRating}`}))
-    // } else if (mossFiltering && isActive(e)) {
-    //   //remove moss from the applied filters
-    //   dispatch(removeFilter({title: `moss-${props.mossRating}`}))
-    // } else if (mossFiltering && !isActive(e)) {
-    //   //replace previous moss filter with the new one
-    //   dispatch(addFilter({title: `moss-${props.mossRating}`}))
-    // }
-
     if (mossFiltering && isActive()) {
       // remove moss from the applied filters
       dispatch(removeFilter({title: `moss-${props.mossRating}`}))
@@ -82,12 +54,14 @@ const Rating = (props) => {
         activeMoss.classList.remove('active-moss')
       }
       mossRating.style.backgroundColor = '#f8fafc'; //no highlight
+      mossRating.style.opacity = '1';
 
-    }
-    else if (mossFiltering && isActive()) {
+    } else if (mossFiltering && isActive()) {
       mossRating.style.backgroundColor = '#e2e8f0'; //highlight
+      mossRating.style.opacity = '1';
     } else {
       mossRating.style.backgroundColor = '#f8fafc'; //no highlight
+      mossRating.style.opacity = 0.3;
     }
   }, [currentFilters])
 
@@ -102,7 +76,7 @@ const Rating = (props) => {
           document.getElementById(`moss-${props.mossRating}`).style.backgroundColor = '#f8fafc'
         }
       }}
-      className={'w-full flex items-center hover:bg-slate-200 rounded-lg hover:cursor-pointer p-1'}>
+      className={'w-full flex items-center hover:bg-slate-200 rounded-lg hover:cursor-pointer p-1 duration-300'}>
       <span className='mr-2 w-2 font-thin'>{props.mossRating}.</span>
       {
         Array.from({ length: props.mossRating }).map((_, i) => (<StarIcon key={i} className='w-4 text-moss'/>))

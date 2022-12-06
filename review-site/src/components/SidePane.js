@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import {clearFilter, removeFilter, selectFiltering } from '../slices/filterSlice'
 import Genre from './Genre'
 import Rating from './Rating'
+import RadioFilter from './RadioFilter'
 
 const SidePane = () => {
   const genres = [
@@ -58,14 +59,14 @@ const SidePane = () => {
   const isFiltering = useSelector(selectFiltering)
 
   return (
-    <div className='h-screen border-r-2 border-slate-200 px-5 pt-10 fixed w-1/6'>
+    <div className='h-screen border-r-2 border-slate-200 px-5 pt-10 fixed w-1/6 select-none'>
       <div className='relative'>
         <h1 className='text-xl text-slate-500 font-bold px-2 py-1'>Genres</h1>
         {
           isFiltering && 
-          <a href='#' className='absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2' onClick={() => dispatch(clearFilter())}>
+          <button className='absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2' onClick={() => dispatch(clearFilter())}>
             <XMarkIcon className='w-6 text-red-700' />
-          </a>
+          </button>
         }
       </div>
 
@@ -77,12 +78,12 @@ const SidePane = () => {
           </li>
         ))}
       </ul>
-      <div className='mt-12 pl-2 select-none'>
+      <div className='mt-12 pl-2'>
         <h1 className='font-bold text-xl text-slate-500'>Moss Rating</h1>
-        <div className='flex flex-col mt-3 border-2 border-slate-50 rounded-md bg-slate-50 w-3/4 h-full'>
+        <div className='flex flex-col mt-3 border-2 border-slate-50 rounded-md bg-slate-50 w-3/4'>
           {
             [5, 4, 3, 2, 1].map(mossRating => (
-              <div key={mossRating} className='basis-1/5 relative w-full p-1 mb-1 last:mb-0'>
+              <div key={mossRating} className='basis-1/5 relative w-full p-1'>
                 <Rating mossRating={mossRating} />
               </div>
             ))
@@ -90,56 +91,21 @@ const SidePane = () => {
         </div>
       </div>
       <div className='mt-12'>
-          <form action="/" className='font-light text-sm text-slate-500'>
-            <div className='flex items-center mb-3'>
-              <input 
-              type="radio" 
-              id="verified" 
-              name="authenticated" 
-              value="verified"
-              defaultChecked
-              className='appearance-none h-5 w-5 focus:opacity-100 focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 focus:outline-none border checked:border-none checked:bg-blue-600 rounded-md hover:cursor-pointer' 
-              />
-              <label htmlFor="verified" className='pl-3 hover:cursor-pointer'>Verified</label>
-            </div>
-            <div className='flex items-center'>
-              <input 
-              type="radio" 
-              id="unverified" 
-              name="authenticated" 
-              value="unverified" 
-              className='appearance-none h-5 w-5 focus:opacity-100 focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 focus:outline-none border checked:border-none checked:bg-blue-600 rounded-md hover:cursor-pointer' 
-              />
-              <label htmlFor="unverified" className='pl-3 hover:cursor-pointer'>Unverified</label>
-            </div>
-          </form>
+        <RadioFilter details={{
+          ids: ['verified', 'unverified'],
+          name: 'authenticated',
+          values: ['verified', 'unverified'],
+          radioValues: ['Verified', 'Unverified'],
+        }} />
       </div>
-      <div className='mt-8'>
-          <form action="/" className='font-light text-sm text-slate-500'>
-            <div className='flex items-center mb-3'>
-              <input 
-              type="radio" 
-              id="newest" 
-              name="upload date" 
-              value="newest"
-              defaultChecked
-              className='appearance-none h-5 w-5 focus:opacity-100 focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 focus:outline-none border checked:border-none checked:bg-blue-600 rounded-md hover:cursor-pointer' 
-              />
-              <label htmlFor="newest" className='pl-3 hover:cursor-pointer'>Newest First</label>
-            </div>
-            <div className='flex items-center'>
-              <input 
-              type="radio" 
-              id="oldest" 
-              name="upload date" 
-              value="oldest" 
-              className='appearance-none h-5 w-5 focus:opacity-100 focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 focus:outline-none border checked:border-none checked:bg-blue-600 rounded-md hover:cursor-pointer' 
-              />
-              <label htmlFor="oldest" className='pl-3 hover:cursor-pointer'>Oldest First</label>
-            </div>
-
-          </form>
-      </div>
+      {/* <div className='mt-8'>
+        <RadioFilter details={{
+          ids: ['newest', 'oldest'],
+          name: 'upload date',
+          values: ['newest', 'oldest'],
+          radioValues: ['Newest First', 'Oldest First'],
+        }} />
+      </div> */}
     </div>
   )
 }
