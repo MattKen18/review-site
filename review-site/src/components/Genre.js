@@ -1,14 +1,15 @@
 import React, { useEffect, useRef } from 'react'
 import { useDispatch } from 'react-redux'
-import { addFilter, removeFilter, selectFilters, selectFiltering, setFiltering } from '../slices/filterSlice'
+import { addFilter, removeFilter, selectFilters, selectFiltering, setFiltering, selectGenreFiltering } from '../slices/filterSlice'
 import { useSelector } from 'react-redux'
 
 
 const Genre = (props) => {
   const active = useRef(false) //if genre is an active filter
-  const isFiltering = useSelector(selectFiltering) //if app is currently filtering
-  const dispatch = useDispatch()
+  const genreFiltering = useSelector(selectGenreFiltering)
   const currentFilters = useSelector(selectFilters)
+
+  const dispatch = useDispatch()
 
 
   // changes the opacity of genres in the side panel depending on whether
@@ -16,13 +17,13 @@ const Genre = (props) => {
   const setOpacity = () => {
     const genre = document.getElementById(props.genre.title)
 
-    if (isFiltering && !active.current) { //if app is filtering but component is not one of the filtering genres
+    if (genreFiltering && !active.current) { //if app is filtering but component is not one of the filtering genres
       genre.style.opacity = '0.3'
-    } else if (isFiltering && active.current) {
+    } else if (genreFiltering && active.current) {
       genre.style.opacity = '1'
-    } else if (!isFiltering && active.current){ // if cleared filter with genres still active
+    } else if (!genreFiltering && active.current){ // if cleared filter with genres still active
       active.current = false 
-    } else { // i.e. if !isFiltering
+    } else { // i.e. if !genreFiltering
       genre.style.opacity = '1'
     }
   }
@@ -39,7 +40,7 @@ const Genre = (props) => {
       dispatch(removeFilter({title: "genre-" + props.genre.title}))
     }
     active.current = !active.current
-    dispatch(setFiltering())
+    // dispatch(setFiltering())
 
   }
 
@@ -51,7 +52,7 @@ const Genre = (props) => {
     onMouseOver={(e) => e.target.style.opacity = '1'}
     onMouseOut={
       (e) => {
-        if (isFiltering) {
+        if (genreFiltering) {
           !active.current ? e.target.style.opacity = '0.3' : e.target.style.opacity = '1'
         }
       }

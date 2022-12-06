@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/solid'
 import { useDispatch, useSelector } from 'react-redux'
-import {clearFilter, removeFilter, selectFiltering } from '../slices/filterSlice'
+import {clearFilter, selectAuthFiltering, selectFiltering, selectGenreFiltering, selectMossFiltering } from '../slices/filterSlice'
 import Genre from './Genre'
 import Rating from './Rating'
 import RadioFilter from './RadioFilter'
@@ -56,14 +56,16 @@ const SidePane = () => {
   ]
 
   const dispatch = useDispatch()
-  const isFiltering = useSelector(selectFiltering)
+  const genreFiltering = useSelector(selectGenreFiltering)
+  const mossFiltering = useSelector(selectMossFiltering)
+  const authFiltering = useSelector(selectAuthFiltering)
 
   return (
     <div className='h-screen border-r-2 border-slate-200 px-5 pt-10 fixed w-1/6 select-none'>
       <div className='relative'>
         <h1 className='text-xl text-slate-500 font-bold px-2 py-1'>Genres</h1>
         {
-          isFiltering && 
+          (genreFiltering || mossFiltering || authFiltering) && 
           <button className='absolute top-1/2 right-0 transform -translate-x-1/2 -translate-y-1/2' onClick={() => dispatch(clearFilter())}>
             <XMarkIcon className='w-6 text-red-700' />
           </button>

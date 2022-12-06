@@ -41,7 +41,7 @@ const Rating = (props) => {
       // add moss to the applied filters
       dispatch(addFilter({title: `moss-${props.mossRating}`}))
     }
-    dispatch(setFiltering())
+    // dispatch(setFiltering())
     handleActive()
   }
 

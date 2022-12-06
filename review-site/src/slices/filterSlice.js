@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  filtering: false, // if the entire app is filtering
+  genreFiltering: false,
   mossFiltering: false, // if a moss rating is one of the filters
+  authFiltering: false,
   filters: [], // filters applied including genre, moss rating, verified, created-date
 }
 
@@ -15,10 +16,12 @@ export const filterSlice = createSlice({
         case 'genre':
           if (!state.filters.includes(action.payload.title)) { // runs if filter is not already applied
             state.filters = [...state.filters, action.payload.title]
+            state.genreFiltering = true
           } else { // if filter is already applied
             return state
           }
           break
+
         case 'moss':
           if (state.mossFiltering) {
             // replace existing moss rating
@@ -35,26 +38,20 @@ export const filterSlice = createSlice({
             state.mossFiltering = true
           }
           break
+
         case 'authenticated':
-          if (!state.filters.includes(action.payload.title)) {
-            // add to filter
-            console.log('Add To Filter')
-            for (let i=0; i<state.filters.length; i++) {
-              console.log('replacing filer')
+          if (state.authFiltering) {
+            for(let i=0; i<state.filters.length; i++) {
               if (state.filters[i].startsWith('authenticated')) {
-                // replace existing authenticated filter (verified/unverified)
                 const newFilters = [...state.filters]
                 newFilters[i] = action.payload.title
                 state.filters = newFilters
-                return
               }
             }
-            console.log('adding new filter')
+          } else {
             state.filters = [...state.filters, action.payload.title]
+            state.authFiltering = true
           }
-          break
-        default:
-          return state
       }
     },
     removeFilter: (state, action) => {
@@ -63,34 +60,44 @@ export const filterSlice = createSlice({
       if (indexToRemove !== -1) {
         const newFilters = [...state.filters]
         newFilters.splice(indexToRemove, 1) //removes the filter from the list of filters
-        if (action.payload.title.startsWith('moss')) {
-          state.mossFiltering = false
-        }
         state.filters = newFilters
+
+        switch (action.payload.title.split('-')[0]) {
+          case 'genre':
+            state.genreFiltering = !state.filters.length ? false : true
+            break
+          case 'moss':
+            state.mossFiltering = false
+            break
+          case 'authenticated':
+            state.authFiltering = false
+        }
+        if (!state.filters.length) {
+          state.mossFiltering = false
+          state.genreFiltering = false
+          state.authFiltering = false
+        }
       } else {
         return state
       }
     },
-    setFiltering: (state) => {
-      state.filtering = state.filters.length ? true : false
-      if (!state.filtering) {
-        state.mossFiltering = false
-      }
-    },
+
     clearFilter: (state) => {
       state.filters = []
-      state.filtering = false
       state.mossFiltering = false
+      state.genreFiltering = false
+      state.authFiltering = false
     }
   },
 })
 
 // actions creators generated from reducers in the filterSlice
-export const {addFilter, removeFilter, setFiltering, clearFilter} = filterSlice.actions
+export const {addFilter, removeFilter, clearFilter} = filterSlice.actions
 
 // selector functions
 export const selectFilters = state => state.filter.filters
-export const selectFiltering = state => state.filter.filtering
 export const selectMossFiltering = state => state.filter.mossFiltering
+export const selectGenreFiltering = state => state.filter.genreFiltering
+export const selectAuthFiltering = state => state.filter.authFiltering
 
 export default filterSlice.reducer
