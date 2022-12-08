@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { addToFireStore, getFromFireStore } from '../../firebase';
-import AddSpace from '../AddSpace';
 import { useSelector } from 'react-redux';
-import { selectAuthFiltering, selectFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
+import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
+import Review from '../Review';
 
 const Home = () => {
   const createdUser = useRef(false)
@@ -19,10 +19,105 @@ const Home = () => {
   }, []);
 
 
+  const reviews = [{
+    author: 'Matthew Carby',
+    headline:'Not as we expected',
+    body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
+    I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
+    they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
+    Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
+    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    genre: {
+      title: 'Books',
+      color: 'bg-rose-600',
+      border: 'border-rose-600'
+    },
+    tag: 'The Twilight Saga: New Moon',
+    age:'15 hours', //how long ago it was created
+    image:null, //might be empty
+    numOfComments:25,
+    rating: 3.5,
+  },
+  {
+    author: 'Matthew Carby',
+    headline:'Not as we expected',
+    body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
+    I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
+    they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
+    Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
+    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    genre: {
+      title: 'Technology',
+      color: 'bg-green-400',
+      border: 'border-green-400'
+    },
+    tag: 'The Twilight Saga: New Moon',
+    age:'15 hours', //how long ago it was created
+    image:null, //might be empty
+    numOfComments:25,
+    rating: 5,
+  },
+  {
+    author: 'Matthew Carby',
+    headline:'Not as we expected',
+    body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
+    I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
+    they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
+    Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
+    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    genre: {
+      title: 'Books',
+      color: 'bg-rose-600',
+      border: 'border-rose-600'
+    },
+    tag: 'The Twilight Saga: New Moon',
+    age:'15 hours', //how long ago it was created
+    image:null, //might be empty
+    numOfComments:25,
+    rating: 4.5,
+  },
+  {
+    author: 'Matthew Carby',
+    headline:'Not as we expected',
+    body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
+    I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
+    they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
+    Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
+    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    genre: {
+      title: 'Books',
+      color: 'bg-rose-600',
+      border: 'border-rose-600'
+    },
+    tag: 'The Twilight Saga: New Moon',
+    age:'15 hours', //how long ago it was created
+    image:null, //might be empty
+    numOfComments:25,
+    rating: 4,
+  },
+  {
+    author: 'Matthew Carby',
+    headline:'Not as we expected',
+    body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
+    I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
+    they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
+    Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
+    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    genre: {
+      title: 'Books',
+      color: 'bg-rose-600',
+      border: 'border-rose-600'
+    },
+    tag: 'The Twilight Saga: New Moon',
+    age:'15 hours', //how long ago it was created
+    image:null, //might be empty
+    numOfComments:25,
+    rating: 3.5,
+  }]
   return (
     <div className='basis-4/6 bg-gray-100'>
         <h1 className='text-4xl text-slate-500 font-extrabold text-center mt-10'>Home</h1>
-        <div className='mt-20 w-1/5 m-auto'>
+        <div className='mt-20 m-auto'>
         {
           genreFiltering || mossFiltering || authFiltering ? 
           <>
@@ -34,7 +129,13 @@ const Home = () => {
             </ul>
             </>
           : 
-          <p className='text-center'>Not Filtering</p>
+          <>
+            {reviews.map((review, i) => (
+              <Review key={i} review={review} />
+            )) 
+            }
+
+          </>
         }
         </div>
   

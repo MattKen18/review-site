@@ -2,11 +2,11 @@ import Home from './components/pages/Home'
 import { BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import Header from './components/Header';
 import SidePane from './components/SidePane';
-import AddSpace from './components/AddSpace';
+import AdSpace from './components/AdSpace';
 
 const App = () => {
   return (
-    <div className='w-full min-h-screen h-[2000px] font-display text-slate-600'>
+    <div className='w-full min-h-screen font-display text-slate-600'>
         <Header />
         <div className='flex flex-col sm:flex-row h-full'>
           <aside className='h-screen basis-1/6'>
@@ -17,8 +17,8 @@ const App = () => {
               <Route path='/' element={<Home />} />
             </Routes>
           </Router>
-          <aside className='h-full basis-1/6'>
-            <AddSpace />
+          <aside className='min-h-screen basis-1/6'>
+            <AdSpace />
           </aside>
         </div>
     </div>

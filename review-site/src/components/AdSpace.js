@@ -1,11 +1,11 @@
 import React from 'react'
 
-const AddSpace = () => {
+const AdSpace = () => {
   return (
     <div className='h-full bg-gray-50'>
-      <h1 className='text-center'>AddSpace</h1>
+      <h1 className='text-center'>AdSpace</h1>
     </div>
   )
 }
 
-export default AddSpace
+export default AdSpace

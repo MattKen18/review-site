@@ -9,6 +9,12 @@ module.exports = {
       colors: {
         'papaya': '#D96846',
         'moss': '#596235',
+      },
+      lineClamp: {
+        7: '7',
+        8: '8',
+        9: '9',
+        10: '10',
       }
     },
     fontFamily: {
@@ -19,5 +25,6 @@ module.exports = {
   },
   plugins: [
     require('autoprefixer'),
+    require('@tailwindcss/line-clamp'),
   ],
 }
