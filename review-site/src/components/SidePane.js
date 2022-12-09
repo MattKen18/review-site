@@ -81,7 +81,7 @@ const SidePane = () => {
         ))}
       </ul>
       <div className='mt-12 pl-2'>
-        <h1 className='font-bold text-xl text-slate-500'>Moss Rating</h1>
+        <h1 className='font-bold text-xl text-slate-500'>Moss Rating <span>≤</span></h1>
         <div className='flex flex-col mt-3 border-2 border-slate-50 rounded-md bg-slate-50 w-3/4'>
           {
             [5, 4, 3, 2, 1].map(mossRating => (

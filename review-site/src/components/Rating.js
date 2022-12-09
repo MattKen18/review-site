@@ -2,6 +2,7 @@ import { StarIcon } from '@heroicons/react/24/solid';
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addFilter, selectFilters, setFiltering, selectMossFiltering, removeFilter } from '../slices/filterSlice';
+import RatingStars from './RatingStars';
 
 const Rating = (props) => {
 
@@ -77,9 +78,10 @@ const Rating = (props) => {
         }
       }}
       className={'w-full flex items-center hover:bg-slate-200 rounded-lg hover:cursor-pointer p-1 duration-300'}>
-      <span className='mr-2 w-2 font-thin'>{props.mossRating}.</span>
+      <span className='mr-4 w-2 font-thin'>{props.mossRating}.</span>
       {
-        Array.from({ length: props.mossRating }).map((_, i) => (<StarIcon key={i} className='w-4 text-moss'/>))
+        <RatingStars rating={props.mossRating} />
+        // Array.from({ length: props.mossRating }).map((_, i) => (<StarIcon key={i} className='w-4 text-moss'/>))
       }
     </button>
   )

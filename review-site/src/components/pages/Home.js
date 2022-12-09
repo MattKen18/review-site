@@ -21,7 +21,7 @@ const Home = () => {
 
   const reviews = [{
     author: 'Matthew Carby',
-    headline:'Not as we expected',
+    headline:'Not as we expected ected this movie to b ected this',
     body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
     I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
     they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
@@ -42,10 +42,7 @@ const Home = () => {
     author: 'Matthew Carby',
     headline:'Not as we expected',
     body:`I too expected this movie to be better. I read the 4 books. The thing is they cut out the best lines from the books which can add SO much to the movies. 
-    I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
-    they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
-    Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
-    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    `,
     genre: {
       title: 'Technology',
       color: 'bg-green-400',
@@ -116,7 +113,11 @@ const Home = () => {
   }]
   return (
     <div className='basis-4/6 bg-gray-100'>
-        <h1 className='text-4xl text-slate-500 font-extrabold text-center mt-10'>Home</h1>
+        <div className='w-11/12 m-auto'>
+          <h1 className='text-4xl text-slate-600 font-bold text-center italic mt-10 mb-3 pl-10'>Feed</h1>
+          {/* <hr /> */}
+
+        </div>
         <div className='mt-20 m-auto'>
         {
           genreFiltering || mossFiltering || authFiltering ? 
@@ -131,7 +132,7 @@ const Home = () => {
           : 
           <>
             {reviews.map((review, i) => (
-              <Review key={i} review={review} />
+              <Review key={i} id={i} review={review} />
             )) 
             }
 
