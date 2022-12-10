@@ -26,7 +26,9 @@ const Home = () => {
     I was looking forward to some seens in the movie: Edward proposal for Bella, when they talk while they are waiting to get out the Volturi, very romantic and whilte 
     they are in plane going back home. I think the scenarist must be replaced or the writer should oversee the script. The only reason movies are hit cause of the books only. 
     Most people who did not read the books did not like the movies. Hope they'll do better in the 3rd one. But I really hope they'll do much much better in the 4th movie cause 
-    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.`,
+    this is the book I'd like most. In general, if you read the books you must watch the movies, its nice to have the characters & seens a life.  to be better. I read the 4 books. Th
+    to be better. I read the 4 books. Th to be better. I read the 4 books. Th to be better. I read the 4 books. Th to be better. I read the 4 books. Th to be better. I read the 4 books. Th
+    to be better. I read the 4 books. Th to be better. I read the 4 books. Th`,
     genre: {
       title: 'Books',
       color: 'bg-rose-600',
@@ -34,7 +36,7 @@ const Home = () => {
     },
     tag: 'The Twilight Saga: New Moon',
     age:'15 hours', //how long ago it was created
-    image:null, //might be empty
+    images: ['https://test-image-store-weviews.s3.us-east-2.amazonaws.com/new-moon.jpg', 'https://test-image-store-weviews.s3.us-east-2.amazonaws.com/new-moon2.jpg', 'https://test-image-store-weviews.s3.us-east-2.amazonaws.com/new-moon3.jpg'], //might be empty
     numOfComments:25,
     rating: 3.5,
   },
@@ -50,7 +52,7 @@ const Home = () => {
     },
     tag: 'The Twilight Saga: New Moon',
     age:'15 hours', //how long ago it was created
-    image:null, //might be empty
+    images: ['https://test-image-store-weviews.s3.us-east-2.amazonaws.com/new-moon.jpg', 'https://test-image-store-weviews.s3.us-east-2.amazonaws.com/new-moon2.jpg', 'https://test-image-store-weviews.s3.us-east-2.amazonaws.com/new-moon3.jpg'], //might be empty
     numOfComments:25,
     rating: 5,
   },
@@ -69,7 +71,7 @@ const Home = () => {
     },
     tag: 'The Twilight Saga: New Moon',
     age:'15 hours', //how long ago it was created
-    image:null, //might be empty
+    images:[], //might be empty
     numOfComments:25,
     rating: 4.5,
   },
@@ -88,7 +90,7 @@ const Home = () => {
     },
     tag: 'The Twilight Saga: New Moon',
     age:'15 hours', //how long ago it was created
-    image:null, //might be empty
+    images:[], //might be empty
     numOfComments:25,
     rating: 4,
   },
@@ -107,7 +109,7 @@ const Home = () => {
     },
     tag: 'The Twilight Saga: New Moon',
     age:'15 hours', //how long ago it was created
-    image:null, //might be empty
+    images:[], //might be empty
     numOfComments:25,
     rating: 3.5,
   }]
