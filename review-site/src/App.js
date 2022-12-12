@@ -1,27 +1,31 @@
 import Home from './components/pages/Home'
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Header from './components/Header';
 import SidePane from './components/SidePane';
 import AdSpace from './components/AdSpace';
+import WriteReview from './components/pages/WriteReview';
 
 const App = () => {
   return (
-    <div className='w-full min-h-screen font-display text-slate-600'>
+    <Router>
+      <div className='w-full min-h-screen font-display text-slate-600'>
         <Header />
         <div className='flex flex-col sm:flex-row h-full'>
           <aside className='h-screen basis-1/6'>
             <SidePane />
           </aside>
-          <Router>
+          <div className='min-h-screen h-fit basis-4/6 bg-gray-100 pt-10'>
             <Routes>
               <Route path='/' element={<Home />} />
+              <Route path='/compose' element={<WriteReview />} />
             </Routes>
-          </Router>
+          </div>
           <aside className='min-h-screen basis-1/6'>
             <AdSpace />
           </aside>
         </div>
-    </div>
+      </div>
+    </Router>
   );
 }
 

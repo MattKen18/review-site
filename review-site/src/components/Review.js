@@ -54,7 +54,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
               <div className='mb-5'>
                 <p className='text-sm font-light'>{`'${tag}'`} <span className='opacity-70 font-extralight'>• {title}</span></p>
                 <div className='flex space-x-8 items-center'>
-                  <h1 className='font-extrabold text-2xl text-center'>{headline}</h1>
+                  <h1 className='font-extrabold text-2xl'>{headline}</h1>
                   <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                   
                 </div>
@@ -107,15 +107,14 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
                 <div className='mb-5'>
                   <p className='text-sm font-light'>{`'${tag}'`} <span className='opacity-70 font-extralight'>• {title}</span></p>
                   <div className='flex space-x-8 items-center'>
-                    <h1 className='font-extrabold text-2xl text-center'>{headline}</h1>
+                    <h1 className='font-extrabold text-2xl'>{headline}</h1>
                     <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                     
                   </div>
                 </div>
                 <div className='relative flex-1 mb-5'>
                   <div>
-                    <p className='h-full line-clamp-10 bg-white mb-2'>{body}</p>
-
+                    <p className='h-full line-clamp-6 bg-white mb-2'>{body}</p>
                   </div>
                 </div>
                 <div className='relative flex'>

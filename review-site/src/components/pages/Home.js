@@ -114,9 +114,9 @@ const Home = () => {
     rating: 3.5,
   }]
   return (
-    <div className='basis-4/6 bg-gray-100'>
+    <div className=''>
         <div className='w-11/12 m-auto'>
-          <h1 className='text-4xl text-slate-600 font-bold text-center italic mt-10 mb-3 pl-10'>Feed</h1>
+          <h1 className='text-3xl font-bold text-center mb-3 pl-10'>Your Feed</h1>
           {/* <hr /> */}
 
         </div>
