@@ -5,61 +5,22 @@ import {clearFilter, selectAuthFiltering, selectFiltering, selectGenreFiltering,
 import Genre from './Genre'
 import Rating from './Rating'
 import RadioFilter from './RadioFilter'
+import { addGenre, getGenresFromFireStore } from '../firebase'
 
 const SidePane = () => {
-  const genres = [
-    {
-      title: 'Books',
-      color: 'bg-rose-600',
-      border: 'border-rose-600'
-    },
-    {
-      title: 'Music',
-      color: 'bg-emerald-900',
-      border: 'border-emerald-900'
-    },
-    {
-      title: 'Games',
-      color: 'bg-teal-600',
-      border: 'border-teal-600'
-    },
-    {
-      title: 'Restaurants',
-      color: 'bg-fuchsia-500',
-      border: 'border-fuchsia-500'
-    },
-    {
-      title: 'Technology',
-      color: 'bg-green-400',
-      border: 'border-green-400'
-    },
-    {
-      title: 'TV Shows/Movies',
-      color: 'bg-yellow-700',
-      border: 'border-yellow-700'
-    },
-    {
-      title: 'Hotels/Resorts',
-      color: 'bg-stone-700',
-      border: 'border-stone-700'
-    },
-    {
-      title: 'Misc',
-      color: 'bg-gray-600',
-      border: 'border-gray-600'
-    },
-    {
-      title: 'Anime',
-      color: 'bg-teal-200',
-      border: 'border-teal-200'
-    },
-  ]
+
+  const [genres, setGenres] = useState([])
 
   const dispatch = useDispatch()
   const genreFiltering = useSelector(selectGenreFiltering)
   const mossFiltering = useSelector(selectMossFiltering)
   const authFiltering = useSelector(selectAuthFiltering)
+  
+  useEffect(() => {
+    getGenresFromFireStore().then(genres => setGenres(genres))
+  }, [])
 
+  
   return (
     <div className='h-screen border-r-2 border-slate-200 px-5 pt-10 fixed w-1/6 select-none'>
       <div className='relative'>

@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import RatingStars from './RatingStars'
 import ReviewImageCarousel from './ReviewImageCarousel'
 
-const Review = ({id, review: {author, headline, body, genre: {title, color, border}, tag, age, images, numOfComments, rating}}) => {
+const Review = ({id, review: {author, headline, body, genre: {title, color, border}, tag, images, timestamp, numOfComments, rating}}) => {
   const [bookmarked, setBookmarked] = useState(false) //change to use selector to get list of bookmarked items of the user
   const [helpful, setHelpful] = useState(false) //true if the user selects 
   const [justClicked, setJustClicked] = useState(null)
@@ -35,11 +35,46 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
 
   } 
 
+  const timePassed = () => {
+    const timeCreated = timestamp.toDate()
+    const currentTime = new Date()
+    const timePassed = (currentTime.getTime()-timeCreated.getTime())/1000 //milliseconds passed from when the review was created to now
+
+    const year = 31557600
+    const month = 2629800
+    const week = 604800
+    const day = 86400
+    const hour = 3600
+    const minute = 60
+
+    if (timePassed >= year) {
+      const years = Math.floor(timePassed/year)
+      return years > 1 ? `${years} years ago` : `${years} year ago`
+    } else if (timePassed >= month) {
+      const months = Math.floor(timePassed/month)
+      return months > 1 ? `${months} months ago` : `${months} month ago`
+    } else if (timePassed >= week) {
+      const weeks = Math.floor(timePassed/week)
+      return weeks > 1 ? `${weeks} weeks ago` : `${weeks} week ago`
+    } else if (timePassed >= day) {
+      const days = Math.floor(timePassed/day)
+      return days > 1 ? `${days} days ago` : `${days} day ago`
+    } else if (timePassed >= hour) {
+      const hours = Math.floor(timePassed/hour)
+      return hours > 1 ? `${hours} hours ago` : `${hours} hour ago`
+    } else if (timePassed >= minute) {
+      const minutes = Math.floor(timePassed/minute)
+      return minutes > 1 ? `${minutes} mins ago` : `${minutes} min ago`
+    } else {
+      return "< 1min ago"
+    }
+  }
+
   useEffect(() => {
     // update database if helpful changes, ie remove or add to user's helpful list 
     // or maybe add to review itself instead of user (or add to both) so i can have how many people
     // think its helpful/not helpful
-  }, [helpful])
+  }, [])
 
   return (
       <>
@@ -61,13 +96,13 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
               </div>
               <div className='relative flex-1 mb-5'>
                 <div>
-                  <p className='h-full line-clamp-10 bg-white mb-2'>{body}</p>
+                  <p className='h-full line-clamp-6 bg-white mb-2'>{body}</p>
 
                 </div>
               </div>
               <div className='relative flex'>
                 <div className='flex items-center space-x-8 text-sm'>
-                  <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 opacity-60'>{age}</span> By {author}</p>
+                  <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 opacity-60 text-xs mr-2'>{timePassed()}</span> By {author}</p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                   { !bookmarked ?
                     <BookmarkBorderOutlinedIcon className='hover:cursor-pointer' onClick={() => setBookmarked(state => (!state))} /> :
@@ -119,7 +154,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
                 </div>
                 <div className='relative flex'>
                   <div className='flex items-center space-x-8 text-sm'>
-                    <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 opacity-60'>{age}</span> By {author}</p>
+                    <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 opacity-60'>{timePassed()}</span> By {author}</p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                     { !bookmarked ?
                       <BookmarkBorderOutlinedIcon className='hover:cursor-pointer' onClick={() => setBookmarked(state => (!state))} /> :

@@ -1,11 +1,61 @@
-import React from 'react'
+import { jsonEval } from '@firebase/util'
+import React, { useEffect, useState } from 'react'
+import { addReviewToFireStore, getGenresFromFireStore } from '../../firebase'
 
 const WriteReview = () => {
+  const [reviewCreated, setReviewCreated] = useState(false)
+  const [genres, setGenres] = useState([])
+
+
+  useEffect(() => {
+    getGenresFromFireStore().then(genres => setGenres(genres))
+  }, []) 
+
+
+  const addReview  = (e) => {
+    e.preventDefault()
+    const author = "Matthew Carby"
+    const headline = document.getElementById('review-headline').value
+    const genre = JSON.parse(document.getElementById('review-genre').value)
+    const tag = document.getElementById('review-tag').value
+    const body = document.getElementById('review-body').value
+    const rating = Number(document.getElementById('review-rating').value)
+    const images = []
+  
+    const formData = {
+      author: author,
+      headline: headline,
+      genre: genre,
+      tag: tag,
+      body: body,
+      rating: rating,
+      images: images,
+    }
+
+
+    addReviewToFireStore(formData)
+    .then(() => {
+      document.getElementById('write-review-form').reset()
+      setReviewCreated(true)
+      window.scrollTo(0, 0);
+    })   
+  }
+  
+
+  
   return (
     <div className='mb-10'>
+      {
+        reviewCreated &&       
+      
+      <div className='w-full my-10'>
+        <h1 className='text-blue-600 text-center'>Successfully Published Review!! {' :)'}</h1>
+      </div>
+      }
+
       <h1 className='text-center text-3xl font-bold'>Write Review</h1>
       <div className='h-[1000px] w-11/12 mt-20 m-auto bg-white rounded-md p-10'>
-        <form className='text-slate-500 h-full flex flex-col space-y-4'>
+        <form id='write-review-form' className='text-slate-500 h-full flex flex-col space-y-4' onSubmit={e => addReview(e)}>
           <div className='relative w-full flex flex-col items-start h-fit font-bold'>
             {/* <label htmlFor="review-headline">Headline:</label> */}
             <input 
@@ -25,6 +75,15 @@ const WriteReview = () => {
             >
               Headline
             </label>
+          </div>
+          <div>
+            <select name="genre" id="review-genre" className='border-2 border-slate-300 rounded-md p-2 px-4 focus:border-papaya focus:outline-papaya text-sm'>
+              {
+                genres.map((genre, i) => (
+                  <option key={i} value={JSON.stringify(genre)}>{genre.title}</option>
+                ))
+              }
+            </select>
           </div>
 
           <div className='relative w-full flex flex-col items-start h-20 text-sm'>
@@ -57,7 +116,7 @@ const WriteReview = () => {
             </label>
           </div>
           <div className='relative flex-1 flex flex-col items-start w-fit'>
-            <input id='review-rating' name='review-rating' type='number' min='1' step='0.5' max='5' placeholder=' ' 
+            <input id='review-rating' name='review-rating' type='number' min={1} step={0.5} max={5} placeholder=' ' 
               className='peer font-bold border-2 border-slate-300 rounded-md p-2 w-16 placeholder-transparent focus:outline-2 focus:outline-papaya'
               required
             />
@@ -72,7 +131,7 @@ const WriteReview = () => {
             <small className='w-full text-xs text-center'>1-5 stars</small>
           </div>
           <div className='flex w-full items-center justify-center'>
-            <button className='w-20 border-2 border-papaya bg-papaya rounded-md text-white p-2 focus:outline-papaya'>Publish</button>
+            <button type='submit' className='w-20 border-2 border-papaya bg-papaya rounded-md text-white p-2 focus:outline-papaya'>Publish</button>
           </div>
         </form>
       </div>

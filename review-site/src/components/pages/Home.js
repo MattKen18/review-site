@@ -1,22 +1,35 @@
-import React, { useEffect, useRef } from 'react';
-import { addToFireStore, getFromFireStore } from '../../firebase';
+import React, { useEffect, useRef, useState } from 'react';
+import { addGenre, addToFireStore, getFromFireStore, getShownReviews } from '../../firebase';
 import { useSelector } from 'react-redux';
 import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
 import Review from '../Review';
+import { selectShownReviews, setShownReviews } from '../../slices/reviewsSlice';
+import { useDispatch } from 'react-redux';
 
 const Home = () => {
   const createdUser = useRef(false)
+  const dispatch = useDispatch()
   const filters = useSelector(selectFilters)
   const genreFiltering = useSelector(selectGenreFiltering)
   const mossFiltering = useSelector(selectMossFiltering)
   const authFiltering = useSelector(selectAuthFiltering)
+
+  const [shownReviews, setShownReviews] = useState([])
 
   useEffect(() => {
     // if (createdUser.current) return; //strict mode makes it run twice so using useRef keeps track of if it was already ran
     // addToFireStore();
     // getFromFireStore();
     // createdUser.current = true;
+    getShownReviews().then(data =>
+      setShownReviews(data)
+    )
   }, []);
+
+
+  useEffect(() => {
+    // console.log(shownReviews)
+  }, [shownReviews])
 
 
   const reviews = [{
@@ -113,6 +126,8 @@ const Home = () => {
     numOfComments:25,
     rating: 3.5,
   }]
+
+
   return (
     <div className=''>
         <div className='w-11/12 m-auto'>
@@ -133,7 +148,7 @@ const Home = () => {
             </>
           : 
           <>
-            {reviews.map((review, i) => (
+            {shownReviews.map((review, i) => (
               <Review key={i} id={i} review={review} />
             )) 
             }
