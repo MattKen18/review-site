@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getDoc, getFirestore, query } from "firebase/firestore";
+import { doc, getDoc, getFirestore, query, queryEqual, setDoc } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -59,41 +59,134 @@ export const getShownReviews =  async () => {
     'timestamp': .1
   }
 
-
+  let shownReviews = []
   const querySnapshot = await getDocs(collection(db, 'reviews'))
-  const shownReviews = []
   querySnapshot.forEach(doc => {
     shownReviews.push(doc.data())
   })
+  
+  // const getGenreObj = async (review) => {
+  //   const docRef = doc(db, 'genres', review.genre.id)
+  //   const docSnap = await getDoc(docRef)
+  //   return docSnap
+
+  // }
+
+  // querySnapshot.forEach(async (doc) => {
+  //   if (doc.data().genre.id) {
+  //     const review = doc.data()
+  //     shownReviews.push(review)
+    
+  //     console.log(shownReviews)
+
+  //     const genre = await getGenreObj(doc.data()).then(d => d.data())
+  //     review.genre = genre
+
+  //   } else {
+  //     console.log('no ID')
+  //   }
+  // })
+  // console.log(shownReviews)
+
+
+
+  // querySnapshot.forEach(async (d) => {
+  //   const review = d.data()
+
+  //   if (review.genre.id) {
+  //     const docRef = doc(db, 'genres', review.genre.id)
+  //     const docSnap = await getDoc(docRef).then(data => {
+  //       review.genre = data.data()
+  //       shownReviews.push(review)
+  //     })
+  //   }
+  //   shownReviews.push(review)
+    
+    // try {
+    //   console.log(review.genre)
+    //   const docRef = doc(db, 'genres', review.genre.id)
+    //   const docSnap = await getDoc(docRef)
+      
+    //   if (docSnap.exists()) {
+    //     review.genre = docSnap.data()
+    //   } else {
+    //   }
+    // } catch (e) {
+    // }
+    // shownReviews.push(review)
+
+  // })
+
+  // const convertGenreToObj = async () => {
+  //   for (const review of shownReviews) {
+  //     try {
+  //       const docRef = doc(db, 'genres', review.genre.id) //get the genre object from the reference that is stored
+  //       const docSnapshot = await getDoc(docRef).then(data => review['genre'] = data.data())
+  //       console.log(review)
+  //       // review.genre = docSnapshot.data()
+  //     } catch (e) {
+  //       console.log("Review does not have genre reference")
+  //     }
+  //   }
+  // }
+
+  // convertGenreToObj()
+
+  // shownReviews.forEach(async review => {
+  //   try {
+  //     const docRef = doc(db, 'genres', review.genre.id) //get the genre object from the reference that is stored
+  //     const docSnapshot = await getDoc(docRef).then(data => review.genre = data.data())
+  //     // review.genre = docSnapshot.data()
+  //   } catch (e) {
+  //     console.log("Review does not have genre reference")
+  //   }
+
+  // })
 
   for (let i=0; i < shownReviews.length; i++) {
     const review = shownReviews[i]
-    // console.log(review)
     try {
       const { helpfuls, comments, saves, timestamp } = review
-      // console.log(helpfuls, comments.length, saves, timestamp)
       const relevanceScore = Math.round(helpfuls*weights['helpfuls'] + comments.length*weights['comments'] + saves*weights['saves'] + (timestamp*10**-9)*weights['timestamp']*100)/100
       review.relevanceScore = relevanceScore
-      console.log(review.relevanceScore)
       shownReviews = shownReviews.sort((a, b) => b.relevanceScore - a.relevanceScore)
-      // console.log(shownReviews)
     } catch (e) {
       
     }
-    //then sort based on timestamp of the reviews
   }
-  console.log(shownReviews)
+  // for (let x=0; x<shownReviews.length; x++) {
+  //   // console.log("genre from firebase:", shownReviews[x].genre)
+  // }
   return shownReviews
 }
+
+export const convertShownReviews = async (reviews) => {
+  for (let i=0; i<reviews.length; i++) {
+    if (reviews[i].genre.id) {
+      const docRef = doc(db, 'genres', reviews[i].genre.id)
+      const docSnap = await getDoc(docRef)
+      reviews[i].genre = docSnap.data()
+      // console.log(reviews[i])
+    }
+  }
+  return reviews
+}
+
+
+getShownReviews().then(data => convertShownReviews(data).then(data => console.log('reviews from firestore:', data)))
 
 
 export const addReviewToFireStore = async ({ author, headline, body, genre, tag, images, rating}) => {
   try {
-    const docRef = await addDoc(collection(db, "reviews"), {
+    const genreRef = doc(db, 'genres', genre.title)
+    const genreDoc = await getDoc(genreRef)
+    console.log(genreDoc.data())
+
+    const docRef = await addDoc(collection(db, "reviews", ), {
       author: author,
       headline: headline,
       body: body,
-      genre: genre, //convert to use the genre id, get that genre from firestone and then use it here
+      genre: genreRef, //convert to use the genre id, get that genre from firestone and then use it here
       tag: tag,
       images: images, //might be an []
       rating: rating, 
@@ -109,3 +202,52 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
     console.error("Error adding document")
   }
 }
+
+// const genres = [
+//   {
+//     title: 'Books',
+//     color: '#e11d48',
+//   },
+//   {
+//     title: 'Music',
+//     color: '#064e3b',
+//   },
+//   {
+//     title: 'Games',
+//     color: '#0d9488',
+//   },
+//   {
+//     title: 'Restaurants',
+//     color: '#c026d3',
+//   },
+//   {
+//     title: 'Technology',
+//     color: '#4ade80',
+//   },
+//   {
+//     title: 'TV Shows-Movies',
+//     color: '#a16207',
+//   },
+//   {
+//     title: 'Hotels-Resorts',
+//     color: '#44403c',
+//   },
+//   {
+//     title: 'Misc',
+//     color: '#4b5563',
+//   },
+//   {
+//     title: 'Anime',
+//     color: '#5eead4',
+//   },
+// ]
+
+// export const addGenres = async () => {
+//   for (let genre of genres) {
+//     const docRef = collection(db, 'genres')
+//     await setDoc(doc(docRef, genre.title), genre)
+//   }
+// }
+
+
+// addGenres()

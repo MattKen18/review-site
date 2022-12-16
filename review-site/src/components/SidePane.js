@@ -20,6 +20,9 @@ const SidePane = () => {
     getGenresFromFireStore().then(genres => setGenres(genres))
   }, [])
 
+  useEffect(() => {
+    // console.log(genres)
+  }, [genres])
   
   return (
     <div className='h-screen border-r-2 border-slate-200 px-5 pt-10 fixed w-1/6 select-none'>

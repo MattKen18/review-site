@@ -1,18 +1,28 @@
-import { jsonEval } from '@firebase/util'
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { addReviewToFireStore, getGenresFromFireStore } from '../../firebase'
+
 
 const WriteReview = () => {
   const [reviewCreated, setReviewCreated] = useState(false)
   const [genres, setGenres] = useState([])
-
+  const [review, SetReview] = useState({
+    author: 'Matthew Carby', //change to current user
+    headline: '',
+    genre: null,
+    tag: '',
+    body: '',
+    rating: null,
+    images: [],
+  })
 
   useEffect(() => {
     getGenresFromFireStore().then(genres => setGenres(genres))
   }, []) 
+  
 
 
-  const addReview  = (e) => {
+  const addReview = (e) => {
     e.preventDefault()
     const author = "Matthew Carby"
     const headline = document.getElementById('review-headline').value
@@ -39,9 +49,13 @@ const WriteReview = () => {
       setReviewCreated(true)
       window.scrollTo(0, 0);
     })   
+    
   }
-  
 
+  const sendUnfinishedReview = () => {
+
+  } 
+  
   
   return (
     <div className='mb-10'>
@@ -52,9 +66,11 @@ const WriteReview = () => {
         <h1 className='text-blue-600 text-center'>Successfully Published Review!! {' :)'}</h1>
       </div>
       }
-
-      <h1 className='text-center text-3xl font-bold'>Write Review</h1>
-      <div className='h-[1000px] w-11/12 mt-20 m-auto bg-white rounded-md p-10'>
+      <div>
+        <h1 className='text-center text-3xl font-bold'>Write Review</h1>
+        <p className='w-full text-center text-sm'>Tell us what you think</p>
+      </div>
+      <div className='flex flex-col min-h-[1000px] w-11/12 mt-20 m-auto bg-white rounded-md p-10'>
         <form id='write-review-form' className='text-slate-500 h-full flex flex-col space-y-4' onSubmit={e => addReview(e)}>
           <div className='relative w-full flex flex-col items-start h-fit font-bold'>
             {/* <label htmlFor="review-headline">Headline:</label> */}
@@ -130,10 +146,17 @@ const WriteReview = () => {
             </label>
             <small className='w-full text-xs text-center'>1-5 stars</small>
           </div>
-          <div className='flex w-full items-center justify-center'>
-            <button type='submit' className='w-20 border-2 border-papaya bg-papaya rounded-md text-white p-2 focus:outline-papaya'>Publish</button>
+          <br />
+          <br />
+          <div className='flex w-full items-center justify-center space-x-2'>
+            <button type='submit' className='border-2 border-papaya bg-papaya rounded-md text-white p-2 focus:outline-papaya'>Publish</button>
+            <p> Or </p>
+            <Link className='border-2 border-papaya bg-papaya rounded-md text-white p-2 focus:outline-papaya' to={'/compose/images'}>
+              Add Images
+            </Link>
           </div>
         </form>
+        
       </div>
     </div>
   )

@@ -8,11 +8,11 @@ import React, { useEffect, useRef, useState } from 'react'
 import RatingStars from './RatingStars'
 import ReviewImageCarousel from './ReviewImageCarousel'
 
-const Review = ({id, review: {author, headline, body, genre: {title, color, border}, tag, images, timestamp, numOfComments, rating}}) => {
+const Review = ({id, review: {author, headline, body, genre: {title, color}, tag, images, timestamp, numOfComments, rating}}) => {
   const [bookmarked, setBookmarked] = useState(false) //change to use selector to get list of bookmarked items of the user
   const [helpful, setHelpful] = useState(false) //true if the user selects 
   const [justClicked, setJustClicked] = useState(null)
-  const genreColor = `${color}`
+  // const genreColor = `${color}`
 
   /* whenever user selects helpful or bookmarked add 
      to a list of helpful reviews/ bookmarks in the user table */
@@ -74,14 +74,16 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
     // update database if helpful changes, ie remove or add to user's helpful list 
     // or maybe add to review itself instead of user (or add to both) so i can have how many people
     // think its helpful/not helpful
+    document.getElementById(`${title}-review-detail-click`).style.backgroundColor = color
+    // console.log(title, color)
   }, [])
 
   return (
       <>
         {!images.length > 0 ? 
           <>
-            <div className={`relative z-0 flex flex-col min-h-[300px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-10 overflow-hidden`}>
-              <div className={`group absolute -top-20 -right-20 w-36 h-28 z-1 ${genreColor} rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
+            <div className={`relative z-0 flex flex-col min-h-[200px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
+              <div id={`${title}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
                 <a href='/' className='relative w-full h-full block'>
                   <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
                 </a>
@@ -89,7 +91,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
               <div className='mb-5'>
                 <p className='text-sm font-light'>{`'${tag}'`} <span className='opacity-70 font-extralight'>• {title}</span></p>
                 <div className='flex space-x-8 items-center'>
-                  <h1 className='font-extrabold text-2xl'>{headline}</h1>
+                  <h1 className='font-extrabold text-2xl'><a href="/" className=''>{headline}</a></h1>
                   <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                   
                 </div>
@@ -101,23 +103,24 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
                 </div>
               </div>
               <div className='relative flex'>
-                <div className='flex items-center space-x-8 text-sm'>
-                  <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 opacity-60 text-xs mr-2'>{timePassed()}</span> By {author}</p>
+                <div className='flex items-center space-x-3 text-sm'>
+                  <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2'>{timePassed()}</span> By {author}</p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                   { !bookmarked ?
-                    <BookmarkBorderOutlinedIcon className='hover:cursor-pointer' onClick={() => setBookmarked(state => (!state))} /> :
-                    <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya' onClick={() => setBookmarked(state => (!state))} />
+                    <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :
+                    <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => setBookmarked(state => (!state))} />
                   }
                 </div>
                 {/* absolute flex flex-col top-1/2 -right-10 -translate-x-1/2 -translate-y-1/2 */}
-                <div className='flex-1 space-x-1 items-center opacity-80 hover:opacity-100'>
+                <div className='flex-1 space-x-1 items-center'>
                   <div className='relative float-right flex space-x-1 items-center'>
-                    <p className='absolute text-xs w-24 -right-1/3 -top-4'>Was this helpful?</p>
+                    {/* <p className='absolute text-xs w-24 -right-1/3 -top-4 hidden peer-hover:block'>Was this helpful?</p> */}
                       {
-                        <>
-                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-up-${id}`)} />
-                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-down-${id}`)} />
-                        </>                
+                        <div className='group flex items-center justify-center space-x-1'>
+                          <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
+                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-up-${id}`)} />
+                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-down-${id}`)} />
+                        </div>                
                       }
                     
                   </div>
@@ -128,13 +131,13 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
           </> 
           :
           <>
-            <div className={`relative z-0 flex min-h-[300px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-10 overflow-hidden`}>
+            <div className={`relative z-0 flex min-h-[300px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
               {/* image section */}
               <div className='flex items-center justify-center pr-10'>
                 <ReviewImageCarousel imgSources={images} />
               </div>
               <div className='flex-1 flex flex-col'>
-                <div className={`group absolute -top-20 -right-20 w-36 h-28 z-1 ${genreColor} rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
+                <div id={`${title}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
                   <a href='/' className='relative w-full h-full block'>
                     <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
                   </a>
@@ -153,23 +156,24 @@ const Review = ({id, review: {author, headline, body, genre: {title, color, bord
                   </div>
                 </div>
                 <div className='relative flex'>
-                  <div className='flex items-center space-x-8 text-sm'>
-                    <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 opacity-60'>{timePassed()}</span> By {author}</p>
+                  <div className='flex items-center space-x-3 text-sm'>
+                    <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2'>{timePassed()}</span> By {author}</p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                     { !bookmarked ?
-                      <BookmarkBorderOutlinedIcon className='hover:cursor-pointer' onClick={() => setBookmarked(state => (!state))} /> :
-                      <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya' onClick={() => setBookmarked(state => (!state))} />
-                    }
+                      <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :
+                      <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => setBookmarked(state => (!state))} />
+                  }
                   </div>
                   {/* absolute flex flex-col top-1/2 -right-10 -translate-x-1/2 -translate-y-1/2 */}
-                  <div className='flex-1 space-x-1 items-center opacity-80 hover:opacity-100'>
+                  <div className='flex-1 space-x-1 items-center'>
                     <div className='relative float-right flex space-x-1 items-center'>
-                      <p className='absolute text-xs w-24 -right-1/3 -top-4'>Was this helpful?</p>
+                      {/* <p className='absolute text-xs w-24 -right-1/3 -top-4'>Was this helpful?</p> */}
                         {
-                          <>
-                            <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-up-${id}`)} />
-                            <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-down-${id}`)} />
-                          </>                
+                        <div className='group flex items-center justify-center space-x-1'>
+                          <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
+                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-up-${id}`)} />
+                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-down-${id}`)} />
+                        </div>                
                         }
                       
                     </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { addGenre, addToFireStore, getFromFireStore, getShownReviews } from '../../firebase';
+import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getShownReviews } from '../../firebase';
 import { useSelector } from 'react-redux';
 import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
 import Review from '../Review';
@@ -16,19 +16,35 @@ const Home = () => {
 
   const [shownReviews, setShownReviews] = useState([])
 
+  const alreadyShown = useRef(false)
+
   useEffect(() => {
     // if (createdUser.current) return; //strict mode makes it run twice so using useRef keeps track of if it was already ran
     // addToFireStore();
     // getFromFireStore();
     // createdUser.current = true;
-    getShownReviews().then(data =>
-      setShownReviews(data)
-    )
+
+    getShownReviews().then(data => convertShownReviews(data).then(data => setShownReviews(data)))
+
+    if (alreadyShown.current) {
+      // getShownReviews().then(data =>{
+      //   setShownReviews(data)}
+      // )
+      getShownReviews().then(data => convertShownReviews(data).then(data => setShownReviews(data)))
+
+    }
+    alreadyShown.current = true
+
   }, []);
 
+  
 
   useEffect(() => {
-    // console.log(shownReviews)
+    if (alreadyShown.current) {
+      console.log(shownReviews)
+    }
+    alreadyShown.current = true
+
   }, [shownReviews])
 
 
