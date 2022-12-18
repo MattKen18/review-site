@@ -74,22 +74,31 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
     // update database if helpful changes, ie remove or add to user's helpful list 
     // or maybe add to review itself instead of user (or add to both) so i can have how many people
     // think its helpful/not helpful
-    document.getElementById(`${title}-review-detail-click`).style.backgroundColor = color
+    try {
+      document.getElementById(`${id}-review-detail-click`).style.backgroundColor = color
+    } catch {
+
+    }
     // console.log(title, color)
   }, [])
 
+  const reviewHeading = tag ? 
+    <p className='text-sm font-light'>{tag}<span className='opacity-70 font-extralight'> • {title}</span></p> :
+    <p className='text-sm font-light'><span className='opacity-70 font-extralight'>{title}</span></p>
   return (
       <>
         {!images.length > 0 ? 
           <>
             <div className={`relative z-0 flex flex-col min-h-[200px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
-              <div id={`${title}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
+              <div id={`${id}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
                 <a href='/' className='relative w-full h-full block'>
                   <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
                 </a>
               </div> 
               <div className='mb-5'>
-                <p className='text-sm font-light'>{`'${tag}'`} <span className='opacity-70 font-extralight'>• {title}</span></p>
+                {
+                  reviewHeading
+                }
                 <div className='flex space-x-8 items-center'>
                   <h1 className='font-extrabold text-2xl'><a href="/" className=''>{headline}</a></h1>
                   <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
@@ -137,13 +146,15 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
                 <ReviewImageCarousel imgSources={images} />
               </div>
               <div className='flex-1 flex flex-col'>
-                <div id={`${title}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
+                <div id={`${id}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
                   <a href='/' className='relative w-full h-full block'>
                     <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
                   </a>
                 </div> 
                 <div className='mb-5'>
-                  <p className='text-sm font-light'>{`'${tag}'`} <span className='opacity-70 font-extralight'>• {title}</span></p>
+                  {
+                    reviewHeading
+                  }
                   <div className='flex space-x-8 items-center'>
                     <h1 className='font-extrabold text-2xl'>{headline}</h1>
                     <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
@@ -180,9 +191,6 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
                   </div>
                 </div>
               </div>
-
-                
-
               </div>
           </>
         }

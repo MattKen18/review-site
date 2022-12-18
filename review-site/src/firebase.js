@@ -178,9 +178,10 @@ getShownReviews().then(data => convertShownReviews(data).then(data => console.lo
 
 export const addReviewToFireStore = async ({ author, headline, body, genre, tag, images, rating}) => {
   try {
-    const genreRef = doc(db, 'genres', genre.title)
+    const genreObj = JSON.parse(genre)
+    const genreRef = doc(db, 'genres', genreObj.title)
     const genreDoc = await getDoc(genreRef)
-    console.log(genreDoc.data())
+    // console.log(genreDoc.data())
 
     const docRef = await addDoc(collection(db, "reviews", ), {
       author: author,
@@ -200,6 +201,7 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
     })
   } catch (e) {
     console.error("Error adding document")
+    console.log(e)
   }
 }
 

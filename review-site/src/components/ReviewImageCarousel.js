@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 
 const ReviewImageCarousel = ({ imgSources }) => {
   const [sources, setSources] = useState(imgSources)
+  const [goingNext, setGoingNext] = useState(false)
+  const [goingPrev, setGoingPrev] = useState(false)
 
   const cycleImageNext = () => {
     //current image is the first image in the array
@@ -25,12 +27,12 @@ const ReviewImageCarousel = ({ imgSources }) => {
 
   return ( 
 
-    <div className='group relative flex items-center justify-center overflow-hidden rounded-md h-[300px] bg-slate-200'>
-      <img src={sources[0]} className='peer max-w-[250px] object-cover' />
-      <button onClick={cycleImagePrev} className='absolute left-0 top-1/2 transform -translate-y-1/2 h-[50px] w-10 bg-slate-200 hidden group-hover:block opacity-75 hover:opacity-100'>
+    <div className='group relative flex items-center justify-center overflow-hidden rounded-md w-[250px] h-[300px] bg-slate-200'>
+      <img src={sources[0]} className='peer absolute max-w-[250px] object-cover' />
+      <button onClick={cycleImagePrev} className='absolute -left-10 top-1/2 transform -translate-y-1/2 h-[75px] w-10 bg-slate-200 group-hover:block group-hover:translate-x-10 duration-300 opacity-75 hover:opacity-100'>
         {'<-'}
       </button>
-      <button onClick={cycleImageNext} className='absolute right-0 top-1/2 transform -translate-y-1/2 h-[50px] w-10 bg-slate-200 hidden group-hover:block opacity-75 hover:opacity-100'>
+      <button onClick={cycleImageNext} className='absolute -right-10 top-1/2 transform -translate-y-1/2 h-[75px] w-10 bg-slate-200 group-hover:block group-hover:-translate-x-10 duration-300 opacity-75 hover:opacity-100'>
         {'->'}
       </button>
     </div>
