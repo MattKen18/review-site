@@ -3,8 +3,9 @@ import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getSho
 import { useSelector } from 'react-redux';
 import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
 import Review from '../Review';
-import { selectShownReviews, setShownReviews } from '../../slices/reviewsSlice';
 import { useDispatch } from 'react-redux';
+import LoadingAnimation from 'react-loading';
+import ReviewPlaceholder from '../ReviewPlaceholder';
 
 const Home = () => {
   const createdUser = useRef(false)
@@ -18,13 +19,18 @@ const Home = () => {
 
   const alreadyShown = useRef(false)
 
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     // if (createdUser.current) return; //strict mode makes it run twice so using useRef keeps track of if it was already ran
     // addToFireStore();
     // getFromFireStore();
     // createdUser.current = true;
 
-    getShownReviews().then(data => convertShownReviews(data).then(data => setShownReviews(data)))
+    getShownReviews().then(data => { 
+      setLoading(false)
+      convertShownReviews(data).then(data => setShownReviews(data))
+    })
 
     if (alreadyShown.current) {
       // getShownReviews().then(data =>{
@@ -151,27 +157,39 @@ const Home = () => {
           {/* <hr /> */}
 
         </div>
-        <div className='mt-20 m-auto'>
         {
-          genreFiltering || mossFiltering || authFiltering ? 
-          <>
-            <h2 className='text-center'>Filtering...</h2>
-            <ul>
-              {filters.map((filter, i) => (
-                <li key={i} className='block text-center'>{filter}</li>
-              ))}
-            </ul>
-            </>
-          : 
-          <>
-            {shownReviews.map((review, i) => (
-              <Review key={i} id={i} review={review} />
-            )) 
-            }
+          !loading ?
+          <div className='mt-20 m-auto'>
+          {
+            genreFiltering || mossFiltering || authFiltering ? 
+            <>
+              <h2 className='text-center'>Filtering...</h2>
+              <ul>
+                {filters.map((filter, i) => (
+                  <li key={i} className='block text-center'>{filter}</li>
+                ))}
+              </ul>
+              </>
+            : 
+            <>
+              {shownReviews.map((review, i) => (
+                <Review key={i} id={i} review={review} />
+              )) 
+              }
 
-          </>
+            </>
+          }
+          </div>
+          :
+          <div className='mt-20 m-auto'>
+            <ReviewPlaceholder />
+            <ReviewPlaceholder />
+            <ReviewPlaceholder />
+            <ReviewPlaceholder />
+            <ReviewPlaceholder />
+          </div>
+
         }
-        </div>
   
     </div>
   )

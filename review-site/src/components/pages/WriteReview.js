@@ -8,6 +8,8 @@ import RemoveOutlinedIcon from '@mui/icons-material/RemoveOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import PublishOutlinedIcon from '@mui/icons-material/PublishOutlined';
 
+import LoadingAnimation from 'react-loading';
+
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2';
 const ACCESS_ID ='AKIAR74LVHA4ZCOAF7OT';
@@ -38,7 +40,7 @@ const WriteReview = () => {
   const [selectedFile, setSelectedFile] = useState(null)
   const [imageFiles, setImageFiles] = useState([])
   const [imagesUploadedToS3, setImagesUploadedToS3] = useState(false)
-
+  const [loading, setLoading] = useState(false)
 
 
 
@@ -86,20 +88,26 @@ const WriteReview = () => {
     for (let i=0; i<review.images.length; i++) {
       if (i === imageIndex) {
         // remove from images in review state
-        const newState = [...review.images]
-        newState.splice(i, 1)
-        setReview({...review, images: newState})
-    
+        const newReviewImages = [...review.images]
+        const newImageFiles = [...imageFiles]
+        newReviewImages.splice(i, 1)
+        newImageFiles.splice(i, 1)
+        setReview({...review, images: newReviewImages})
+        setImageFiles(newImageFiles)
       }
     }
   }
+
+  useEffect(() => {
+    // console.log("current images: ", review.images)
+  }, [review.images])
 
 
   const addImageToReviewState = e => {
     if (e.target.files[0].type.match('image.*')) {
       const image = e.target.files[0]
       setImageFiles([...imageFiles, image])
-      console.log(image)
+      // console.log(image)
       const reader = new FileReader();
       reader.onloadend = () => {
         const reviewImages = [...review.images, reader.result]
@@ -114,6 +122,7 @@ const WriteReview = () => {
  
   const uploadImageToS3 = async () => { //this function uploads the images to s3 and returns the image s3 paths as an array
     const imagesFromS3 = []
+    console.log("Image files: ", imageFiles)
     for (let i=0; i<imageFiles.length; i++) {
       try {
         const fileName = i + '-' + new Date().toString().split(" ").slice(0, 5).join("-")
@@ -128,8 +137,11 @@ const WriteReview = () => {
   }
 
   const addReview = (e) => {
+    setLoading(true)
+    // document.getElementById('publish-review-btn').disabled = true
     e.preventDefault()
     uploadImageToS3().then((imagesFromS3) => {
+      console.log("Images from S3: ", imagesFromS3)
       setReview({...review, images: imagesFromS3})
       setImagesUploadedToS3(true)
     })
@@ -150,8 +162,12 @@ const WriteReview = () => {
           rating: '',
           images: [],
         })
+
         setImagesUploadedToS3(false)
+        setImageFiles([])
         window.scrollTo(0, 0);
+        // document.getElementById('publish-review-btn').disabled = false
+        setLoading(false)
       }) 
     }
 
@@ -309,7 +325,21 @@ const WriteReview = () => {
           <br />
           <br />
           <div className='flex w-full items-center justify-center space-x-2'>
-              <button type='submit' className='border-2 border-papaya bg-papaya w-80 h-20 text-white font-bold p-2 focus:outline-papaya'><span className='flex items-center w-fit m-auto'>Publish<PublishOutlinedIcon /></span></button>
+
+              <button id="publish-review-btn" type='submit' disabled={loading ? true : false} className='border-2 border-papaya bg-papaya w-80 h-20 text-white font-bold p-2 focus:outline-papaya'>
+                {/* <span className='flex items-center w-fit m-auto'> */}
+                {loading ? 
+                  <span className='flex items-center w-fit m-auto'>
+                    <LoadingAnimation className="mr-6" type={'spinningBubbles'} color={'white'} height={'40px'} width={'40px'} />
+                    <p>Publishing...</p>
+                  </span>
+                  :
+                  <span className='flex items-center w-fit m-auto'>
+                    <p>Publish</p>
+                    <PublishOutlinedIcon />
+                  </span>
+                }
+              </button>
           </div>
         </form>
         {/* <button onClick={addReviewToFireStore2}>uploader</button> */}

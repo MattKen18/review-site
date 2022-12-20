@@ -8,6 +8,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import RatingStars from './RatingStars'
 import ReviewImageCarousel from './ReviewImageCarousel'
 
+
+
 const Review = ({id, review: {author, headline, body, genre: {title, color}, tag, images, timestamp, numOfComments, rating}}) => {
   const [bookmarked, setBookmarked] = useState(false) //change to use selector to get list of bookmarked items of the user
   const [helpful, setHelpful] = useState(false) //true if the user selects 

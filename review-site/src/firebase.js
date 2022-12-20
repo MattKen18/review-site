@@ -64,84 +64,6 @@ export const getShownReviews =  async () => {
   querySnapshot.forEach(doc => {
     shownReviews.push(doc.data())
   })
-  
-  // const getGenreObj = async (review) => {
-  //   const docRef = doc(db, 'genres', review.genre.id)
-  //   const docSnap = await getDoc(docRef)
-  //   return docSnap
-
-  // }
-
-  // querySnapshot.forEach(async (doc) => {
-  //   if (doc.data().genre.id) {
-  //     const review = doc.data()
-  //     shownReviews.push(review)
-    
-  //     console.log(shownReviews)
-
-  //     const genre = await getGenreObj(doc.data()).then(d => d.data())
-  //     review.genre = genre
-
-  //   } else {
-  //     console.log('no ID')
-  //   }
-  // })
-  // console.log(shownReviews)
-
-
-
-  // querySnapshot.forEach(async (d) => {
-  //   const review = d.data()
-
-  //   if (review.genre.id) {
-  //     const docRef = doc(db, 'genres', review.genre.id)
-  //     const docSnap = await getDoc(docRef).then(data => {
-  //       review.genre = data.data()
-  //       shownReviews.push(review)
-  //     })
-  //   }
-  //   shownReviews.push(review)
-    
-    // try {
-    //   console.log(review.genre)
-    //   const docRef = doc(db, 'genres', review.genre.id)
-    //   const docSnap = await getDoc(docRef)
-      
-    //   if (docSnap.exists()) {
-    //     review.genre = docSnap.data()
-    //   } else {
-    //   }
-    // } catch (e) {
-    // }
-    // shownReviews.push(review)
-
-  // })
-
-  // const convertGenreToObj = async () => {
-  //   for (const review of shownReviews) {
-  //     try {
-  //       const docRef = doc(db, 'genres', review.genre.id) //get the genre object from the reference that is stored
-  //       const docSnapshot = await getDoc(docRef).then(data => review['genre'] = data.data())
-  //       console.log(review)
-  //       // review.genre = docSnapshot.data()
-  //     } catch (e) {
-  //       console.log("Review does not have genre reference")
-  //     }
-  //   }
-  // }
-
-  // convertGenreToObj()
-
-  // shownReviews.forEach(async review => {
-  //   try {
-  //     const docRef = doc(db, 'genres', review.genre.id) //get the genre object from the reference that is stored
-  //     const docSnapshot = await getDoc(docRef).then(data => review.genre = data.data())
-  //     // review.genre = docSnapshot.data()
-  //   } catch (e) {
-  //     console.log("Review does not have genre reference")
-  //   }
-
-  // })
 
   for (let i=0; i < shownReviews.length; i++) {
     const review = shownReviews[i]
@@ -149,7 +71,7 @@ export const getShownReviews =  async () => {
       const { helpfuls, comments, saves, timestamp } = review
       const relevanceScore = Math.round(helpfuls*weights['helpfuls'] + comments.length*weights['comments'] + saves*weights['saves'] + (timestamp*10**-9)*weights['timestamp']*100)/100
       review.relevanceScore = relevanceScore
-      shownReviews = shownReviews.sort((a, b) => b.relevanceScore - a.relevanceScore)
+      // shownReviews = shownReviews.sort((a, b) => b.relevanceScore - a.relevanceScore)
     } catch (e) {
       
     }
@@ -204,52 +126,3 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
     console.log(e)
   }
 }
-
-// const genres = [
-//   {
-//     title: 'Books',
-//     color: '#e11d48',
-//   },
-//   {
-//     title: 'Music',
-//     color: '#064e3b',
-//   },
-//   {
-//     title: 'Games',
-//     color: '#0d9488',
-//   },
-//   {
-//     title: 'Restaurants',
-//     color: '#c026d3',
-//   },
-//   {
-//     title: 'Technology',
-//     color: '#4ade80',
-//   },
-//   {
-//     title: 'TV Shows-Movies',
-//     color: '#a16207',
-//   },
-//   {
-//     title: 'Hotels-Resorts',
-//     color: '#44403c',
-//   },
-//   {
-//     title: 'Misc',
-//     color: '#4b5563',
-//   },
-//   {
-//     title: 'Anime',
-//     color: '#5eead4',
-//   },
-// ]
-
-// export const addGenres = async () => {
-//   for (let genre of genres) {
-//     const docRef = collection(db, 'genres')
-//     await setDoc(doc(docRef, genre.title), genre)
-//   }
-// }
-
-
-// addGenres()
