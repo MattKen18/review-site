@@ -8,13 +8,10 @@ import WriteReview from './components/pages/WriteReview';
 const App = () => {
   return (
     <Router>
-      <div className='w-full min-h-screen font-display text-slate-600'>
+      <div className='min-h-screen font-display text-slate-600'>
         <Header />
-        <div className='flex flex-col sm:flex-row h-full'>
-          <aside className='h-screen basis-1/6'>
-            <SidePane />
-          </aside>
-          <div className='min-h-screen h-fit basis-4/6 bg-gray-100 pt-10'>
+        <div className='flex'>
+          <div className='flex-1'>
             <Routes>
               <Route path='/' element={<Home />} />
               <Route path='/compose' element={<WriteReview />} />
@@ -26,6 +23,26 @@ const App = () => {
         </div>
       </div>
     </Router>
+
+    // <Router>
+    //   <div className='w-full min-h-screen font-display text-slate-600'>
+    //     <Header />
+    //     <div className='flex flex-col sm:flex-row h-full'>
+    //       <aside className='h-screen basis-1/6'>
+    //         <SidePane />
+    //       </aside>
+    //       <div className='min-h-screen h-fit basis-4/6 bg-gray-100 pt-10'>
+    //         <Routes>
+    //           <Route path='/' element={<Home />} />
+    //           <Route path='/compose' element={<WriteReview />} />
+    //         </Routes>
+    //       </div>
+    //       <aside className='min-h-screen basis-1/6'>
+    //         <AdSpace />
+    //       </aside>
+    //     </div>
+    //   </div>
+    // </Router>
   );
 }
 
