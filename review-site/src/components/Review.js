@@ -84,9 +84,15 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
     // console.log(title, color)
   }, [])
 
+
+  useEffect(() => {
+    console.log(author.userName)
+  }, [])
+
   const reviewHeading = tag ? 
     <p className='text-sm font-light'>{tag}<span className='opacity-70 font-extralight'> • {title}</span></p> :
     <p className='text-sm font-light'><span className='opacity-70 font-extralight'>{title}</span></p>
+
   return (
       <>
         {!images.length > 0 ? 
@@ -109,13 +115,12 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
               </div>
               <div className='relative flex-1 mb-5'>
                 <div>
-                  <p className='h-full line-clamp-6 bg-white mb-2'>{body}</p>
-
+                  <p className='font-body h-full line-clamp-6 bg-white mb-2'>{body}</p>
                 </div>
               </div>
               <div className='relative flex'>
                 <div className='flex items-center space-x-3 text-sm'>
-                  <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2'>{timePassed()}</span> By {author}</p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author.userName}</a></p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                   { !bookmarked ?
                     <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :
@@ -170,7 +175,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
                 </div>
                 <div className='relative flex'>
                   <div className='flex items-center space-x-3 text-sm'>
-                    <p className='opacity-80'><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2'>{timePassed()}</span> By {author}</p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author.userName}</a></p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                     { !bookmarked ?
                       <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :

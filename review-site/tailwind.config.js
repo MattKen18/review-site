@@ -19,7 +19,7 @@ module.exports = {
     },
     fontFamily: {
       display: ["Inter", "Roboto", "sans-serif"],
-      body: ["Helvetica", "Arial", "sans-serif" ]
+      body: ["Rubik", "Arial", "sans-serif" ]
     },
     
   },

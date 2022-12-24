@@ -11,11 +11,13 @@ import PublishOutlinedIcon from '@mui/icons-material/PublishOutlined';
 import LoadingAnimation from 'react-loading';
 import AdSpace from '../AdSpace';
 
-// import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
+import { useNavigate } from 'react-router-dom';
+import Alert from '../Alert';
 
 const S3_BUCKET ='test-image-store-weviews';
-const REGION ='us-east-2';
+const REGION ='us-east-2'; 
 const ACCESS_ID ='AKIAR74LVHA4ZCOAF7OT';
 const SECRET_ACCESS_KEY ='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';
 
@@ -28,13 +30,13 @@ const config = {
 }
 
 const s3 = new ReactS3Client(config);
-// const auth = getAuth()
+const auth = getAuth()
 
 const WriteReview = () => {
   const [reviewCreated, setReviewCreated] = useState(false)
   const [genres, setGenres] = useState([])
   const [review, setReview] = useState({
-    author: 'Matthew Carby', //change to current user
+    author: null, //change to current user
     headline: '',
     genre: '',
     tag: '',
@@ -46,8 +48,10 @@ const WriteReview = () => {
   const [imageFiles, setImageFiles] = useState([])
   const [imagesUploadedToS3, setImagesUploadedToS3] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [alert, setAlert] = useState(null)
+  const navigate = useNavigate()
 
-
+  const [currentUser, setCurrentUser] = useState(null)
 
   useEffect(() => {
     getGenresFromFireStore().then(genres => setGenres(genres))
@@ -57,7 +61,9 @@ const WriteReview = () => {
     setReview({...review, genre: JSON.stringify(genres[0])})
   }, [genres])
   
+  useEffect(() => {
 
+  })
 
   const uploader = () => {
     const images = [...imageFiles]
@@ -67,27 +73,6 @@ const WriteReview = () => {
     setImagesUploadedToS3(true)
 
   }
-
-
-  // const addReview = (e) => {
-  //   e.preventDefault()
-
-  //   addReviewToFireStore(review)
-  //   .then(() => {
-  //     setReviewCreated(true)
-  //     setReview({
-  //       author: 'Matthew Carby', //change to current user
-  //       headline: '',
-  //       genre: '',
-  //       tag: '',
-  //       body: '',
-  //       rating: '',
-  //       images: [],
-  //     })
-  //     window.scrollTo(0, 0);
-  //   })   
-    
-  // }
 
   const deleteImage = async (imageIndex) => {
     for (let i=0; i<review.images.length; i++) {
@@ -102,11 +87,6 @@ const WriteReview = () => {
       }
     }
   }
-
-  useEffect(() => {
-    // console.log("current images: ", review.images)
-  }, [review.images])
-
 
   const addImageToReviewState = e => {
     if (e.target.files[0].type.match('image.*')) {
@@ -153,27 +133,31 @@ const WriteReview = () => {
   }
 
   useEffect(() => {
-    if (imagesUploadedToS3) { //if all the images in the previous review state has been converted to the image locations from s3
+    if (imagesUploadedToS3) { //if all the images in the previous review state have been converted to the image locations from s3
       console.log(review)
-      addReviewToFireStore(review)
-      .then(() => {
-        setReviewCreated(true)
-        setReview({
-          author: 'Matthew Carby', //change to current user
-          headline: '',
-          genre: JSON.stringify(genres[0]),
-          tag: '',
-          body: '',
-          rating: '',
-          images: [],
-        })
-
-        setImagesUploadedToS3(false)
-        setImageFiles([])
-        window.scrollTo(0, 0);
-        // document.getElementById('publish-review-btn').disabled = false
-        setLoading(false)
-      }) 
+      try {
+        addReviewToFireStore(review)
+        .then(() => {
+          setReviewCreated(true)
+          setReview({
+            author: '', //change to current user
+            headline: '',
+            genre: JSON.stringify(genres[0]),
+            tag: '',
+            body: '',
+            rating: '',
+            images: [],
+          })
+  
+          setImagesUploadedToS3(false)
+          setImageFiles([])
+          window.scrollTo(0, 0);
+          setLoading(false)
+          setAlert({body: "Successfully Published Review", type: "inform"})
+        }) 
+      } catch (e) {
+        setAlert({body: "Error when creating Review, Please try again", type: "error"})
+      }
     }
 
   }, [review.images])
@@ -186,16 +170,19 @@ const WriteReview = () => {
     }
   }, [reviewCreated])
   
-  // useEffect(() => {
-  //   onAuthStateChanged(auth, (user) => {
-  //     if (user) {
-        
-  //     } else {
-  //       // User is signed out
-  //       // ...
-  //     }
-  //   })
-  // }, [])
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user)
+      } else {
+        navigate('/login-signup')
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    setReview({...review, author: currentUser?.uid})
+  }, [currentUser])
 
 
   return (
@@ -203,18 +190,18 @@ const WriteReview = () => {
       <aside className='min-h-screen basis-1/5'>
         <AdSpace />
       </aside>
-      <div className='mb-10 flex-1 pt-10'>
-        {
-          reviewCreated &&
-          <div id='success-msg' className='w-full my-10 animate-bounce'>
-            <h1 className='text-blue-600 text-center'>Successfully Published Review!! {' :)'}</h1>
-          </div>     
-        }
-        <div>
+      <div className='flex-1 bg-gray-100'>
+        <div className='min-h-10 h-10 mb-3'>
+          {
+            alert &&
+            <Alert content={{body: alert.body, type: alert.type}} />
+          }
+        </div>
+        <div className='mb-10'>
           <h1 className='text-center text-3xl font-bold'>Write Review</h1>
           <p className='w-full text-center text-sm'>Tell us what you think</p>
         </div>
-        <div className='flex flex-col min-h-[1000px] w-11/12 mt-20 m-auto bg-white rounded-md p-10'>
+        <div className='flex flex-col min-h-screen w-11/12 mb-10 m-auto bg-white rounded-md p-10'>
           <form id='write-review-form' className='text-slate-500 h-full flex flex-col space-y-4' onSubmit={addReview}>
             <div className='relative w-full flex flex-col items-start h-fit font-bold'>
               {/* <label htmlFor="review-headline">Headline:</label> */}

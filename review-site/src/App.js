@@ -4,6 +4,7 @@ import Header from './components/Header';
 import SidePane from './components/SidePane';
 import AdSpace from './components/AdSpace';
 import WriteReview from './components/pages/WriteReview';
+import LoginSignup from './components/pages/LoginSignup';
 
 const App = () => {
   return (
@@ -15,6 +16,7 @@ const App = () => {
             <Routes>
               <Route path='/' element={<Home />} />
               <Route path='/compose' element={<WriteReview />} />
+              <Route path='Login-Signup' element={<LoginSignup />} />
             </Routes>
           </div>
           <aside className='min-h-screen basis-1/6'>

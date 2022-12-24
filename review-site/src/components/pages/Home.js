@@ -7,8 +7,13 @@ import { useDispatch } from 'react-redux';
 import LoadingAnimation from 'react-loading';
 import ReviewPlaceholder from '../ReviewPlaceholder';
 import SidePane from '../SidePane';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import $ from 'jquery'
+import Alert from '../Alert';
 
 const Home = () => {
+  const auth = getAuth()
+
   const createdUser = useRef(false)
   const dispatch = useDispatch()
   const filters = useSelector(selectFilters)
@@ -54,22 +59,20 @@ const Home = () => {
 
   }, [shownReviews])
 
-
   return (
     <>
       <div className='flex'>
           <aside className='h-screen basis-1/5'>
             <SidePane />
           </aside>
-          <div className='flex-1 bg-gray-100 pt-10'>
-            <div className='w-11/12 m-auto'>
-              <h1 className='text-3xl font-bold text-center mb-3 pl-10'>Your Feed</h1>
+          <div className='flex-1 bg-gray-100'>
+            <div className='w-11/12 m-auto my-16'>
+              <h1 className='text-3xl font-bold text-center mb-3'>Your Feed</h1>
               {/* <hr /> */}
-
             </div>
             {
               !loading ?
-              <div className='mt-20 m-auto'>
+              <div className='m-auto'>
               {
                 genreFiltering || mossFiltering || authFiltering ? 
                 <>

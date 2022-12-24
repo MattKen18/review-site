@@ -86,12 +86,20 @@ export const getShownReviews =  async () => {
 
 export const convertShownReviews = async (reviews) => {
   for (let i=0; i<reviews.length; i++) {
-    if (reviews[i].genre.id) {
-      const docRef = doc(db, 'genres', reviews[i].genre.id)
-      const docSnap = await getDoc(docRef)
-      reviews[i].genre = docSnap.data()
-      // console.log(reviews[i])
+    const genreRef = doc(db, 'genres', reviews[i].genre.id)
+    const genreSnap = await getDoc(genreRef)
+
+    // console.log("author: ", reviews[i].author.id)
+    if (reviews[i].author.id) {
+      const authorRef = doc(db, 'users', reviews[i].author.id)
+      const authorSnap = await getDoc(authorRef)
+      reviews[i].author = authorSnap.data()
+
     }
+
+    reviews[i].genre = genreSnap.data ()
+
+      // console.log(reviews[i])
   }
   return reviews
 }
@@ -105,13 +113,14 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
     const genreObj = JSON.parse(genre)
     const genreRef = doc(db, 'genres', genreObj.title)
     const genreDoc = await getDoc(genreRef)
-    // console.log(genreDoc.data())
+    
+    const authorRef = doc(db, 'users', author)
 
     const docRef = await addDoc(collection(db, "reviews", ), {
-      author: author,
+      author: authorRef,
       headline: headline,
       body: body,
-      genre: genreRef, //convert to use the genre id, get that genre from firestone and then use it here
+      genre: genreRef, //convert to use the genre id, get that genre from firestore and then use it here
       tag: tag,
       images: images, //might be an []
       rating: rating, 
@@ -125,6 +134,23 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
     })
   } catch (e) {
     console.error("Error adding document")
+    console.log(e)
+  }
+}
+
+
+export const addUserToFirestore  = async ({uid, displayName, email, photoUrl}) => {
+  try {
+    const docRef = await setDoc(doc(db, 'users', uid), {
+      uid: uid,
+      userName: displayName,
+      email: email,
+      photoUrl: photoUrl? photoUrl : "",
+      // reviews: [],
+      followers: [],
+    })
+    console.log("user created in firestore")
+  } catch (e) {
     console.log(e)
   }
 }
