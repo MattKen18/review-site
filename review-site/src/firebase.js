@@ -64,7 +64,9 @@ export const getShownReviews =  async () => {
   let shownReviews = []
   const querySnapshot = await getDocs(collection(db, 'reviews'))
   querySnapshot.forEach(doc => {
-    shownReviews.push(doc.data())
+    let review = doc.data()
+    review.id = doc.id
+    shownReviews.push(review)
   })
 
   for (let i=0; i < shownReviews.length; i++) {
@@ -84,7 +86,7 @@ export const getShownReviews =  async () => {
   return shownReviews
 }
 
-export const convertShownReviews = async (reviews) => {
+export const convertShownReviews = async (reviews) => { //convert reference fields to actual objects that can be used in frontend
   for (let i=0; i<reviews.length; i++) {
     const genreRef = doc(db, 'genres', reviews[i].genre.id)
     const genreSnap = await getDoc(genreRef)
@@ -94,7 +96,6 @@ export const convertShownReviews = async (reviews) => {
       const authorRef = doc(db, 'users', reviews[i].author.id)
       const authorSnap = await getDoc(authorRef)
       reviews[i].author = authorSnap.data()
-
     }
 
     reviews[i].genre = genreSnap.data ()
@@ -105,7 +106,7 @@ export const convertShownReviews = async (reviews) => {
 }
 
 
-getShownReviews().then(data => convertShownReviews(data).then(data => console.log('reviews from firestore:', data)))
+// getShownReviews().then(data => convertShownReviews(data).then(data => console.log('reviews from firestore:', data)))
 
 
 export const addReviewToFireStore = async ({ author, headline, body, genre, tag, images, rating}) => {
@@ -114,10 +115,10 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
     const genreRef = doc(db, 'genres', genreObj.title)
     const genreDoc = await getDoc(genreRef)
     
-    const authorRef = doc(db, 'users', author)
+    const authorRef = doc(db, 'users', author) //author is the uid of the currently logged in author
 
     const docRef = await addDoc(collection(db, "reviews", ), {
-      author: authorRef,
+      author: authorRef, // so as to have a reference to the user in firestore that corresponds to the user in firebase auth (whenever a user is created in firebase auth, I create a corresponding user doc in firestore)
       headline: headline,
       body: body,
       genre: genreRef, //convert to use the genre id, get that genre from firestore and then use it here
@@ -139,18 +140,38 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
 }
 
 
-export const addUserToFirestore  = async ({uid, displayName, email, photoUrl}) => {
+export const addUserToFirestore  = async ({uid, displayName, email, photoUrl}) => { //whenever a user is created using firebase auth, I create a user doc containing only these fields making it more accessible
   try {
-    const docRef = await setDoc(doc(db, 'users', uid), {
+    const userRef = doc(db, 'users', uid)
+    await setDoc(userRef, {
       uid: uid,
       userName: displayName,
       email: email,
-      photoUrl: photoUrl? photoUrl : "",
+      photoUrl: photoUrl ? photoUrl : "",
       // reviews: [],
       followers: [],
-    })
+    }, {merge: true})
+    // userRef = await setDoc(doc(db, 'users', uid), {
+    //   uid: uid,
+    //   userName: displayName,
+    //   email: email,
+    //   photoUrl: photoUrl? photoUrl : "",
+    //   // reviews: [],
+    //   followers: [],
+    // })
+
     console.log("user created in firestore")
   } catch (e) {
     console.log(e)
   }
 }
+
+export const getReviewFromFirestore = async (id) => {
+  const reviewRef = doc(db, 'reviews', id)
+  const reviewSnap = await getDoc(reviewRef)
+  console.log(fromFirestore(reviewSnap.data()))
+  // const reviews = await convertShownReviews(reviewSnap.data())
+
+  return []//reviews
+}
+

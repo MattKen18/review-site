@@ -53,7 +53,7 @@ const Home = () => {
 
   useEffect(() => {
     if (alreadyShown.current) {
-      console.log(shownReviews)
+      // console.log(shownReviews)
     }
     alreadyShown.current = true
 

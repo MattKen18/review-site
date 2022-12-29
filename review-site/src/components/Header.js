@@ -7,6 +7,7 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const Header = () => {
   const [currentUser, setCurrentUser] = useState(null)
+  const [refresh, setRefresh] = useState(false)
   const auth = getAuth();
 
   useEffect(() => {
@@ -18,6 +19,13 @@ const Header = () => {
       }
     })
   }, [])
+
+  useEffect(() => {
+    // console.log("current user from use Effect: ", currentUser)
+    if (!currentUser) {
+      // window.location.reload()
+    }
+  }, [currentUser])
 
   const signOutUser = () => {
     signOut(auth).then(() => {
@@ -45,28 +53,50 @@ const Header = () => {
           </a>
         </div>
       </div>
-      <div className='flex flex-col lg:flex-row justify-end ml-4 lg:ml-10 xl:ml-20'>
-        {
-          currentUser ?
-          <ul className='flex flex-col lg:flex-row items-center space-x-2 lg:space-x-4 xl:space-x-8'>
-            <li><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></li>
-            <li><a className='hover:text-papaya hover:cursor-pointer' onClick={() => signOutUser()}>Logout</a></li>
-            <li><a href="/" className='hover:text-papaya'>Contact</a></li>
-          </ul>
-          :
-          <ul className='flex flex-col lg:flex-row items-center space-x-2 lg:space-x-4 xl:space-x-8'>
-            <li><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></li>
-            <li><NavLink to="/login-signup" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Login</NavLink></li>
-            <li><a href="/" className='hover:text-papaya'>Contact</a></li>
-          </ul>
-        }
-
-        <div className='flex space-x-0 items-center ml-2 lg:ml-4 xl:ml-20'>
-          <small className='text-xs break-words w-10'>{currentUser && currentUser.displayName}</small>
-          <a href="/"><UserCircleIcon className='w-10' /></a>
-          <a href="/"><ChevronDownIcon className='w-4' /></a>
-        </div>
-      </div>
+      {
+        currentUser ?
+          <div className='flex flex-col items-center justify-center space-x-8 lg:flex-row ml-4 lg:ml-10 xl:ml-20'>
+            <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></p>
+            <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>My Reviews</NavLink></p>
+            <div className='w-40'>
+              <p className='hover:cursor-pointer border-2 border-green-100 bg-green-100 p-2 px-4 rounded-full text-sm font-bold font-body text-center overflow-ellipsis whitespace-nowrap overflow-hidden'><span className=''>{currentUser.isAnonymous ? "Anonymous" : currentUser.displayName ? currentUser.displayName : currentUser.email}</span></p>
+            </div>
+            <div className='relative group'>
+              <div className='peer flex space-x-0 items-center'>
+                <span><UserCircleIcon className='w-10' /></span>
+                <span className='group-hover:rotate-180 duration-100'><ChevronDownIcon className='w-4' /></span>
+              </div>
+              <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
+                <ul>
+                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
+                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li>
+                  <li  onClick={() => signOutUser()} className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Logout</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+            :
+          <div className='flex flex-col items-center justify-center space-x-8 lg:flex-row ml-4 lg:ml-10 xl:ml-20'>
+            <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></p>
+            <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>My Reviews</NavLink></p>
+            <div className='flex w-40 justify-center'>
+              <p className='hover:cursor-pointer hover:scale-110 duration-300 border-2 border-rose-100 bg-rose-100 p-2 px-4 rounded-full text-sm font-bold font-body w-fit text-center'><NavLink to="/login-signup">Login or Signup</NavLink></p>
+            </div>
+            <div className='relative group'>
+              <div className='peer flex space-x-0 items-center'>
+                <span><UserCircleIcon className='w-10' /></span>
+                <span className='group-hover:rotate-180 duration-100'><ChevronDownIcon className='w-4' /></span>
+              </div>
+              <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
+                <ul>
+                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
+                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li>
+                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'><p><NavLink to="/login-signup">Login/Sign Up</NavLink></p></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+      }
     </header>
   )
 }

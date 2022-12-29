@@ -5,6 +5,7 @@ import SidePane from './components/SidePane';
 import AdSpace from './components/AdSpace';
 import WriteReview from './components/pages/WriteReview';
 import LoginSignup from './components/pages/LoginSignup';
+import DetailView from './components/pages/DetailView';
 
 const App = () => {
   return (
@@ -16,7 +17,11 @@ const App = () => {
             <Routes>
               <Route path='/' element={<Home />} />
               <Route path='/compose' element={<WriteReview />} />
-              <Route path='Login-Signup' element={<LoginSignup />} />
+              <Route path='/Login-Signup' element={<LoginSignup />} />
+              <Route path='/review/:id' element={<DetailView />} />
+              <Route path='/review/:id/edit' element={<DetailView />} />
+              {/* <Route path='*' element={<Error404Page />} /> */}
+
             </Routes>
           </div>
           <aside className='min-h-screen basis-1/6'>

@@ -7,10 +7,11 @@ import RedoOutlinedIcon from '@mui/icons-material/RedoOutlined'
 import React, { useEffect, useRef, useState } from 'react'
 import RatingStars from './RatingStars'
 import ReviewImageCarousel from './ReviewImageCarousel'
+import { Link } from 'react-router-dom'
 
 
 
-const Review = ({id, review: {author, headline, body, genre: {title, color}, tag, images, timestamp, numOfComments, rating}}) => {
+const Review = ({review: {id, author, headline, body, genre: {title, color}, tag, images, timestamp, numOfComments, rating}}) => {
   const [bookmarked, setBookmarked] = useState(false) //change to use selector to get list of bookmarked items of the user
   const [helpful, setHelpful] = useState(false) //true if the user selects 
   const [justClicked, setJustClicked] = useState(null)
@@ -36,6 +37,10 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
     }
 
   } 
+
+  useEffect(() => {
+    // console.log(id)
+  }, [])
 
   const timePassed = () => {
     const timeCreated = timestamp.toDate()
@@ -86,7 +91,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
 
 
   useEffect(() => {
-    console.log(author.userName)
+    // console.log(author.userName)
   }, [])
 
   const reviewHeading = tag ? 
@@ -99,9 +104,9 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
           <>
             <div className={`relative z-0 flex flex-col min-h-[200px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
               <div id={`${id}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
-                <a href='/' className='relative w-full h-full block'>
+                <Link to={`/review/${id}`} className='relative w-full h-full block'>
                   <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
-                </a>
+                </Link>
               </div> 
               <div className='mb-5'>
                 {
@@ -120,7 +125,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
               </div>
               <div className='relative flex'>
                 <div className='flex items-center space-x-3 text-sm'>
-                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author.userName}</a></p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</a></p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                   { !bookmarked ?
                     <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :
@@ -175,7 +180,7 @@ const Review = ({id, review: {author, headline, body, genre: {title, color}, tag
                 </div>
                 <div className='relative flex'>
                   <div className='flex items-center space-x-3 text-sm'>
-                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author.userName}</a></p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</a></p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                     { !bookmarked ?
                       <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :

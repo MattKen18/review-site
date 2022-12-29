@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react'
 import AdSpace from '../AdSpace'
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, onAuthStateChanged, updateProfile, signInAnonymously, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { addUserToFirestore } from '../../firebase';
 import Alert from '../Alert';
+import googleLogo from '../../assets/google-logo.png'
+import facebookLogo from '../../assets/facebook-logo.png'
+import appleLogo from '../../assets/apple-logo.png'
+import twitterLogo from '../../assets/twitter-logo.webp'
 
-
+import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
 
 const LoginSignup = () => {
   const [method, setMethod] = useState('login')
@@ -31,6 +35,11 @@ const LoginSignup = () => {
 
   const auth = getAuth()
   const navigate = useNavigate();
+  
+  const googleProvider = new GoogleAuthProvider();
+  const facebookProvider = new FacebookAuthProvider();
+
+
 
   const checkPasswordMatch = () => {
     // console.log(e.target.value === password)
@@ -136,9 +145,10 @@ const LoginSignup = () => {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log(user)
         setTimeout(() => {
           navigate('/')
-        }, 3000);
+        }, 1000);
       } else {
         // navigate('/login-signup')
       }
@@ -158,7 +168,7 @@ const LoginSignup = () => {
       }).catch((error) => {
         console.log(error)
       });
-      console.log(user)
+      // console.log(user)
       setAlert({body: "Welcome to Weviews!", type: "inform"})
     })
     .catch((error) => {
@@ -177,7 +187,7 @@ const LoginSignup = () => {
       const user = userCredential.user;
       setAlert({body: "Succesfully Logged In", type: "inform"})
       document.getElementById("submit-btn").disabled = true
-      console.log(user)
+      // console.log(user)
     })
     .catch((error) => {
       const errorCode = error.code;
@@ -194,7 +204,73 @@ const LoginSignup = () => {
 
     setTimeout(() => {
       setAlert(null)
-    }, (3000));
+    }, (1000));
+  }
+
+  const continueAsAnonymous = () => {
+    signInAnonymously(auth)
+    .then(() => {
+      // updateProfile(auth.currentUser, {
+      //   displayName: "Anonymous", //photoURL: "https://example.com/jane-q-user/profile.jpg"
+      // })
+    })
+    .catch((error) => {
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      console.log(errorMessage)
+    });
+  }
+
+
+  const signInWithGoogle = (e) => {
+    e.preventDefault()
+    signInWithPopup(auth, googleProvider)
+    .then((result) => {
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      // The signed-in user info.
+      const user = result.user;
+      console.log(user)
+      addUserToFirestore(user)
+    }).catch((error) => {
+      // Handle Errors here.
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      // The email of the user's account used.
+      const email = error.customData.email;
+      // The AuthCredential type that was used.
+      const credential = GoogleAuthProvider.credentialFromError(error);
+      // ...
+      console.log(errorMessage)
+    });
+  }
+
+  const signInWithFacebook = (e) => {
+    e.preventDefault()
+    signInWithPopup(auth, facebookProvider)
+    .then((result) => {
+      // The signed-in user info.
+      const user = result.user;
+  
+      // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+      const credential = FacebookAuthProvider.credentialFromResult(result);
+      const accessToken = credential.accessToken;
+  
+      console.log(user)
+      addUserToFirestore(user)
+    })
+    .catch((error) => {
+      // Handle Errors here.
+      const errorCode = error.code;
+      const errorMessage = error.message;
+      // The email of the user's account used.
+      const email = error.customData.email;
+      // The AuthCredential type that was used.
+      const credential = FacebookAuthProvider.credentialFromError(error);
+  
+      // ...
+    });
   }
 
   return (
@@ -213,7 +289,7 @@ const LoginSignup = () => {
           <h1 className='text-center font-bold text-3xl'>{method === 'signup' ? 'Sign Up' : 'Login'}</h1>
         </div>
 
-        <div className='w-6/12 m-auto h-fit bg-white rounded-md p-12'>
+        <div className='w-6/12 m-auto h-fit bg-white rounded-lg p-12 shadow-lg'>
           <form className='' onSubmit={method === 'signup' ? createUser : signInUser}>
             <div className='relative flex flex-col mb-6'>
               <input 
@@ -347,14 +423,34 @@ const LoginSignup = () => {
                 method === "signup" ?
                 <button className='p-2 border-2 border-papaya rounded-sm bg-papaya text-white disabled:hover:cursor-not-allowed' disabled={!validPassword || !passwordMatch || !validEmail}>Sign Up</button>
                 :
-                <button id='submit-btn' className='p-2 border-2 border-papaya rounded-sm bg-papaya text-white disabled:hover:cursor-not-allowed'>Login</button>
+                <button id='submit-btn' className='group p-2 border-2 border-papaya rounded-md bg-papaya text-white disabled:hover:cursor-not-allowed skew-x-3 w-16'>
+                  <LoginOutlinedIcon className='' fontSize='medium' />
+                </button>
               }
             </div>
           </form>
           <br />
           <br />
-          <hr />
+          <div className='relative w-full'>
+            <p className='absolute bg-white px-2 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80'>or</p>
+            <hr />
+          </div>
           <br />
+          <br />
+          <div className='flex flex-1 w-full h-10 justify-center space-x-4 mb-10'>
+            <span className='w-[15%] bg-gray-100 group flex justify-center items-center rounded-md hover:cursor-pointer'>
+              <img src={googleLogo} alt="" className='group-hover:scale-110 duration-200 w-6' onClick={(e) => signInWithGoogle(e)} />
+            </span>
+            <span className='w-[15%] bg-blue-200 group flex justify-center items-center rounded-md hover:cursor-pointer'>
+              <img src={facebookLogo} alt="" className='group-hover:scale-110 duration-200 w-7' onClick={(e) => signInWithFacebook(e)} />
+            </span>
+            <span className='w-[15%] bg-gray-700 group flex justify-center items-center rounded-md hover:cursor-pointer'>
+              <img src={appleLogo} alt="" className='group-hover:scale-110 duration-200 w-6' onClick={(e) => signInWithGoogle(e)} />
+            </span>
+            <span className='w-[15%] bg-sky-100 group flex justify-center items-center rounded-md hover:cursor-pointer'>
+              <img src={twitterLogo} alt="" className='group-hover:scale-110 duration-200 w-6' onClick={(e) => signInWithGoogle(e)} />
+            </span>
+          </div>
           <div className='flex space-x-2 text-sm w-full'>
             {
               method === "signup" ?
@@ -365,11 +461,11 @@ const LoginSignup = () => {
               :
               <>
                 <p className=''>Don't have an account? </p>
-                <button className='text-papaya' onClick={() => setMethod('signup')}>Sign Up</button>
+                <button className='text-papaya font-bold' onClick={() => setMethod('signup')}>Sign Up</button>
               </>
             }
             <p className='text-center'> | </p>
-            <button className='text-papaya'>Continue as Anonymous</button>
+            <button className='text-papaya' onClick={() => continueAsAnonymous()}>Continue as Anonymous</button>
           </div>
           <div className='flex'>
             <button><img src="" alt="" /></button>
