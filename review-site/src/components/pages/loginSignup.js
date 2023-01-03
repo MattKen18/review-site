@@ -438,17 +438,17 @@ const LoginSignup = () => {
           <br />
           <br />
           <div className='flex flex-1 w-full h-10 justify-center space-x-4 mb-10'>
-            <span className='w-[15%] bg-gray-100 group flex justify-center items-center rounded-md hover:cursor-pointer'>
-              <img src={googleLogo} alt="" className='group-hover:scale-110 duration-200 w-6' onClick={(e) => signInWithGoogle(e)} />
+            <span className='w-[15%] bg-gray-100 group flex justify-center items-center rounded-md hover:cursor-pointer' onClick={(e) => signInWithGoogle(e)}>
+              <img src={googleLogo} alt="" className='group-hover:scale-110 duration-200 w-6' />
             </span>
-            <span className='w-[15%] bg-blue-200 group flex justify-center items-center rounded-md hover:cursor-pointer'>
-              <img src={facebookLogo} alt="" className='group-hover:scale-110 duration-200 w-7' onClick={(e) => signInWithFacebook(e)} />
+            <span className='w-[15%] bg-blue-200 group flex justify-center items-center rounded-md hover:cursor-pointer' onClick={(e) => signInWithFacebook(e)}>
+              <img src={facebookLogo} alt="" className='group-hover:scale-110 duration-200 w-7' />
             </span>
-            <span className='w-[15%] bg-gray-700 group flex justify-center items-center rounded-md hover:cursor-pointer'>
-              <img src={appleLogo} alt="" className='group-hover:scale-110 duration-200 w-6' onClick={(e) => signInWithGoogle(e)} />
+            <span className='w-[15%] bg-gray-700 group flex justify-center items-center rounded-md hover:cursor-pointer' onClick={(e) => signInWithGoogle(e)}>
+              <img src={appleLogo} alt="" className='group-hover:scale-110 duration-200 w-6' />
             </span>
-            <span className='w-[15%] bg-sky-100 group flex justify-center items-center rounded-md hover:cursor-pointer'>
-              <img src={twitterLogo} alt="" className='group-hover:scale-110 duration-200 w-6' onClick={(e) => signInWithGoogle(e)} />
+            <span className='w-[15%] bg-sky-100 group flex justify-center items-center rounded-md hover:cursor-pointer' onClick={(e) => signInWithGoogle(e)}>
+              <img src={twitterLogo} alt="" className='group-hover:scale-110 duration-200 w-6' />
             </span>
           </div>
           <div className='flex space-x-2 text-sm w-full'>

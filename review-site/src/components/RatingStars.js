@@ -20,12 +20,6 @@ const RatingStars = ({ rating}) => {
     }
   }
 
-  useEffect(() => {
-
-    
-  }
-  , [])
-
   return (
     <div className='relative flex items-center'>
       {starsList.map(star => star)}  

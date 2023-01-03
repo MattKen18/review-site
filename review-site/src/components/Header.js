@@ -25,6 +25,7 @@ const Header = () => {
     if (!currentUser) {
       // window.location.reload()
     }
+    console.log(currentUser)
   }, [currentUser])
 
   const signOutUser = () => {
@@ -62,8 +63,15 @@ const Header = () => {
               <p className='hover:cursor-pointer border-2 border-green-100 bg-green-100 p-2 px-4 rounded-full text-sm font-bold font-body text-center overflow-ellipsis whitespace-nowrap overflow-hidden'><span className=''>{currentUser.isAnonymous ? "Anonymous" : currentUser.displayName ? currentUser.displayName : currentUser.email}</span></p>
             </div>
             <div className='relative group'>
-              <div className='peer flex space-x-0 items-center'>
-                <span><UserCircleIcon className='w-10' /></span>
+              <div className={`peer flex ${currentUser.photoURL ? `space-x-1` : `space-x-0`} items-center`}>
+                <span className='w-10 overflow-hidden rounded-full'>
+                  {
+                    currentUser.photoURL ? 
+                    <img src={currentUser.photoURL} alt="user profile image" className='w-full object-cover' />
+                     : 
+                    <UserCircleIcon className='w-full' />
+                  }
+                </span>
                 <span className='group-hover:rotate-180 duration-100'><ChevronDownIcon className='w-4' /></span>
               </div>
               <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
@@ -80,7 +88,7 @@ const Header = () => {
             <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></p>
             <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>My Reviews</NavLink></p>
             <div className='flex w-40 justify-center'>
-              <p className='hover:cursor-pointer hover:scale-110 duration-300 border-2 border-rose-100 bg-rose-100 p-2 px-4 rounded-full text-sm font-bold font-body w-fit text-center'><NavLink to="/login-signup">Login or Signup</NavLink></p>
+              <NavLink to="/login-signup"><p className='hover:cursor-pointer hover:scale-110 duration-300 border-2 border-rose-100 bg-rose-100 p-2 px-4 rounded-full text-sm font-bold font-body w-fit text-center'>Login or Signup</p></NavLink>
             </div>
             <div className='relative group'>
               <div className='peer flex space-x-0 items-center'>
@@ -91,7 +99,7 @@ const Header = () => {
                 <ul>
                   <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
                   <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li>
-                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'><p><NavLink to="/login-signup">Login/Sign Up</NavLink></p></li>
+                  <li className='hover:bg-papaya hover:text-white hover:cursor-pointer'><NavLink to="/login-signup"><p className='p-2'>Login/Sign Up</p></NavLink></li>
                 </ul>
               </div>
             </div>

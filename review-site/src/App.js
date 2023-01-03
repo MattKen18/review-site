@@ -6,6 +6,7 @@ import AdSpace from './components/AdSpace';
 import WriteReview from './components/pages/WriteReview';
 import LoginSignup from './components/pages/LoginSignup';
 import DetailView from './components/pages/DetailView';
+import EditReview from './components/pages/EditReview';
 
 const App = () => {
   return (
@@ -19,7 +20,7 @@ const App = () => {
               <Route path='/compose' element={<WriteReview />} />
               <Route path='/Login-Signup' element={<LoginSignup />} />
               <Route path='/review/:id' element={<DetailView />} />
-              <Route path='/review/:id/edit' element={<DetailView />} />
+              <Route path='/review/:id/edit' element={<EditReview />} />
               {/* <Route path='*' element={<Error404Page />} /> */}
 
             </Routes>

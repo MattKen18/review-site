@@ -38,10 +38,6 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
 
   } 
 
-  useEffect(() => {
-    // console.log(id)
-  }, [])
-
   const timePassed = () => {
     const timeCreated = timestamp.toDate()
     const currentTime = new Date()
@@ -73,7 +69,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
       const minutes = Math.floor(timePassed/minute)
       return minutes > 1 ? `${minutes} mins ago` : `${minutes} min ago`
     } else {
-      return "< 1min ago"
+      return Math.floor(timePassed) + ' seconds ago'//"< 1min ago"
     }
   }
 
@@ -113,7 +109,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                   reviewHeading
                 }
                 <div className='flex space-x-8 items-center'>
-                  <h1 className='font-extrabold text-2xl'><a href="/" className=''>{headline}</a></h1>
+                  <h1 className='font-extrabold text-2xl line-clamp-2'><a href="/" className=''>{headline}</a></h1>
                   <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                   
                 </div>
@@ -159,16 +155,16 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
               </div>
               <div className='flex-1 flex flex-col'>
                 <div id={`${id}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
-                  <a href='/' className='relative w-full h-full block'>
+                  <Link to={`/review/${id}`} className='relative w-full h-full block'>
                     <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
-                  </a>
+                  </Link>
                 </div> 
                 <div className='mb-5'>
                   {
                     reviewHeading
                   }
                   <div className='flex space-x-8 items-center'>
-                    <h1 className='font-extrabold text-2xl'>{headline}</h1>
+                    <h1 className='font-extrabold text-2xl line-clamp-2'>{headline}</h1>
                     <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                     
                   </div>

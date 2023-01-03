@@ -75,7 +75,7 @@ export const getShownReviews =  async () => {
       const { helpfuls, comments, saves, timestamp } = review
       const relevanceScore = Math.round(helpfuls*weights['helpfuls'] + comments.length*weights['comments'] + saves*weights['saves'] + (timestamp*10**-9)*weights['timestamp']*100)/100
       review.relevanceScore = relevanceScore
-      // shownReviews = shownReviews.sort((a, b) => b.relevanceScore - a.relevanceScore)
+      shownReviews = shownReviews.sort((a, b) => b.timestamp - a.timestamp)
     } catch (e) {
       
     }
@@ -139,15 +139,41 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
   }
 }
 
+export const updateReviewInFirestore = async ({ reviewId, author, headline, body, genre, tag, images, rating}) => {
+  try {
+    const genreObj = JSON.parse(genre)
+    const genreRef = doc(db, 'genres', genreObj.title)
 
-export const addUserToFirestore  = async ({uid, displayName, email, photoUrl}) => { //whenever a user is created using firebase auth, I create a user doc containing only these fields making it more accessible
+    const reviewRef = doc(db, 'reviews', reviewId)
+    await setDoc(reviewRef, {
+      headline: headline,
+      body: body,
+      genre: genreRef, //convert to use the genre id, get that genre from firestore and then use it here
+      tag: tag,
+      images: images, //might be an []
+      rating: rating, 
+
+      comments: [],
+      saves: 0,
+      helpfuls: 0,
+      updatedTimestamp: serverTimestamp(),
+
+      relevanceScore: 0, //calculated on get from firestore based on the previous fields
+    }, {merge: true})
+  } catch (e) {
+    console.log("error updating review: ", e)
+  }
+}
+
+
+export const addUserToFirestore  = async ({uid, displayName, email, photoURL}) => { //whenever a user is created using firebase auth, I create a user doc containing only these fields making it more accessible
   try {
     const userRef = doc(db, 'users', uid)
     await setDoc(userRef, {
       uid: uid,
       userName: displayName,
       email: email,
-      photoUrl: photoUrl ? photoUrl : "",
+      photoURL: photoURL ? photoURL : "",
       // reviews: [],
       followers: [],
     }, {merge: true})
@@ -166,12 +192,19 @@ export const addUserToFirestore  = async ({uid, displayName, email, photoUrl}) =
   }
 }
 
-export const getReviewFromFirestore = async (id) => {
+export const getReviewFromFirestore = async (id) => { //gets the review and converts the reference fields to usable objects
   const reviewRef = doc(db, 'reviews', id)
   const reviewSnap = await getDoc(reviewRef)
-  console.log(fromFirestore(reviewSnap.data()))
-  // const reviews = await convertShownReviews(reviewSnap.data())
+  const review = reviewSnap.data()
 
-  return []//reviews
+  const genreRef = doc(db, 'genres', reviewSnap.data().genre.id)
+  const genreSnap = await getDoc(genreRef)
+  const genre = genreSnap.data()
+
+  const authorRef = doc(db, 'users', reviewSnap.data().author.id)
+  const authorSnap = await getDoc(authorRef)
+  const author = authorSnap.data()
+
+  return {...review, author: author, genre: genre}
 }
 
