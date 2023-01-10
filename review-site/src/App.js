@@ -7,6 +7,7 @@ import WriteReview from './components/pages/WriteReview';
 import LoginSignup from './components/pages/LoginSignup';
 import DetailView from './components/pages/DetailView';
 import EditReview from './components/pages/EditReview';
+import Dashboard from './components/pages/Dashboard';
 
 const App = () => {
   return (
@@ -21,6 +22,7 @@ const App = () => {
               <Route path='/Login-Signup' element={<LoginSignup />} />
               <Route path='/review/:id' element={<DetailView />} />
               <Route path='/review/:id/edit' element={<EditReview />} />
+              <Route path='/user/:id/dashboard' element={<Dashboard />} />
               {/* <Route path='*' element={<Error404Page />} /> */}
 
             </Routes>

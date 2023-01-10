@@ -17,7 +17,7 @@ const Alert = ({content: {body, type}}) => {
   return (
     <div className='h-10 mb-7'>
       {
-        type === "inform" ?        
+        type === "success" ?        
         <p id="alert" className='w-fit m-auto text-center mb-10 border-2 border-green-100 bg-green-100 py-2 px-4 text-green-500 font-body hidden'>
           <AutoAwesomeOutlinedIcon className='mr-2' />
           {body} 

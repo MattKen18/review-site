@@ -7,6 +7,7 @@ import RatingStars from '../RatingStars';
 import BorderColorOutlinedIcon from '@mui/icons-material/BorderColorOutlined';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import $ from 'jquery'
+import CommentSection from '../CommentSection';
 
 const DetailView = () => {
   const [review, setReview] = useState(null)
@@ -64,9 +65,9 @@ const DetailView = () => {
       <aside className='min-h-screen basis-1/5'>
         <AdSpace />
       </aside>
-      <div className='flex-1 px-20'>
+      <div className='flex-1 px-20 bg-gray-100'>
         <div className='min-h-10 h-10 mb-3'></div>
-        <div className='flex flex-col relative p-10 border-2 border-slate-600 rounded-md'>
+        <div className='flex flex-col relative p-8 rounded-md bg-white'>
           {
             userCanEdit && 
             <span className='absolute right-2 top-2 duration-100 p-1 hover:text-papaya hover:cursor-pointer opacity-60 hover:opacity-100'>
@@ -86,8 +87,8 @@ const DetailView = () => {
             <span id='review-genre' className='p-2 rounded-lg text-white font-normal ml-2 transform hover:cursor-pointer hover:scale-110 duration-100'>{review?.genre.title}</span>
 
           </p>
-          <div className='mt-20'>
-            <p className='rounded-lg bg-white font-body before:first-letter:font-bold'>
+          <div className='mt-16'>
+            <p className='rounded-lg font-body before:first-letter:font-bold'>
               {review?.body}
             </p>
           </div>
@@ -112,8 +113,8 @@ const DetailView = () => {
           </div>
         </div>
 
-        <div className='mt-10'>
-          <h1 className='font-bold text-lg'>Comments <span className='font-normal font-body text-sm'>{review?.comments.length}</span></h1>
+        <div className='mt-2'>
+          <CommentSection review={review} />
         </div>
       </div>
     </div>

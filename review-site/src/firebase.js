@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { doc, getDoc, getFirestore, query, queryEqual, setDoc } from "firebase/firestore";
+import { doc, getDoc, getFirestore, query, queryEqual, setDoc, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -129,6 +129,7 @@ export const addReviewToFireStore = async ({ author, headline, body, genre, tag,
       comments: [],
       saves: 0,
       helpfuls: 0,
+      unhelpfuls: 0,
       timestamp: serverTimestamp(),
 
       relevanceScore: 0, //calculated on get from firestore based on the previous fields
@@ -153,12 +154,13 @@ export const updateReviewInFirestore = async ({ reviewId, author, headline, body
       images: images, //might be an []
       rating: rating, 
 
-      comments: [],
-      saves: 0,
-      helpfuls: 0,
+      // comments: [],
+      // saves: 0,
+      // helpfuls: 0,
+      // unhelpfuls: 0,
       updatedTimestamp: serverTimestamp(),
 
-      relevanceScore: 0, //calculated on get from firestore based on the previous fields
+      // relevanceScore: 0, //calculated on get from firestore based on the previous fields
     }, {merge: true})
   } catch (e) {
     console.log("error updating review: ", e)
@@ -176,6 +178,10 @@ export const addUserToFirestore  = async ({uid, displayName, email, photoURL}) =
       photoURL: photoURL ? photoURL : "",
       // reviews: [],
       followers: [],
+      dateJoined: serverTimestamp(),
+      saves: [],
+      helpfulReviews: [],
+      unhelpfulReviews: [],
     }, {merge: true})
     // userRef = await setDoc(doc(db, 'users', uid), {
     //   uid: uid,
@@ -204,7 +210,271 @@ export const getReviewFromFirestore = async (id) => { //gets the review and conv
   const authorRef = doc(db, 'users', reviewSnap.data().author.id)
   const authorSnap = await getDoc(authorRef)
   const author = authorSnap.data()
+  const saves = []
 
-  return {...review, author: author, genre: genre}
+  return {...review, id: reviewSnap.id, author: author, genre: genre}
 }
 
+
+export const getUserFromFirestore = async (uid) => {
+  const userRef = doc(db, 'users', uid)
+  const userSnap = await getDoc(userRef)
+  const user = userSnap.data()
+  
+  return user 
+
+}
+
+export const getAuthorReviews = async (uid) => {
+  const authorRef = doc(db, 'users', uid)
+  const q = query(collection(db, 'reviews'), where('author', '==', authorRef))
+  const reviews = []
+  const reviewIds = []
+  const convertedReviews = []
+
+  const querySnapshot = await getDocs(q)
+
+  querySnapshot.forEach(doc => {
+    reviews.push(doc.data())
+    reviewIds.push(doc.id)
+  })
+
+  for (let reviewId of reviewIds) {
+    const review = await getReviewFromFirestore(reviewId)
+    convertedReviews.push(review)
+  }
+
+  return convertedReviews
+
+
+}
+
+export const addReviewToUserSaved = async (reviewId, userId) => {
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const authorRef = doc(db, 'users', userId)
+  const author = await getDoc(authorRef)
+  // console.log(author.data().saves[0].id)
+
+  try {
+    await setDoc(authorRef, {
+      saves: !author.data().saves ? [reviewRef.id] : [...author.data().saves, reviewRef.id]//author?.saves?.length ? [...author.saves, reviewRef] : [reviewRef]
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+
+}
+
+export const removeReviewFromUserSaved = async (reviewId, userId) => {
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const authorRef = doc(db, 'users', userId)
+  const author = await getDoc(authorRef)
+  const saves = author.data().saves
+  saves.splice(saves.indexOf(reviewRef.id), 1)
+
+  try {
+    await setDoc(authorRef, {
+      saves: saves
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getUserSavedReviews = async (userId) => {
+  const user = await getUserFromFirestore(userId)
+  const savedReviews = []
+  // console.log("user saves: ", user.saves)
+  
+  if (user.saves) {
+    for (let reviewId of user?.saves) {
+      const review = await getReviewFromFirestore(reviewId)
+      // console.log(review)
+      savedReviews.push(review)
+    }
+  }
+  // console.log("user saves: ", user.saves)
+  return savedReviews
+  
+}
+
+export const addHelpful = async (userId, reviewId) => {
+  const userRef = doc(db, 'users', userId)
+  const user = await getDoc(userRef)
+
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const review = await getDoc(reviewRef)
+
+  try {
+    await setDoc(userRef, {
+      helpfulReviews: user.data().helpfulReviews ? [...user.data().helpfulReviews, review.id] : [review.id]
+    }, {merge: true})
+    await setDoc(reviewRef, {
+      helpfuls: review.data().helpfuls ? review.data().helpfuls + 1 : 1
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+
+export const removeHelpful = async (userId, reviewId) => {
+  const userRef = doc(db, 'users', userId)
+  const user = await getDoc(userRef)
+
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const review = await getDoc(reviewRef)
+
+  const userHelpfuls = user.data().helpfulReviews
+  userHelpfuls.splice(userHelpfuls.indexOf(review.id), 1)
+  console.log(userHelpfuls)
+
+  try {
+    await setDoc(userRef, {
+      helpfulReviews: userHelpfuls
+    }, {merge: true})
+    await setDoc(reviewRef, {
+      helpfuls: review.data().helpfuls - 1
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const addUnHelpful = async (userId, reviewId) => {
+  const userRef = doc(db, 'users', userId)
+  const user = await getDoc(userRef)
+
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const review = await getDoc(reviewRef)
+
+  try {
+    await setDoc(userRef, {
+      unhelpfulReviews: user.data().unhelpfulReviews ? [...user.data().unhelpfulReviews, review.id] : [review.id]
+    }, {merge: true})
+    await setDoc(reviewRef, {
+      unhelpfuls: review.data().unhelpfuls ? review.data().unhelpfuls + 1 : 1
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const removeUnHelpful = async (userId, reviewId) => {
+  const userRef = doc(db, 'users', userId)
+  const user = await getDoc(userRef)
+
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const review = await getDoc(reviewRef)
+
+  const userUnHelpfuls = user.data().unhelpfulReviews
+  userUnHelpfuls.splice(userUnHelpfuls.indexOf(review.id), 1)
+
+  try {
+    await setDoc(userRef, {
+      unhelpfulReviews: userUnHelpfuls
+    }, {merge: true})
+    await setDoc(reviewRef, {
+      unhelpfuls: review.data().unhelpfuls - 1
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const addCommentToReview = async (reviewId, userId, body) => {
+
+  try {
+    const commentRef = await addDoc(collection(db, 'comments'), {
+      review: reviewId,
+      author: userId,
+      body: body,
+      dateCreated: serverTimestamp(),
+      replies: [],
+      likes: [], //array of ids of users who liked the comment
+      dislikes: [],
+    })  
+    const reviewRef = doc(db, 'reviews', reviewId)
+    const review = await getDoc(reviewRef)
+    await setDoc(reviewRef, {
+      comments: [...review.data().comments, commentRef.id]
+    }, {merge: true})
+
+    const comment = await getDoc(commentRef)
+    return comment.data()
+  } catch (e) {
+    console.error('Error adding comment to review: ', e)
+  }
+  return 
+}
+
+export const getComment = async (commentId) => {
+  const commentRef = doc(db, 'comments', commentId)
+  const commentSnapshot = await getDoc(commentRef)
+
+  return {...commentSnapshot.data(), uid: commentSnapshot.id}
+}
+
+export const getReviewComments = async (reviewId) => {
+  const reviewRef = doc(db, 'reviews', reviewId)
+  const reviewSnapshot = await getDoc(reviewRef)
+  let comments = []
+
+  for (let comment of reviewSnapshot.data().comments) {
+    await getComment(comment).then(comment => comments.push(comment))
+  }
+
+  return comments
+}
+
+export const addLikeToComment = async (commentId, userId) => {
+  const commentRef = doc(db, 'comments', commentId)
+  const comment = await getDoc(commentRef)
+
+  await setDoc(commentRef, {
+    likes: [...comment.data().likes, userId]
+  }, {merge: true})
+}
+
+
+export const addDislikeToComment = async (commentId, userId) => {
+  const commentRef = doc(db, 'comments', commentId)
+  const comment = await getDoc(commentRef)
+
+  await setDoc(commentRef, {
+    dislikes: [...comment.data().dislikes, userId]
+  }, {merge: true})
+}
+
+export const removeLikeFromComment = async (commentId, userId) => {
+  const commentRef = doc(db, 'comments', commentId)
+  const commentSnapshot = await getDoc(commentRef)
+
+  try {
+    const newCommentLikes = commentSnapshot.data().likes
+    newCommentLikes.splice(newCommentLikes.indexOf(userId), 1)
+
+    await setDoc(commentRef, {
+      likes: newCommentLikes
+    }, {merge: true})
+  } catch (e) {
+    console.log('error removing like: ', e)
+  }
+}
+
+
+export const removeDislikeFromComment = async (commentId, userId) => {
+  const commentRef = doc(db, 'comments', commentId)
+  const commentSnapshot = await getDoc(commentRef)
+
+  try {
+    const newCommentDislikes = commentSnapshot.data().dislikes
+    newCommentDislikes.splice(newCommentDislikes.indexOf(userId), 1)
+    
+    await setDoc(commentRef, {
+      dislikes: newCommentDislikes
+    }, {merge: true})
+  } catch (e) {
+    console.log('error removing like: ', e)
+  }
+}

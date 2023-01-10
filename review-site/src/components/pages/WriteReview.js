@@ -150,7 +150,7 @@ const WriteReview = () => {
           setImageFiles([])
           window.scrollTo(0, 0);
           setLoading(false)
-          setAlert({body: "Successfully Published Review", type: "inform"})
+          setAlert({body: "Successfully Published Review", type: "success"})
         }) 
       } catch (e) {
         setAlert({body: "Error when creating Review, Please try again", type: "error"})
@@ -162,8 +162,9 @@ const WriteReview = () => {
   useEffect(() => {
     if (reviewCreated) {
       setTimeout(() => {
-        setReviewCreated(false)
-      }, 4000);
+        // setReviewCreated(false)
+        navigate(`/user/${currentUser.uid}/dashboard`)
+      }, 500);
     }
   }, [reviewCreated])
   
@@ -196,7 +197,7 @@ const WriteReview = () => {
         </div>
         <div className='mb-10'>
           <h1 className='text-center text-3xl font-bold'>Write Review</h1>
-          <p className='w-full text-center text-sm'>Tell us what you think</p>
+          <p className='w-full text-center text-sm font-light'>Tell us what you think</p>
         </div>
         <div className='flex flex-col min-h-screen w-11/12 mb-10 m-auto bg-white rounded-md p-10'>
           <form id='write-review-form' className='text-slate-500 h-full flex flex-col space-y-4' onSubmit={addReview}>

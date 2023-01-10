@@ -57,8 +57,9 @@ const Header = () => {
       {
         currentUser ?
           <div className='flex flex-col items-center justify-center space-x-8 lg:flex-row ml-4 lg:ml-10 xl:ml-20'>
+            <p><NavLink to="/" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Browse</NavLink></p>
             <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></p>
-            <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>My Reviews</NavLink></p>
+            <p><NavLink to={`/user/${currentUser?.uid}/dashboard`} className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Dashboard</NavLink></p>
             <div className='w-40'>
               <p className='hover:cursor-pointer border-2 border-green-100 bg-green-100 p-2 px-4 rounded-full text-sm font-bold font-body text-center overflow-ellipsis whitespace-nowrap overflow-hidden'><span className=''>{currentUser.isAnonymous ? "Anonymous" : currentUser.displayName ? currentUser.displayName : currentUser.email}</span></p>
             </div>
@@ -77,7 +78,7 @@ const Header = () => {
               <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
                 <ul>
                   <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
-                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li>
+                  {/* <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li> */}
                   <li  onClick={() => signOutUser()} className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Logout</li>
                 </ul>
               </div>
@@ -85,8 +86,9 @@ const Header = () => {
           </div>
             :
           <div className='flex flex-col items-center justify-center space-x-8 lg:flex-row ml-4 lg:ml-10 xl:ml-20'>
+            <p><NavLink to="/" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Browse</NavLink></p>
             <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Write Review</NavLink></p>
-            <p><NavLink to="/compose" className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>My Reviews</NavLink></p>
+            <p><NavLink to={`/user/${currentUser?.uid}/dashboard`} className={({ isActive }) => (isActive ? `text-papaya hover:text-papaya` : `hover:text-papaya`)}>Dashboard</NavLink></p>
             <div className='flex w-40 justify-center'>
               <NavLink to="/login-signup"><p className='hover:cursor-pointer hover:scale-110 duration-300 border-2 border-rose-100 bg-rose-100 p-2 px-4 rounded-full text-sm font-bold font-body w-fit text-center'>Login or Signup</p></NavLink>
             </div>
@@ -98,7 +100,7 @@ const Header = () => {
               <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
                 <ul>
                   <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
-                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li>
+                  {/* <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li> */}
                   <li className='hover:bg-papaya hover:text-white hover:cursor-pointer'><NavLink to="/login-signup"><p className='p-2'>Login/Sign Up</p></NavLink></li>
                 </ul>
               </div>

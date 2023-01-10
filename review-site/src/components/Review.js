@@ -8,35 +8,119 @@ import React, { useEffect, useRef, useState } from 'react'
 import RatingStars from './RatingStars'
 import ReviewImageCarousel from './ReviewImageCarousel'
 import { Link } from 'react-router-dom'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { addHelpful, addReviewToUserSaved, addUnHelpful, getUserFromFirestore, getUserHelpfulsAndUnhelpfuls, removeHelpful, removeReviewFromUserSaved, removeReviewToUserSaved, removeUnHelpful } from '../firebase'
+import { current } from '@reduxjs/toolkit'
 
 
 
 const Review = ({review: {id, author, headline, body, genre: {title, color}, tag, images, timestamp, numOfComments, rating}}) => {
   const [bookmarked, setBookmarked] = useState(false) //change to use selector to get list of bookmarked items of the user
-  const [helpful, setHelpful] = useState(false) //true if the user selects 
+  const [helpful, setHelpful] = useState(null) //true if the user selects 
   const [justClicked, setJustClicked] = useState(null)
-  // const genreColor = `${color}`
+  
+  const [currentUser, setCurrentUser] = useState(null)
+  const [currentAuthor, setCurrentAuthor] = useState(null) //corresponding user from firestore (of current user) with additional fields and foreign keys to review
+  const [isSavedByUser, setIsSavedByUser] = useState(false)
 
+  const auth = getAuth()
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setCurrentUser(user)
+      }
+    })
+  }, [])
+
+  //set the review as bookmarked if the user has it saved
+  useEffect(() => {
+    if (currentUser) {
+      getUserFromFirestore(currentUser.uid).then(user => setCurrentAuthor(user))
+    }
+  }, [currentUser])
+
+  useEffect(() => {
+    if (currentAuthor) {
+      // console.log(currentAuthor.saves)
+      if (currentAuthor?.saves.indexOf(id) !== -1) {// if the currently logged in user has this review in their saved
+        setBookmarked(true)
+      }
+      if (!currentAuthor?.helpfulReviews) {
+        setHelpful(null)
+      } else if (currentAuthor?.helpfulReviews.indexOf(id) !== -1) {// if the currently logged in user has this review as helpful
+        setHelpful(true)
+      } else if (currentAuthor?.unhelpfulReviews.indexOf(id) !== -1) {
+        setHelpful(false)
+      } else {
+        setHelpful(null)
+      }
+
+    }
+  }, [currentAuthor])
+
+
+  const toggleReviewSaved = () => {
+    if (bookmarked) { //already saved
+      setBookmarked(false)
+      removeReviewFromUserSaved(id, currentUser?.uid)
+    } else {
+      setBookmarked(true)
+      addReviewToUserSaved(id, currentUser?.uid)
+    }
+  }
   /* whenever user selects helpful or bookmarked add 
      to a list of helpful reviews/ bookmarks in the user table */
 
-  const handleHelpfulClick = (id) => {
-    // update state with justClicked 
-    const elemClicked = document.getElementById(id)
-    if (!justClicked) {// if first time clicking helpful
-      setJustClicked(elemClicked)
-      setHelpful(true) // user chose a helpful option helpful/not helpful
-    } else if (elemClicked === justClicked) {
-      // REMOVE FROM DB
-      setJustClicked(null)
-      setHelpful(false) // user deselected a helpful option helpful/not helpful
-    } else if (id !== justClicked.id) {
-      // remove previous clicked from db add new
-      const prevClickedElem = justClicked
-      setJustClicked(elemClicked)
+  const handleHelpfulClick = () => {
+    if (helpful === null) {
+      try {
+        addHelpful(currentAuthor.uid, id)
+        setHelpful(true)
+      } catch (e) {
+        console.log(e)
+      }
+    } else if (helpful === false) {
+      try {
+        removeUnHelpful(currentAuthor.uid, id)
+        addHelpful(currentAuthor.uid, id)
+        setHelpful(true)
+      } catch (e) {
+        console.log(e)
+      }
+    } else {
+      removeHelpful(currentAuthor.uid, id)
+      setHelpful(null)
     }
-
   } 
+
+  const handleUnHelpfulClick = () => {
+    if (helpful === null) {
+      try {
+        addUnHelpful(currentAuthor.uid, id)
+        setHelpful(false)
+      } catch (e) {
+        console.log(e)
+      }
+    } else if (helpful) {
+      try {
+        removeHelpful(currentAuthor.uid, id)
+        addUnHelpful(currentAuthor.uid, id)
+        setHelpful(false)
+      } catch (e) {
+        console.log(e)
+      }
+    } else {
+      removeUnHelpful(currentAuthor.uid, id)
+      setHelpful(null)
+    }
+  }
+
+  useEffect(() => {
+    if (helpful !== null) {
+      console.log(helpful)
+    }
+  }, [helpful])
 
   const timePassed = () => {
     const timeCreated = timestamp.toDate()
@@ -98,7 +182,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
       <>
         {!images.length > 0 ? 
           <>
-            <div className={`relative z-0 flex flex-col min-h-[200px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
+            <div id={`${id}-review`} className={`relative z-0 flex flex-col min-h-[200px] h-fit bg-white rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
               <div id={`${id}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
                 <Link to={`/review/${id}`} className='relative w-full h-full block'>
                   <RedoOutlinedIcon className='absolute bottom-20 left-[45%] w-20 text-white z-10 -rotate-90 transform group-hover:translate-y-20'/>
@@ -124,8 +208,8 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                   <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</a></p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                   { !bookmarked ?
-                    <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :
-                    <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => setBookmarked(state => (!state))} />
+                    <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => toggleReviewSaved()} /> :
+                    <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => toggleReviewSaved()} />
                   }
                 </div>
                 {/* absolute flex flex-col top-1/2 -right-10 -translate-x-1/2 -translate-y-1/2 */}
@@ -133,10 +217,11 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                   <div className='relative float-right flex space-x-1 items-center'>
                     {/* <p className='absolute text-xs w-24 -right-1/3 -top-4 hidden peer-hover:block'>Was this helpful?</p> */}
                       {
+                        currentUser?.uid !== author?.uid &&
                         <div className='group flex items-center justify-center space-x-1'>
                           <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
-                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-up-${id}`)} />
-                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-down-${id}`)} />
+                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === true && `text-papaya`}`} onClick={() => handleHelpfulClick()} />
+                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === false && `text-papaya`}`} onClick={() => handleUnHelpfulClick()} />
                         </div>                
                       }
                     
@@ -148,7 +233,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
           </> 
           :
           <>
-            <div className={`relative z-0 flex min-h-[300px] h-fit bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
+            <div className={`relative z-0 flex min-h-[300px] h-fit bg-white rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
               {/* image section */}
               <div className='flex items-center justify-center pr-10'>
                 <ReviewImageCarousel imgSources={images} />
@@ -179,20 +264,21 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                   <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</a></p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                     { !bookmarked ?
-                      <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => setBookmarked(state => (!state))} /> :
-                      <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => setBookmarked(state => (!state))} />
-                  }
+                      <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => toggleReviewSaved()} /> :
+                      <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => toggleReviewSaved()} />
+                    }
                   </div>
                   {/* absolute flex flex-col top-1/2 -right-10 -translate-x-1/2 -translate-y-1/2 */}
                   <div className='flex-1 space-x-1 items-center'>
                     <div className='relative float-right flex space-x-1 items-center'>
                       {/* <p className='absolute text-xs w-24 -right-1/3 -top-4'>Was this helpful?</p> */}
                         {
-                        <div className='group flex items-center justify-center space-x-1'>
-                          <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
-                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-up-${id}`)} />
-                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful ? `text-papaya` : `text-black`}}`} onClick={() => handleHelpfulClick(`thumbs-down-${id}`)} />
-                        </div>                
+                          currentUser?.uid !== author?.uid &&
+                          <div className='group flex items-center justify-center space-x-1'>
+                            <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
+                            <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === true && `text-papaya`}`} onClick={() => handleHelpfulClick()} />
+                            <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === false && `text-papaya`}`} onClick={() => handleUnHelpfulClick()} />
+                          </div>               
                         }
                       
                     </div>

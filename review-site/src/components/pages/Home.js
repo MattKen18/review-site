@@ -84,13 +84,13 @@ const Home = () => {
                   </ul>
                   </>
                 : 
-                <>
+                <div className='w-11/12 m-auto'>
                   {shownReviews.map((review, i) => (
                     <Review key={i} id={i} review={review} />
                   )) 
                   }
 
-                </>
+                </div>
               }
               </div>
               :

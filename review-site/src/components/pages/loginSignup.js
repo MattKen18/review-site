@@ -147,7 +147,11 @@ const LoginSignup = () => {
       if (user) {
         console.log(user)
         setTimeout(() => {
-          navigate('/')
+          if (user.isAnonymous) {
+            navigate('/')
+          } else {
+            navigate(`/user/${user.uid}/dashboard`)
+          }
         }, 1000);
       } else {
         // navigate('/login-signup')
@@ -169,7 +173,7 @@ const LoginSignup = () => {
         console.log(error)
       });
       // console.log(user)
-      setAlert({body: "Welcome to Weviews!", type: "inform"})
+      setAlert({body: "Welcome to Weviews!", type: "success"})
     })
     .catch((error) => {
       const errorCode = error.code;

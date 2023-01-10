@@ -79,7 +79,7 @@ const EditReview = () => {
       if (user) {
         setCurrentUser(user)
       } else {
-        navigate('/')
+        navigate('/') //maybe change this
       }
     })
   }, [])
