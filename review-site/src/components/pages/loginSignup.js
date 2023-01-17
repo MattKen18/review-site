@@ -189,7 +189,7 @@ const LoginSignup = () => {
     .then((userCredential) => {
       // Signed in 
       const user = userCredential.user;
-      setAlert({body: "Succesfully Logged In", type: "inform"})
+      setAlert({body: "Succesfully Logged In", type: "success"})
       document.getElementById("submit-btn").disabled = true
       // console.log(user)
     })

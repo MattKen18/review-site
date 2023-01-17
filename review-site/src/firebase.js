@@ -382,7 +382,7 @@ export const removeUnHelpful = async (userId, reviewId) => {
   }
 }
 
-export const addCommentToReview = async (reviewId, userId, body) => {
+export const addCommentToReview = async (reviewId, userId, body, anonymous) => {
 
   try {
     const commentRef = await addDoc(collection(db, 'comments'), {
@@ -393,6 +393,7 @@ export const addCommentToReview = async (reviewId, userId, body) => {
       replies: [],
       likes: [], //array of ids of users who liked the comment
       dislikes: [],
+      anonymous: anonymous, // whether or not the user is anonymous
     })  
     const reviewRef = doc(db, 'reviews', reviewId)
     const review = await getDoc(reviewRef)
@@ -401,7 +402,7 @@ export const addCommentToReview = async (reviewId, userId, body) => {
     }, {merge: true})
 
     const comment = await getDoc(commentRef)
-    return comment.data()
+    return {...comment.data(), uid: comment.id}
   } catch (e) {
     console.error('Error adding comment to review: ', e)
   }
@@ -451,7 +452,7 @@ export const removeLikeFromComment = async (commentId, userId) => {
   const commentSnapshot = await getDoc(commentRef)
 
   try {
-    const newCommentLikes = commentSnapshot.data().likes
+    const newCommentLikes = [...commentSnapshot.data().likes]
     newCommentLikes.splice(newCommentLikes.indexOf(userId), 1)
 
     await setDoc(commentRef, {
@@ -468,7 +469,7 @@ export const removeDislikeFromComment = async (commentId, userId) => {
   const commentSnapshot = await getDoc(commentRef)
 
   try {
-    const newCommentDislikes = commentSnapshot.data().dislikes
+    const newCommentDislikes = [...commentSnapshot.data().dislikes]
     newCommentDislikes.splice(newCommentDislikes.indexOf(userId), 1)
     
     await setDoc(commentRef, {
@@ -477,4 +478,47 @@ export const removeDislikeFromComment = async (commentId, userId) => {
   } catch (e) {
     console.log('error removing like: ', e)
   }
+}
+
+export const addReplyToComment = async (commentId, userId, body) => {
+  try {
+    const replyRef = await addDoc(collection(db, 'replies'), {
+      comment: commentId,
+      author: userId,
+      body: body,
+      dateCreated: serverTimestamp(),
+    })  
+    const commentRef = doc(db, 'comments', commentId)
+    const comment = await getDoc(commentRef)
+    await setDoc(commentRef, {
+      replies: [...comment.data().replies, replyRef.id]
+    }, {merge: true})
+
+    const reply = await getDoc(replyRef)
+    return reply.data()
+  } catch (e) {
+    console.error('Error adding reply to comment: ', e)
+  }
+  return 
+}
+
+export const getReply = async (replyId) => {
+  const replyRef = doc(db, 'replies', replyId)
+  const reply = await getDoc(replyRef)
+
+  console.log('reply from getReply: ', {...reply.data(), uid: reply.id})
+  return {...reply.data(), uid: reply.id}
+}
+
+export const getCommentReplies = async (commentId) => {
+  const commentRef = doc(db, 'comments', commentId)
+  const commentSnapshot = await getDoc(commentRef)
+  let replies = []
+
+  // console.log('comment snapshot: ', commentSnapshot.data())
+  for (let replyId of commentSnapshot.data().replies) {
+    await getReply(replyId).then(reply => replies.push(reply))
+  }
+
+  return replies
 }

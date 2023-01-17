@@ -65,7 +65,7 @@ const DetailView = () => {
       <aside className='min-h-screen basis-1/5'>
         <AdSpace />
       </aside>
-      <div className='flex-1 px-20 bg-gray-100'>
+      <div className='flex-1 px-20 bg-gray-100 pb-20'>
         <div className='min-h-10 h-10 mb-3'></div>
         <div className='flex flex-col relative p-8 rounded-md bg-white'>
           {

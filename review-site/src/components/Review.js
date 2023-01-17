@@ -205,11 +205,15 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
               </div>
               <div className='relative flex'>
                 <div className='flex items-center space-x-3 text-sm'>
-                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</a></p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${currentUser?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
-                  { !bookmarked ?
-                    <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => toggleReviewSaved()} /> :
-                    <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => toggleReviewSaved()} />
+                  {
+                    !currentUser?.isAnonymous && currentUser ?
+                    !bookmarked ?
+                      <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => toggleReviewSaved()} /> :
+                      <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => toggleReviewSaved()} />
+                    :
+                    <BookmarkBorderOutlinedIcon className='hover:cursor-not-allowed hover:opacity-60' />
                   }
                 </div>
                 {/* absolute flex flex-col top-1/2 -right-10 -translate-x-1/2 -translate-y-1/2 */}
@@ -220,8 +224,18 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                         currentUser?.uid !== author?.uid &&
                         <div className='group flex items-center justify-center space-x-1'>
                           <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
-                          <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === true && `text-papaya`}`} onClick={() => handleHelpfulClick()} />
-                          <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === false && `text-papaya`}`} onClick={() => handleUnHelpfulClick()} />
+                          {
+                              !currentUser?.isAnonymous && currentUser ?
+                              <>
+                                <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === true && `text-papaya`}`} onClick={() => handleHelpfulClick()} />
+                                <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === false && `text-papaya`}`} onClick={() => handleUnHelpfulClick()} />
+                              </>
+                              :
+                              <>
+                                <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-not-allowed hover:scale-110 ${helpful === true && `text-papaya`}`} />
+                                <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-not-allowed hover:scale-110 ${helpful === false && `text-papaya`}`} />
+                              </> 
+                            }
                         </div>                
                       }
                     
@@ -261,12 +275,16 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                 </div>
                 <div className='relative flex'>
                   <div className='flex items-center space-x-3 text-sm'>
-                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <a className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</a></p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${currentUser?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
-                    { !bookmarked ?
+                    {
+                    !currentUser?.isAnonymous && currentUser ?
+                    !bookmarked ?
                       <BookmarkBorderOutlinedIcon className='hover:cursor-pointer hover:text-papaya' onClick={() => toggleReviewSaved()} /> :
                       <BookmarkOutlinedIcon className='hover:cursor-pointer text-papaya hover:text-papaya' onClick={() => toggleReviewSaved()} />
-                    }
+                    :
+                    <BookmarkBorderOutlinedIcon className='hover:cursor-not-allowed hover:opacity-60' />
+                  }
                   </div>
                   {/* absolute flex flex-col top-1/2 -right-10 -translate-x-1/2 -translate-y-1/2 */}
                   <div className='flex-1 space-x-1 items-center'>
@@ -276,8 +294,18 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                           currentUser?.uid !== author?.uid &&
                           <div className='group flex items-center justify-center space-x-1'>
                             <p className='text-xs hidden group-hover:block mr-2 opacity-70'>Was this helpful?</p> 
-                            <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === true && `text-papaya`}`} onClick={() => handleHelpfulClick()} />
-                            <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === false && `text-papaya`}`} onClick={() => handleUnHelpfulClick()} />
+                            {
+                              !currentUser?.isAnonymous && currentUser ?
+                              <>
+                                <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === true && `text-papaya`}`} onClick={() => handleHelpfulClick()} />
+                                <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-pointer hover:scale-110 ${helpful === false && `text-papaya`}`} onClick={() => handleUnHelpfulClick()} />
+                              </>
+                              :
+                              <>
+                                <ThumbUpOutlinedIcon id={`thumbs-up-${id}`} className={`peer w-6 hover:cursor-not-allowed hover:scale-110 ${helpful === true && `text-papaya`}`} />
+                                <ThumbDownOutlinedIcon id={`thumbs-down-${id}`} className={`peer w-6 hover:cursor-not-allowed hover:scale-110 ${helpful === false && `text-papaya`}`} />
+                              </> 
+                            }
                           </div>               
                         }
                       

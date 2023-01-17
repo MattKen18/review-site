@@ -5,6 +5,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { addCommentToReview, getReviewComments } from '../firebase';
 import { UserCircleIcon } from '@heroicons/react/24/solid'
 import Alert from './Alert';
+import { useNavigate } from 'react-router-dom';
 
 const CommentSection = ({review}) => {
   const [body, setBody] = useState('')
@@ -14,6 +15,7 @@ const CommentSection = ({review}) => {
   const [reviewComments, setReviewComments] = useState([])
 
   const auth = getAuth()
+  const navigate = useNavigate()
 
   useEffect(() => {
     onAuthStateChanged(auth, user => {
@@ -41,8 +43,15 @@ const CommentSection = ({review}) => {
 
   const handleCommentCreation = (e) => {
     e.preventDefault()
+
+    if (!currentUser) { //if user is not logged in then stop them from creating comment
+      navigate('/login-signup')
+    }
+
     try {
-      addCommentToReview(review.id, currentUser.uid, body.trim()).then(comment => {
+      // console.log("currentUser: ", currentUser.isAnonymous)
+      addCommentToReview(review.id, currentUser.uid, body.trim(), currentUser.isAnonymous).then(comment => {
+        // console.log("comment just created: ", comment)
         const updatedReviews = [...reviewComments]
         updatedReviews.unshift(comment)
         setReviewComments(updatedReviews)
@@ -98,7 +107,7 @@ const CommentSection = ({review}) => {
       <div className='flex flex-col space-y-6'>
         {
           reviewComments.map((comment, i) => (
-            <Comment key={comment + i} comment={comment} />
+            <Comment key={comment.uid + i} comment={comment} />
           ))
         }
       </div>

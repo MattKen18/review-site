@@ -8,6 +8,7 @@ import LoginSignup from './components/pages/LoginSignup';
 import DetailView from './components/pages/DetailView';
 import EditReview from './components/pages/EditReview';
 import Dashboard from './components/pages/Dashboard';
+import Profile from './components/pages/Profile';
 
 const App = () => {
   return (
@@ -23,6 +24,8 @@ const App = () => {
               <Route path='/review/:id' element={<DetailView />} />
               <Route path='/review/:id/edit' element={<EditReview />} />
               <Route path='/user/:id/dashboard' element={<Dashboard />} />
+              <Route path='/user/:id/profile' element={<Profile />} />
+
               {/* <Route path='*' element={<Error404Page />} /> */}
 
             </Routes>

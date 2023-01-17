@@ -34,7 +34,7 @@ const TimePassed = ({timestamp}) => {
       return minutes > 1 ? `${minutes} mins ago` : `${minutes} min ago`
     } else {
       const seconds = Math.floor(timePassed)
-      return seconds > 1 ? `${seconds} seconds ago` : `${seconds} second ago`
+      return seconds > 1 ? `${seconds} seconds ago` : seconds <= 0 ?  `1 second ago` : `${seconds} second ago`
       // return Math.floor(timePassed) + ' seconds ago'//"< 1min ago"
     }
   }
