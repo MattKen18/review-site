@@ -6,6 +6,7 @@ import { collection, addDoc, getDocs } from "firebase/firestore";
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
 import { serverTimestamp } from 'firebase/firestore'
+import { FolderOpenIcon } from "@heroicons/react/24/solid";
 // import { getAuth } from 'firebase/auth'
 
 // Your web app's Firebase configuration
@@ -175,9 +176,11 @@ export const addUserToFirestore  = async ({uid, displayName, email, photoURL}) =
       uid: uid,
       userName: displayName,
       email: email,
-      photoURL: photoURL ? photoURL : "",
+      photoURL: photoURL ? photoURL : '',
+      profileBgImageURL: '',
       // reviews: [],
       followers: [],
+      following: [],
       dateJoined: serverTimestamp(),
       saves: [],
       helpfulReviews: [],
@@ -521,4 +524,70 @@ export const getCommentReplies = async (commentId) => {
   }
 
   return replies
+}
+
+
+export const addToUserFollowers = async (userId, followerId) => {
+  const userRef = doc(db, 'users', userId)
+  const userSnapshot = await getDoc(userRef)
+  const userFollowers = [...userSnapshot.data().followers, followerId]
+
+  await setDoc(userRef, {
+    followers: userFollowers
+  }, {merge: true})
+
+  await addToFollowing(userId, followerId)
+}
+
+export const addToFollowing = async (userId, followerId) => {
+  const followerRef = doc(db, 'users', followerId)
+  const followerSnapshot = await getDoc(followerRef)
+  const followerFollowing = [...followerSnapshot.data().following, userId]
+
+  await setDoc(followerRef, {
+    following: followerFollowing
+  }, {merge: true})
+}
+
+
+
+export const removeFromUserFollowers = async (userId, followerId) => {
+  const userRef = doc(db, 'users', userId)
+  const userSnapshot = await getDoc(userRef)
+  const userFollowers = [...userSnapshot.data().followers]
+
+  const index = userFollowers.indexOf(followerId)
+  userFollowers.splice(index, 1)
+
+  await setDoc(userRef, {
+    followers: userFollowers
+  }, {merge: true})
+
+  await removeFromFollowing(userId, followerId)
+}
+
+export const removeFromFollowing = async (userId, followerId) => {
+  const followerRef = doc(db, 'users', followerId)
+  const followerSnapshot = await getDoc(followerRef)
+  const followerFollowing = [...followerSnapshot.data().following]
+  
+  const index = followerFollowing.indexOf(userId)
+  followerFollowing.splice(index, 1)
+  
+  await setDoc(followerRef, {
+    following: followerFollowing
+  }, {merge: true})
+}
+
+export const updateUserProfilePic = async (userId, picPath) => {
+  const userRef = doc(db, 'users', userId)
+
+  try {
+    await setDoc(userRef, {
+      photoURL: picPath
+    }, {merge: true})
+  } catch (e) {
+    console.log('error adding profile picture')
+  }
+
 }

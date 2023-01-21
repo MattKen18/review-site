@@ -67,8 +67,8 @@ const Header = () => {
               <div className={`peer flex ${currentUser.photoURL ? `space-x-1` : `space-x-0`} items-center`}>
                 <span className='w-10 overflow-hidden rounded-full'>
                   {
-                    currentUser.photoURL ? 
-                    <img src={currentUser.photoURL} alt="user profile image" className='w-full object-cover' />
+                    currentUser?.photoURL ? 
+                    <img src={currentUser?.photoURL} alt="user profile image" className='w-10 h-10' />
                      : 
                     <UserCircleIcon className='w-full' />
                   }
@@ -77,7 +77,7 @@ const Header = () => {
               </div>
               <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
                 <ul>
-                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
+                  <li className='hover:bg-papaya hover:text-white hover:cursor-pointer'><a className='p-2 block w-full h-full' href={`${!currentUser?.isAnonymous ? `/user/${currentUser?.uid}/profile`: `/`}`}>Profile</a></li>
                   {/* <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li> */}
                   <li  onClick={() => signOutUser()} className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Logout</li>
                 </ul>
@@ -99,7 +99,7 @@ const Header = () => {
               </div>
               <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
                 <ul>
-                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Profile</li>
+                  <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'><Link className='w-full h-full' to={`login-signup`}>Profile</Link></li>
                   {/* <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li> */}
                   <li className='hover:bg-papaya hover:text-white hover:cursor-pointer'><NavLink to="/login-signup"><p className='p-2'>Login/Sign Up</p></NavLink></li>
                 </ul>

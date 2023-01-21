@@ -41,7 +41,7 @@ const Reply = ({reply}) => {
       <span>
         {
           currentUser?.photoURL ? 
-          <img src={currentUser?.photoURL} alt="profile pic" />:
+          <img src={currentUser?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full' />:
           <UserCircleIcon className='w-8' />
         }
       </span>

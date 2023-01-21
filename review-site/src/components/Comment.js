@@ -165,7 +165,7 @@ const Comment = ({comment}) => {
       <span>
         {
           commentAuthor?.photoURL ? 
-          <img src={commentAuthor?.photoURL} alt="profile pic" />:
+          <img src={commentAuthor?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full' />:
           <UserCircleIcon className='w-12' />
         }
       </span>
@@ -203,7 +203,7 @@ const Comment = ({comment}) => {
               <span>
                 {
                   currentUser?.photoURL ? 
-                  <img src={currentUser?.photoURL} alt="profile pic" />:
+                  <img src={currentUser?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full' />:
                   <UserCircleIcon className='w-8' />
                 }
               </span>

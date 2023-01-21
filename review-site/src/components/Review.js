@@ -153,7 +153,9 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
       const minutes = Math.floor(timePassed/minute)
       return minutes > 1 ? `${minutes} mins ago` : `${minutes} min ago`
     } else {
-      return Math.floor(timePassed) + ' seconds ago'//"< 1min ago"
+      const seconds = Math.floor(timePassed)
+      return seconds > 1 ? `${seconds} seconds ago` : seconds <= 0 ?  `1 second ago` : `${seconds} second ago`
+      // return Math.floor(timePassed) + ' seconds ago'//"< 1min ago"
     }
   }
 
@@ -205,7 +207,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
               </div>
               <div className='relative flex'>
                 <div className='flex items-center space-x-3 text-sm'>
-                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${currentUser?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${author?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
                   <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                   {
                     !currentUser?.isAnonymous && currentUser ?
@@ -275,7 +277,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                 </div>
                 <div className='relative flex'>
                   <div className='flex items-center space-x-3 text-sm'>
-                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${currentUser?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
+                  <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${author?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
                     <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
                     {
                     !currentUser?.isAnonymous && currentUser ?
