@@ -165,13 +165,20 @@ const Comment = ({comment}) => {
       <span>
         {
           commentAuthor?.photoURL ? 
-          <img src={commentAuthor?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full' />:
+          <img src={commentAuthor?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full object-cover' />:
           <UserCircleIcon className='w-12' />
         }
       </span>
       <div className='flex flex-col space-y-1 w-full'>
         <div className='flex items-center space-x-1'>
-          <p className='text-sm font-bold'>{comment.anonymous ? "Anonymous" : commentAuthor?.userName}</p>
+          {
+            comment.anonymous ? 
+            <p className='text-sm font-bold'>Anonymous</p>
+            :
+            <a className='text-sm font-bold' href={`/user/${currentUser?.uid}/profile`}>{commentAuthor?.userName}</a>
+
+          }
+          {/* <p className='text-sm font-bold'>{comment.anonymous ? "Anonymous" : commentAuthor?.userName}</p> */}
           <small className='opacity-70 text-xs'><TimePassed timestamp={comment?.dateCreated} /></small>
         </div>
         <p>{comment?.body}</p> 
@@ -203,7 +210,7 @@ const Comment = ({comment}) => {
               <span>
                 {
                   currentUser?.photoURL ? 
-                  <img src={currentUser?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full' />:
+                  <img src={currentUser?.photoURL} alt="profile pic" className='w-8 h-8 rounded-full object-cover' />:
                   <UserCircleIcon className='w-8' />
                 }
               </span>

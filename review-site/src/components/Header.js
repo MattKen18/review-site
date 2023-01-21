@@ -68,7 +68,7 @@ const Header = () => {
                 <span className='w-10 overflow-hidden rounded-full'>
                   {
                     currentUser?.photoURL ? 
-                    <img src={currentUser?.photoURL} alt="user profile image" className='w-10 h-10' />
+                    <img src={currentUser?.photoURL} alt="user profile image" className='w-10 h-10 object-cover' />
                      : 
                     <UserCircleIcon className='w-full' />
                   }

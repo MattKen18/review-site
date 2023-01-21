@@ -591,3 +591,17 @@ export const updateUserProfilePic = async (userId, picPath) => {
   }
 
 }
+
+
+export const updateUserBackgroundImage = async (userId, picPath) => {
+  const userRef = doc(db, 'users', userId)
+
+  try {
+    await setDoc(userRef, {
+      profileBgImageURL: picPath
+    }, {merge: true})
+  } catch (e) {
+    console.log('error adding background Image')
+  }
+
+}

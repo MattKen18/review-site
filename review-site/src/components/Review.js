@@ -14,7 +14,7 @@ import { current } from '@reduxjs/toolkit'
 
 
 
-const Review = ({review: {id, author, headline, body, genre: {title, color}, tag, images, timestamp, numOfComments, rating}}) => {
+const Review = ({review: {id, author, headline, body, genre: {title, color}, tag, images, timestamp, comments, rating}}) => {
   const [bookmarked, setBookmarked] = useState(false) //change to use selector to get list of bookmarked items of the user
   const [helpful, setHelpful] = useState(null) //true if the user selects 
   const [justClicked, setJustClicked] = useState(null)
@@ -195,7 +195,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                   reviewHeading
                 }
                 <div className='flex space-x-8 items-center'>
-                  <h1 className='font-extrabold text-2xl line-clamp-2'><a href="/" className=''>{headline}</a></h1>
+                  <h1 className='font-extrabold text-2xl line-clamp-2'><a href={`/review/${id}`} className=''>{headline}</a></h1>
                   <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                   
                 </div>
@@ -208,7 +208,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
               <div className='relative flex'>
                 <div className='flex items-center space-x-3 text-sm'>
                   <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${author?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
-                  <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
+                  <a href={`/review/${id}`} className='flex items-center space-x-1 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /><span className=''>{comments.length > 0 && comments.length}</span></a>
                   {
                     !currentUser?.isAnonymous && currentUser ?
                     !bookmarked ?
@@ -265,7 +265,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                     reviewHeading
                   }
                   <div className='flex space-x-8 items-center'>
-                    <h1 className='font-extrabold text-2xl line-clamp-2'>{headline}</h1>
+                  <h1 className='font-extrabold text-2xl line-clamp-2'><a href={`/review/${id}`} className=''>{headline}</a></h1>
                     <div className='flex'><RatingStars rating={rating} /><span className='font-light'>{rating}/5</span></div>
                     
                   </div>
@@ -278,7 +278,7 @@ const Review = ({review: {id, author, headline, body, genre: {title, color}, tag
                 <div className='relative flex'>
                   <div className='flex items-center space-x-3 text-sm'>
                   <p className=''><span className='p-1 border-2 border-slate-200 rounded-md bg-slate-200 text-xs mr-2 opacity-80'>{timePassed()}</span> By <Link to={`/user/${author?.uid}/profile`} className='font-body underline underline-offset-4 hover:cursor-pointer hover:bg-cyan-100'>{author?.userName || "Anonymous"}</Link></p>
-                    <p className='flex items-center space-x-2 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /> {numOfComments}</p>
+                    <a href={`/review/${id}`} className='flex items-center space-x-1 hover:cursor-pointer hover:opacity-1 hover:text-papaya'><ChatBubbleLeftEllipsisIcon className='w-6' /><span className=''>{comments.length > 0 && comments.length}</span></a>
                     {
                     !currentUser?.isAnonymous && currentUser ?
                     !bookmarked ?

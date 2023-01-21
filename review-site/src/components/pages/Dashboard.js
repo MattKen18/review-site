@@ -121,12 +121,12 @@ const Dashboard = () => {
           </div>
           <div onClick={() => setStatShown('followers')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-amber-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'followers' ? `border-amber-500` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Followers</p>
-            <p className='font-bold text-lg text-amber-500'>0</p>
+            <p className='font-bold text-lg text-amber-500'>{author?.followers.length}</p>
             <span className='w-fit'><GroupsOutlinedIcon className={`w-6 group-hover:text-amber-500 ${statShown === 'followers' ? `opacity-100 text-amber-500` : `opacity-70`}`}/></span>
           </div>
           <div onClick={() => setStatShown('following')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-slate-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'following' ? `border-slate-500` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Following</p>
-            <p className='font-bold text-lg text-slate-500'>0</p>
+            <p className='font-bold text-lg text-slate-500'>{author?.following.length}</p>
             <span className='w-fit'><PeopleOutlinedIcon className={`w-6 group-hover:text-slate-500 ${statShown === 'following' ? `opacity-100 text-slate-500` : `opacity-70`}`}/></span>
           </div>
           <div className='relative bg-white h-24 duration-200 basis-1/4 rounded-lg shadow-sm p-2 border-b-4 border-emerald-400'>

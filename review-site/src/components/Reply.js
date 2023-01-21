@@ -40,14 +40,21 @@ const Reply = ({reply}) => {
     <div id={reply?.uid} className='flex space-x-2'>
       <span>
         {
-          currentUser?.photoURL ? 
-          <img src={currentUser?.photoURL} alt="profile pic" className='w-10 h-10 rounded-full' />:
+          replyAuthor?.photoURL ? 
+          <img src={replyAuthor?.photoURL} alt="profile pic" className='w-8 h-8 rounded-full object-cover' />
+          :
           <UserCircleIcon className='w-8' />
         }
       </span>
       <div>
         <div className='flex space-x-2'>
-          <p className='text-xs font-bold'>{replyAuthor?.userName}</p>
+          {
+            !replyAuthor?.userName ? 
+            <p className='text-sm font-bold'>Anonymous</p>
+            :
+            <a className='text-sm font-bold' href={`/user/${replyAuthor?.uid}/profile`}>{replyAuthor?.userName}</a>
+
+          }
           <small className='text-xs opacity-70'><TimePassed timestamp={reply?.dateCreated} /></small>
         </div>
         <p className='text-xs'>{reply?.body}</p>

@@ -87,7 +87,7 @@ const CommentSection = ({review}) => {
         <span className='flex items-center justify-center'>
           {
             currentUser?.photoURL ? 
-            <img src={currentUser?.photoURL} alt="user profile image" className='w-10 h-10 rounded-full' /> :
+            <img src={currentUser?.photoURL} alt="user profile image" className='w-10 h-10 rounded-full object-cover' /> :
             <UserCircleIcon className='w-12'/>
           }
         </span>
