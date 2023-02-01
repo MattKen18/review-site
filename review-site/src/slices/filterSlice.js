@@ -83,6 +83,12 @@ export const filterSlice = createSlice({
     },
 
     clearFilter: (state) => {
+      // state = {
+      //   mossFiltering: false,
+      //   genreFiltering: false,
+      //   authFiltering: false,
+      //   filters: []
+      // }
       state.filters = []
       state.mossFiltering = false
       state.genreFiltering = false

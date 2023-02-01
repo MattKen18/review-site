@@ -10,6 +10,8 @@ import { getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth'
 import defaultProfileImage from '../../assets/default-profile-image.png'
 import Review from '../Review'
 import ReactS3Client from 'react-aws-s3-typescript';
+import { useDispatch, useSelector } from 'react-redux'
+import { resetUser, selectUser, setUser, updateUser } from '../../slices/userSlice'
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -30,7 +32,7 @@ const Profile = () => {
   const { id } = useParams()
 
   const [profileUser, setProfileUser] = useState(null)
-  const [currentUser, setCurrentUser] = useState(null)
+  // const [currentUser, setCurrentUser] = useState(null)
   const [isProfileOwner, setIsProfileOwner] = useState(false)
   const [followers, setFollowers] = useState(0)
   const [following, setFollowing] = useState(0)
@@ -43,12 +45,20 @@ const Profile = () => {
 
   const auth = getAuth()
 
+  const currentUser = useSelector(selectUser)
+  const dispatch = useDispatch()
+
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        setCurrentUser(user)
+        // setCurrentUser(user)
+        getUserFromFirestore(user.uid).then(user => {
+          user.dateJoined = user.dateJoined.toDate().toDateString()
+          dispatch(setUser(user))
+        })
       } else {
-        setCurrentUser(null)
+        dispatch(resetUser())
+        // setCurrentUser(null)
       }
     })
   }, [])
@@ -63,7 +73,7 @@ const Profile = () => {
   }, [currentUser, profileUser])
 
   useEffect(() => {
-    console.log('is profile owner? ', isProfileOwner)
+    // console.log('is profile owner? ', isProfileOwner)
   }, [isProfileOwner])
 
   // gets the user that corresponds to the profile that the currently logged in user wants to see
@@ -81,7 +91,7 @@ const Profile = () => {
   }, [profileUser])
 
   useEffect(() => {
-    console.log('reviews: ', reviews)
+    // console.log('reviews: ', reviews)
   }, [reviews])
 
 
@@ -153,14 +163,13 @@ const Profile = () => {
   }
 
   const handleBackgroundImageUpdate = async () => {
-    const existingPic = profileUser?.profileBgImageURL //picture that was the background image before the update if there was one
+    const existingPic = currentUser?.profileBgImageURL //picture that was the background image before the update if there was one
     const bgImagePath = await uploadBackgroundImageToS3()
     if (bgImagePath !== '') {
-      await updateUserBackgroundImage(profileUser?.uid, bgImagePath)
-      // updateProfile(auth.currentUser, {
-      //   photoURL: profilePicPath,
-      // })
-      getUserFromFirestore(profileUser?.uid).then(user => setProfileUser(user))
+      await updateUserBackgroundImage(currentUser?.uid, bgImagePath)
+
+      // getUserFromFirestore(profileUser?.uid).then(user => setProfileUser(user))
+      dispatch(updateUser({'profileBgImageURL': bgImagePath}))
       setStagedBackgroundImage(null)
       setNewBackgroundImage(null)
     }
@@ -187,11 +196,12 @@ const Profile = () => {
     const existingPic = currentUser?.photoURL //picture that was the profile pic before the update if there was one
     const profilePicPath = await uploadProfilePicToS3()
     if (profilePicPath !== '') {
-      await updateUserProfilePic(profileUser?.uid, profilePicPath)
+      await updateUserProfilePic(currentUser?.uid, profilePicPath)
       updateProfile(auth.currentUser, {
         photoURL: profilePicPath,
       })
-      getUserFromFirestore(profileUser?.uid).then(user => setProfileUser(user))
+      // getUserFromFirestore(profileUser?.uid).then(user => setProfileUser(user))
+      dispatch(updateUser({'photoURL': profilePicPath}))
       setStagedProfileImage(null)
       setNewProfileImage(null)
     }
@@ -216,7 +226,6 @@ const Profile = () => {
   const cleanUpBackgroundImageInS3 = async () => {
     const imageSplit = profileUser?.profileBgImageURL.split('/')
     const fileName = imageSplit[imageSplit.length-1]
-    console.log(fileName)
     const filepath = config.dirName+'/'+fileName;
     try {
         await s3.deleteFile(filepath);
@@ -224,6 +233,12 @@ const Profile = () => {
         console.log(exception);
     }
   }
+
+  useEffect(() => {
+    if (profileUser) {
+      console.log('links: ', profileUser.links)
+    }
+  }, [profileUser])
 
 
   return (
@@ -255,9 +270,16 @@ const Profile = () => {
                 <input id='background-image-input' type="file" className='hidden' onChange={addBackgroundImage} />
                 <label htmlFor="background-image-input" className='relative flex items-center justify-center w-full h-full hover:cursor-pointer'>
                   <AddAPhotoOutlinedIcon className='peer text-papaya absolute group-hover:z-10' fontSize='large' />
-                  <img src={profileUser?.profileBgImageURL ? profileUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
-                    className='peer-hover:opacity-70 hover:opacity-70 relative h-full w-full object-cover'
-                  />
+                  {
+                    isProfileOwner ? 
+                      <img src={currentUser?.profileBgImageURL ? currentUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
+                        className='peer-hover:opacity-70 hover:opacity-70 relative h-full w-full object-cover'
+                      />
+                    :
+                      <img src={profileUser?.profileBgImageURL ? profileUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
+                      className='peer-hover:opacity-70 hover:opacity-70 relative h-full w-full object-cover'
+                    />
+                  }
                 </label>
               </div>
             </>
@@ -287,7 +309,12 @@ const Profile = () => {
                       <label htmlFor='profile-image-input' className="w-full h-full flex items-center justify-center hover:cursor-pointer"><AddAPhotoOutlinedIcon className='text-papaya' fontSize='large' /></label>
                     </div>
                     <div className='relative flex items-center justify-center group-hover:z-0 group-hover:opacity-50 h-full w-full'>
-                      <img id='profile-pic' src={`${profileUser?.photoURL ? profileUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
+                      {
+                        isProfileOwner ? 
+                          <img id='profile-pic' src={`${currentUser?.photoURL ? currentUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
+                        :
+                          <img id='profile-pic' src={`${profileUser?.photoURL ? profileUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
+                      }
                     </div>
                   </>
                 }
@@ -302,15 +329,15 @@ const Profile = () => {
               <p className='font-light text-sm text-center'>Joined {profileUser?.dateJoined?.toDate().toDateString()}</p>
               <div className='flex mt-5 space-x-4'>
                 <div className='basis-1/3 text-xs'>
-                  <p className='text-center'>{reviews?.length}</p>
+                  <p className='text-center font-bold'>{reviews?.length}</p>
                   <p className='text-center'>Reviews</p>
                 </div>
                 <div className='basis-1/3 text-xs'>
-                  <p className='text-center'>{followers}</p>
+                  <p className='text-center font-bold'>{followers}</p>
                   <p className='text-center'>Followers</p>
                 </div>
                 <div className='basis-1/3 text-xs'>
-                  <p className='text-center'>{following}</p>
+                  <p className='text-center font-bold'>{following}</p>
                   <p className='text-center'>Following</p>
                 </div>
               </div>
@@ -328,7 +355,14 @@ const Profile = () => {
               }
             </div>
             <div className='mt-10'>
-              <h1>Contact</h1>
+              <h1>My Links</h1>
+              {/* {
+                profileUser &&
+                Object.keys(profileUser.links).map((key, i) => {
+                  <p>{profileUser.links[key]}</p>
+                })
+
+              } */}
             </div>
           </div>
           <div className='min-h-screen basis-3/4 bg-gray-100'>
@@ -344,7 +378,7 @@ const Profile = () => {
                 ))
                 :
                 <div className='mt-20'>
-                  <h1 className='text-center'>-No reviews-</h1>
+                  <h1 className='text-center'>- No reviews -</h1>
                 </div>
               }
             </div>

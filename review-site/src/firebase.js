@@ -196,6 +196,8 @@ export const addUserToFirestore  = async ({uid, displayName, email, photoURL}) =
     // })
 
     console.log("user created in firestore")
+    const user = await getUserFromFirestore(userRef.id)
+    return user
   } catch (e) {
     console.log(e)
   }
@@ -605,3 +607,32 @@ export const updateUserBackgroundImage = async (userId, picPath) => {
   }
 
 }
+
+const addFieldToDoc = async (docType, fieldObj, id) => {
+  const docRef = doc(db, docType, id)
+  console.log('updating...')
+  await setDoc(docRef, fieldObj, {merge: true})
+
+}
+
+const links = {
+  links: {
+    youtube: 'https://www.youtube.com',
+    tiktok: 'https://www.tiktok.com',
+    instagram: 'https://www.instagram.com',
+    twitter: 'https://www.twitter.com',
+    facebook: 'https://www.facebook.com',
+    gmail: '',
+    linkedIn: 'https://www.linkedIn.com',
+  }
+}
+
+addFieldToDoc('users', links, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
+
+// const addFieldsToDocs = async (docType, fieldObj) => {
+//   const querySnapshot = await getDocs(collection(db, docType));
+//   querySnapshot.forEach((doc) => {
+//     // doc.data() is never undefined for query doc snapshots
+//     console.log(doc.id, " => ", doc.data());
+//   });
+// }

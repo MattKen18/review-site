@@ -4,7 +4,7 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, getAuth, onAuthStateChanged, updateProfile, signInAnonymously, GoogleAuthProvider, signInWithPopup, FacebookAuthProvider, signInWithRedirect } from 'firebase/auth';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { addUserToFirestore } from '../../firebase';
+import { addUserToFirestore, getUserFromFirestore } from '../../firebase';
 import Alert from '../Alert';
 import googleLogo from '../../assets/google-logo.png'
 import facebookLogo from '../../assets/facebook-logo.png'
@@ -12,6 +12,8 @@ import appleLogo from '../../assets/apple-logo.png'
 import twitterLogo from '../../assets/twitter-logo.webp'
 
 import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUser, setUser } from '../../slices/userSlice';
 
 const LoginSignup = () => {
   const [method, setMethod] = useState('login')
@@ -39,7 +41,9 @@ const LoginSignup = () => {
   const googleProvider = new GoogleAuthProvider();
   const facebookProvider = new FacebookAuthProvider();
 
-
+  const currentUser = useSelector(selectUser)
+  const dispatch = useDispatch()
+  
 
   const checkPasswordMatch = () => {
     // console.log(e.target.value === password)
@@ -145,7 +149,6 @@ const LoginSignup = () => {
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log(user)
         setTimeout(() => {
           if (user.isAnonymous) {
             navigate('/')
@@ -153,11 +156,24 @@ const LoginSignup = () => {
             navigate(`/user/${user.uid}/dashboard`)
           }
         }, 1000);
+        try {
+          getUserFromFirestore(user.uid).then(user => {
+            user.dateJoined = user.dateJoined.toDate().toDateString()
+            dispatch(setUser(user))
+          })
+        } catch (e) {
+
+        }
+
       } else {
         // navigate('/login-signup')
       }
     })
   }, [])
+
+  useEffect(() => {
+    // console.log('currentUser: ', currentUser)
+  }, [currentUser])
 
   const createUser = (e) => {
     e.preventDefault()
@@ -166,9 +182,18 @@ const LoginSignup = () => {
       // Signed in 
       const user = userCredential.user;
       updateProfile(auth.currentUser, {
-        displayName: username, //photoURL: "https://example.com/jane-q-user/profile.jpg"
+        displayName: username,
       }).then(() => {
-        addUserToFirestore(user)
+        addUserToFirestore(user).then(firebaseUser => {
+          // console.log('firebaseUser: ', firebaseUser)
+          firebaseUser.dateJoined = firebaseUser.dateJoined.toDate().toDateString()
+          dispatch(setUser(firebaseUser))
+        })
+        // getUserFromFirestore(user.uid).then(user => {
+        //   user.dateJoined = user.dateJoined.toDate().toDateString()
+        //   console.log('user from firebase: ', user)
+        //   dispatch(setUser(user))
+        // })
       }).catch((error) => {
         console.log(error)
       });
