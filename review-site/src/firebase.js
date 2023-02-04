@@ -615,6 +615,22 @@ const addFieldToDoc = async (docType, fieldObj, id) => {
 
 }
 
+export const getUserLinks = async (userId) => {
+  const userRef = doc(db, 'users', userId)
+  const userSnapshot = await getDoc(userRef)
+
+  const links = []
+
+  for (let key in userSnapshot.data().links) {
+    links.push([key, userSnapshot.data().links[key]])
+  }
+
+  links.sort()
+  return links
+}
+
+// getUserLinks('cYMpWrnMXReaWMUGnI8eKFz02WW2')
+
 const links = {
   links: {
     youtube: 'https://www.youtube.com',

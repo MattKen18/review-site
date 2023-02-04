@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic } from '../../firebase'
+import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic } from '../../firebase'
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
 import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
@@ -12,6 +12,8 @@ import Review from '../Review'
 import ReactS3Client from 'react-aws-s3-typescript';
 import { useDispatch, useSelector } from 'react-redux'
 import { resetUser, selectUser, setUser, updateUser } from '../../slices/userSlice'
+import linkIcons from '../../assets/social-media-icons/icons'
+
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -42,11 +44,24 @@ const Profile = () => {
   const [stagedBackgroundImage, setStagedBackgroundImage] = useState(null)
   const [newBackgroundImage, setNewBackgroundImage] = useState(null)
   const [newProfileImage, setNewProfileImage] = useState(null)
+  const [userLinks, setUserLinks] = useState([])
+
 
   const auth = getAuth()
 
   const currentUser = useSelector(selectUser)
   const dispatch = useDispatch()
+
+
+  const linkColors = {
+    'facebook': '#a5b4fc',
+    'instagram': '#f9a8d4',
+    'gmail': '#e7e5e4',
+    'linkedIn': '#C5ECFF',
+    'tiktok': '#1f2937',
+    'twitter': '#7dd3fc',
+    'youtube': '#FCDCDC',
+  }
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
@@ -236,10 +251,21 @@ const Profile = () => {
 
   useEffect(() => {
     if (profileUser) {
-      console.log('links: ', profileUser.links)
+      getUserLinks(profileUser?.uid).then(links => setUserLinks(links))
+
     }
   }, [profileUser])
 
+
+  useEffect(() => {
+    if (userLinks) {
+      for (let link of userLinks) {
+        const linkObj = document.getElementById(`${link[0]}-link-logo`)
+        linkObj.style.backgroundColor = linkColors[link[0]]
+      }
+    }
+
+  }, [userLinks])
 
   return (
     <div className='flex'>
@@ -354,15 +380,28 @@ const Profile = () => {
                 
               }
             </div>
-            <div className='mt-10'>
-              <h1>My Links</h1>
-              {/* {
-                profileUser &&
-                Object.keys(profileUser.links).map((key, i) => {
-                  <p>{profileUser.links[key]}</p>
-                })
+            <div className='w-full mt-10 px-4'>
+              <h1 className='text-center mb-3 font-bold'>Links</h1>
+              {
+                userLinks.length &&
+                <ul className=''>
+                  {userLinks.map((linkArr, i) => (
+                    <li id={`${linkArr[0]}-link-logo`} key={i} className="space-x-2 align-center inline-block rounded-full w-fit p-2 mr-2 mb-2 last:mb-0 hover:scale-110 duration-100 hover:cursor-pointer">
+                      <div className='flex space-x-2'>
+                        <img 
+                          src={linkIcons[linkArr[0]]}
+                          alt="social media link logos"
+                          className={`w-6`}
+                        />
+                        <p className='font-bold text-sm flex items-center'>{linkArr[0][0].toUpperCase() + linkArr[0].slice(1,)}</p>
+                      </div>
+                    </li>
+                  ))
+                }
+                </ul>
+                
 
-              } */}
+              }
             </div>
           </div>
           <div className='min-h-screen basis-3/4 bg-gray-100'>
