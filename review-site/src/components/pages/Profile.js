@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic } from '../../firebase'
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
@@ -13,6 +13,7 @@ import ReactS3Client from 'react-aws-s3-typescript';
 import { useDispatch, useSelector } from 'react-redux'
 import { resetUser, selectUser, setUser, updateUser } from '../../slices/userSlice'
 import linkIcons from '../../assets/social-media-icons/icons'
+import AddLinkModal from '../AddLinkModal'
 
 
 const S3_BUCKET ='test-image-store-weviews';
@@ -45,7 +46,10 @@ const Profile = () => {
   const [newBackgroundImage, setNewBackgroundImage] = useState(null)
   const [newProfileImage, setNewProfileImage] = useState(null)
   const [userLinks, setUserLinks] = useState([])
-
+  
+  const [shownModals, setShownModals] = useState({
+    addLink: false,
+  })
 
   const auth = getAuth()
 
@@ -252,23 +256,47 @@ const Profile = () => {
   useEffect(() => {
     if (profileUser) {
       getUserLinks(profileUser?.uid).then(links => setUserLinks(links))
-
     }
   }, [profileUser])
 
 
   useEffect(() => {
     if (userLinks) {
+      console.log(userLinks)
       for (let link of userLinks) {
-        const linkObj = document.getElementById(`${link[0]}-link-logo`)
-        linkObj.style.backgroundColor = linkColors[link[0]]
+        if (link[1].length) {
+          const linkObj = document.getElementById(`${link[0]}-link-logo`)
+          linkObj.style.backgroundColor = linkColors[link[0]]
+        }
       }
     }
 
   }, [userLinks])
 
+
+  const easyCloseModal = () => {
+    setShownModals({
+      addLink: false,
+    })
+    // setShowAddLinkModal(false)
+  }
+
+  const hideModalAfterUpdate = () => {
+    setShownModals({
+      addLink: false,
+    })
+    window.location.reload()
+    // setShowAddLinkModal(false)
+  }
+
+
   return (
     <div className='flex'>
+      {
+        shownModals.addLink &&
+          <AddLinkModal user={profileUser} links={userLinks} close={hideModalAfterUpdate} easyClose={easyCloseModal} />
+      }
+
       <aside className='min-h-screen basis-1/5'>
         <AdSpace />
       </aside>
@@ -380,27 +408,38 @@ const Profile = () => {
                 
               }
             </div>
-            <div className='w-full mt-10 px-4'>
+            <div className='w-full mt-10 px-4 flex flex-col justify-center'>
               <h1 className='text-center mb-3 font-bold'>Links</h1>
               {
-                userLinks.length &&
-                <ul className=''>
+                userLinks.length > 0 &&
+                <ul className='w-fit'>
                   {userLinks.map((linkArr, i) => (
-                    <li id={`${linkArr[0]}-link-logo`} key={i} className="space-x-2 align-center inline-block rounded-full w-fit p-2 mr-2 mb-2 last:mb-0 hover:scale-110 duration-100 hover:cursor-pointer">
+                    linkArr[1].length > 0 &&
+                    <li id={`${linkArr[0]}-link-logo`} key={i} className="items-center inline-block rounded-full w-fit p-2 mr-2 mb-2 hover:scale-110 duration-100 hover:cursor-pointer">
+                      <a href={`${linkArr[0] === 'gmail' ? 'mailto:'+linkArr[1] : linkArr[1]}`} target="_blank"> 
                       <div className='flex space-x-2'>
                         <img 
                           src={linkIcons[linkArr[0]]}
                           alt="social media link logos"
                           className={`w-6`}
                         />
-                        <p className='font-bold text-sm flex items-center'>{linkArr[0][0].toUpperCase() + linkArr[0].slice(1,)}</p>
+                        <p className='font-bold text-xs flex items-center'>{linkArr[0][0].toUpperCase() + linkArr[0].slice(1,)}</p>
                       </div>
+              
+                      </a>
                     </li>
                   ))
                 }
+                {
+                isProfileOwner &&
+                  <li onClick={() => setShownModals({...shownModals, addLink: true})} id={`addMore-link-logo`} className="bg-gray-200 inline-block items-center w-fit rounded-full p-2 mr-2 mb-2 hover:scale-110 duration-100 hover:cursor-pointer">
+                      <div className='flex space-x-2'>
+                        <p className='font-bold text-sm'>+</p>
+                        <p className='font-bold text-xs flex items-center'>Add more</p>
+                      </div>
+                  </li>
+                }
                 </ul>
-                
-
               }
             </div>
           </div>

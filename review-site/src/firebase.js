@@ -629,6 +629,25 @@ export const getUserLinks = async (userId) => {
   return links
 }
 
+export const updateUserProfileWithLinks = async (userId, links) => {
+  const userRef = doc(db, 'users', userId)
+  const newLinks = {}
+  
+  for (let link of links) {
+    newLinks[link[0]] = link[1]
+  }
+
+  try {
+    await setDoc(userRef, {
+      links: newLinks
+    }, {merge: true})
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+
 // getUserLinks('cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
 const links = {

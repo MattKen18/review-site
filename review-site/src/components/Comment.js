@@ -175,7 +175,7 @@ const Comment = ({comment}) => {
             comment.anonymous ? 
             <p className='text-sm font-bold'>Anonymous</p>
             :
-            <a className='text-sm font-bold' href={`/user/${currentUser?.uid}/profile`}>{commentAuthor?.userName}</a>
+            <a className='text-sm font-bold' href={`/user/${commentAuthor?.uid}/profile`}>{commentAuthor?.userName}</a>
 
           }
           {/* <p className='text-sm font-bold'>{comment.anonymous ? "Anonymous" : commentAuthor?.userName}</p> */}
