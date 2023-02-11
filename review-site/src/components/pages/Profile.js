@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic } from '../../firebase'
+import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic, updateuserProfileWithAbout } from '../../firebase'
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
 import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
@@ -14,7 +14,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import { resetUser, selectUser, setUser, updateUser } from '../../slices/userSlice'
 import linkIcons from '../../assets/social-media-icons/icons'
 import AddLinkModal from '../AddLinkModal'
-
+import $ from 'jquery'
+import { ChevronDownIcon } from '@heroicons/react/24/solid'
+import Alert from '../Alert'
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -50,6 +55,13 @@ const Profile = () => {
   const [shownModals, setShownModals] = useState({
     addLink: false,
   })
+
+  const [linksShown, setLinksShown] = useState(true)
+  const [alert, setAlert] = useState(null)
+
+  const [about, setAbout] = useState('')
+  const [typingAbout, setTypingAbout] = useState(false)
+  const [editAbout, setEditAbout] = useState(false)
 
   const auth = getAuth()
 
@@ -106,6 +118,7 @@ const Profile = () => {
       getAuthorReviews(profileUser?.uid).then(reviews => setReviews(reviews))
       setFollowers(profileUser?.followers.length)
       setFollowing(profileUser?.following.length)
+      setAbout(profileUser?.about)
     }
   }, [profileUser])
 
@@ -273,8 +286,13 @@ const Profile = () => {
 
   }, [userLinks])
 
-
+  const preventScroll = () => {
+    window.scroll(0, 0)
+  }
+  
   const easyCloseModal = () => {
+    window.removeEventListener('scroll', preventScroll)
+    document.body.style.overflow = 'scroll'
     setShownModals({
       addLink: false,
     })
@@ -289,9 +307,62 @@ const Profile = () => {
     // setShowAddLinkModal(false)
   }
 
+  // prevent scrolling when there is a modal visible
+  useEffect(() => {
+    for(let modal in shownModals) {
+      if (shownModals[modal]) {
+        document.body.style.overflow = 'hidden'
+        window.addEventListener('scroll', preventScroll)
+      }
+    }
+
+    return () => {
+      window.removeEventListener('scroll', preventScroll)
+    } 
+  }, [shownModals])
+
+  const toggleLinks = () => {
+    setLinksShown(shown => !shown)
+    $('#links-container').slideToggle()
+  }
+
+  useEffect(() => {
+    if (linksShown) {
+      $('#links-container').slideDown()
+    }
+  }, [])
+
+  // when user enters content into the about textarea
+  const updateAbout = (val) => {
+    setAbout(val)
+    if (val === profileUser?.about) {
+      setTypingAbout(false)
+    } else {
+      setTypingAbout(true)
+    }
+  }
+
+  // saving the changes made to the about textarea
+  const saveAbout = (e) => {
+    e.preventDefault()
+    updateuserProfileWithAbout(profileUser?.uid, about.trim()).then(success => {
+      if (success) {
+        setAlert({body: "Successfully updated User About", type: "success"})
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000);
+      } else {
+        setAlert({body: "Error updating User About", type: "error"})
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000);
+      }
+    }
+    )
+  }
 
   return (
-    <div className='flex'>
+    <div id="profile-wrapper" className='flex'>
       {
         shownModals.addLink &&
           <AddLinkModal user={profileUser} links={userLinks} close={hideModalAfterUpdate} easyClose={easyCloseModal} />
@@ -300,7 +371,7 @@ const Profile = () => {
       <aside className='min-h-screen basis-1/5'>
         <AdSpace />
       </aside>
-      <div className='flex-1 min-h-screen'>
+      <div className='relative flex-1 min-h-screen'>
         {/* profile background */}
         <div className='group flex justify-center items-center relative h-48 w-full'>
           {
@@ -408,42 +479,100 @@ const Profile = () => {
                 
               }
             </div>
-            <div className='w-full mt-10 px-4 flex flex-col justify-center'>
-              <h1 className='text-center mb-3 font-bold'>Links</h1>
-              {
-                userLinks.length > 0 &&
-                <ul className='w-fit'>
-                  {userLinks.map((linkArr, i) => (
-                    linkArr[1].length > 0 &&
-                    <li id={`${linkArr[0]}-link-logo`} key={i} className="items-center inline-block rounded-full w-fit p-2 mr-2 mb-2 hover:scale-110 duration-100 hover:cursor-pointer">
-                      <a href={`${linkArr[0] === 'gmail' ? 'mailto:'+linkArr[1] : linkArr[1]}`} target="_blank"> 
-                      <div className='flex space-x-2'>
-                        <img 
-                          src={linkIcons[linkArr[0]]}
-                          alt="social media link logos"
-                          className={`w-6`}
-                        />
-                        <p className='font-bold text-xs flex items-center'>{linkArr[0][0].toUpperCase() + linkArr[0].slice(1,)}</p>
-                      </div>
-              
-                      </a>
-                    </li>
-                  ))
-                }
+            <div className='w-full mt-10 px-8 flex flex-col justify-center space-y-8'>
+              <div className='flex flex-col'>
+                <h1 className='mb-3 border-l-4 border-emerald-300 pl-2 font-bold'>About</h1>
                 {
-                isProfileOwner &&
-                  <li onClick={() => setShownModals({...shownModals, addLink: true})} id={`addMore-link-logo`} className="bg-gray-200 inline-block items-center w-fit rounded-full p-2 mr-2 mb-2 hover:scale-110 duration-100 hover:cursor-pointer">
-                      <div className='flex space-x-2'>
-                        <p className='font-bold text-sm'>+</p>
-                        <p className='font-bold text-xs flex items-center'>Add more</p>
-                      </div>
-                  </li>
+                  editAbout ?
+                  <form className='relative flex flex-col items-center space-y-2' onSubmit={saveAbout}>
+                    {
+                      editAbout &&
+                      <span 
+                      onClick={() => setEditAbout(false)}
+                      className={'absolute right-0 opacity-50 z-10 hover:cursor-pointer hover:opacity-100 bg-rose-200 rounded-full'}
+                      ><ClearOutlinedIcon />
+                      </span>
+                    }
+                    <textarea
+                      spellCheck={false}
+                      rows={4}
+                      value={about}
+                      onChange={(e) => updateAbout(e.target.value)}
+                      placeholder={'Say something cool...'}
+                      className='relative resize-none flex-1 w-full focus:outline-none border-2 border-slate-200 focus:border-slate-400 focus:opacity-100 rounded-xl p-2 text-sm opacity-80'
+                    />
+                    
+                    {
+                      typingAbout &&
+                      <button onClick={() => console.log('clicked')} className='w-fit m-auto bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
+                    }
+                  </form> 
+                  :
+                  <div className={`group relative ${isProfileOwner && 'hover:cursor-pointer'}`} onClick={() => {
+                    if (isProfileOwner) setEditAbout(true)}}>
+                    {
+                      isProfileOwner &&
+                      <span 
+                      className={'absolute right-0 -top-2 z-2 opacity-50 group-hover:opacity-100 bg-emerald-200 rounded-full'}
+                      ><EditOutlinedIcon />
+                      </span>
+                    }
+                    <p className='relative -z-10 border-2 border-slate-200 rounded-xl p-2 text-sm opacity-80 before:content-["\"_"] after:content-["_\""] before:text-emerald-500 after:text-emerald-500'>
+                      {profileUser?.about ? profileUser?.about : "User has not set an about"}
+                    </p>
+                  </div>
                 }
-                </ul>
-              }
+              </div>
+              <div>
+                <button className='group flex space-x-1 items-center mb-3 hover:cursor-pointer border-l-4 border-emerald-300 pl-2' onClick={toggleLinks} >
+                  <h1 className='font-bold'>Links</h1>
+                  <ChevronDownIcon id="links-shown-icon" className={`${linksShown && `rotate-180`} w-4 duration-200`} />
+                </button>
+                {
+                  userLinks.length > 0 &&
+                  <div id="links-container" className=''>
+                    <div className='w-full flex-col items-center grid gap-2 grid-cols-2 grid-flow-dense'>
+                      {userLinks.map((linkArr, i) => (
+                        linkArr[1].length > 0 &&
+                        <div id={`${linkArr[0]}-link-logo`} key={i} className="items-center rounded-full p-2 hover:scale-110 duration-100 hover:cursor-pointer hover:shadow-2xl hover:shadow-rose-400">
+                          <a href={`${linkArr[0] === 'gmail' ? 'mailto:'+linkArr[1] : linkArr[1]}`} target="_blank" className=''> 
+                            <div className='flex space-x-2'>
+                              <img 
+                                src={linkIcons[linkArr[0]]}
+                                alt="social media link logos"
+                                className={`w-6`}
+                              />
+                              <p className='font-bold text-xs flex items-center'>{linkArr[0][0].toUpperCase() + linkArr[0].slice(1,)}</p>
+                            </div>
+                          </a>
+                        </div>
+                      ))
+                    }
+                    {
+                    isProfileOwner &&
+                    <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
+                      <AddOutlinedIcon />
+                    </span>
+                      // <div onClick={() => setShownModals({...shownModals, addLink: true})} id={`addMore-link-logo`} className="bg-gray-200 items-center rounded-full p-2 hover:scale-110 duration-100 hover:cursor-pointer hover:shadow-2xl hover:shadow-rose-400">
+                      //     <div className='flex space-x-2'>
+                      //       <p className='font-bold text-sm'>+</p>
+                      //       <p className='font-bold text-xs flex items-center'>Add more</p>
+                      //     </div>
+                      // </div>
+                    }
+                    </div>
+                  </div>
+                }
+              </div>
             </div>
           </div>
-          <div className='min-h-screen basis-3/4 bg-gray-100'>
+          <div className='relative min-h-screen basis-3/4 bg-gray-100'>
+            {
+              alert &&
+              <div className='absolute top-0 left-1/2 -translate-x-1/2'>
+                <Alert content={{body: alert.body, type: alert.type}} />
+              </div>
+            }
             <h1 className='font-bold text-center text-xl pt-4'>User reviews</h1>
 
             <div className='flex flex-col justify-center'>

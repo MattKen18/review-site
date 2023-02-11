@@ -648,6 +648,21 @@ export const updateUserProfileWithLinks = async (userId, links) => {
 }
 
 
+export const updateuserProfileWithAbout = async (userId, about) => {
+  const userRef = doc(db, 'users', userId)
+
+  try {
+    await setDoc(userRef, {
+      about: about
+    }, {merge: true})
+    return true
+  } catch (e) {
+    return false
+  }
+
+}
+
+
 // getUserLinks('cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
 const links = {
@@ -662,7 +677,7 @@ const links = {
   }
 }
 
-addFieldToDoc('users', links, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
+addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
 // const addFieldsToDocs = async (docType, fieldObj) => {
 //   const querySnapshot = await getDocs(collection(db, docType));

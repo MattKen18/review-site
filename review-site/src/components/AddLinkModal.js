@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { updateUserProfileWithLinks } from '../firebase'
 import Alert from './Alert'
+import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 
 const AddLinkModal = ({user, links, close, easyClose}) => {
   const [newLinks, setNewLinks] = useState({
@@ -66,7 +67,7 @@ const AddLinkModal = ({user, links, close, easyClose}) => {
   }
 
   return (
-    <div className='fixed top-0 bottom-0 z-10 w-full h-full flex items-center justify-center'>
+    <div className='fixed top-0 bottom-0 z-20 w-screen h-screen flex items-center justify-center backdrop-filter backdrop-blur-sm'>
       <div onClick={easyClose} className='absolute w-full h-full backdrop-filter backdrop-blur-sm'>
         {
           alert &&
@@ -83,13 +84,14 @@ const AddLinkModal = ({user, links, close, easyClose}) => {
               <label htmlFor={`${link[0]}-input`} className='w-20 font-bold'>{link[0][0].toUpperCase() + link[0].slice(1,)}</label>
               <input 
                 id={`${link[0]}-input`}
-                className='flex-1 p-2 border-b-2 outline-none focus:outline-none focus:border-b-emerald-400 duration-100 opacity-80 focus:opacity-100'
+                className='peer flex-1 p-2 border-b-2 outline-none focus:outline-none focus:border-b-emerald-400 duration-100 opacity-80 focus:opacity-100'
                 type="text"
-                defaultValue={link[1]}
+                value={newLinks[link[0]]}
                 placeholder={'Click to add'}
-                onChange={(e) => updateLink(link[0], e.target.value)}
+                onChange={(e) => updateLink(link[0], e.target.value.trim())}
                 autoComplete='off'
               />
+              <ClearOutlinedIcon onClick={(e) => {e.preventDefault(); updateLink(link[0], '')}} className='hover:cursor-pointer text-transparent peer-focus:text-red-500' />
             </div>
            )) 
           }
