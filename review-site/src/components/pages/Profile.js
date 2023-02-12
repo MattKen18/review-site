@@ -4,7 +4,7 @@ import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLink
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
 import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
-import { UserCircleIcon } from '@heroicons/react/24/solid'
+import { UserCircleIcon, Cog6ToothIcon } from '@heroicons/react/24/solid'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import { getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth'
 import defaultProfileImage from '../../assets/default-profile-image.png'
@@ -20,6 +20,8 @@ import Alert from '../Alert'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import ChangePwordModal from '../ChangePwordModal'
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -54,6 +56,8 @@ const Profile = () => {
   const [linksEmpty, setLinksEmpty] = useState(false)
   const [shownModals, setShownModals] = useState({
     addLink: false,
+    changePword: false,
+    changeUsername: false,
   })
 
   const [linksShown, setLinksShown] = useState(true)
@@ -299,6 +303,8 @@ const Profile = () => {
     document.body.style.overflow = 'scroll'
     setShownModals({
       addLink: false,
+      changePword: false,
+      changeUsername: false,
     })
     // setShowAddLinkModal(false)
   }
@@ -306,24 +312,26 @@ const Profile = () => {
   const hideModalAfterUpdate = () => {
     setShownModals({
       addLink: false,
+      changePword: false,
+      changeUsername: false,
     })
     window.location.reload()
     // setShowAddLinkModal(false)
   }
 
   // prevent scrolling when there is a modal visible
-  useEffect(() => {
-    for(let modal in shownModals) {
-      if (shownModals[modal]) {
-        document.body.style.overflow = 'hidden'
-        window.addEventListener('scroll', preventScroll)
-      }
-    }
+  // useEffect(() => {
+  //   for(let modal in shownModals) {
+  //     if (shownModals[modal]) {
+  //       document.body.style.overflow = 'hidden'
+  //       window.addEventListener('scroll', preventScroll)
+  //     }
+  //   }
 
-    return () => {
-      window.removeEventListener('scroll', preventScroll)
-    } 
-  }, [shownModals])
+  //   return () => {
+  //     window.removeEventListener('scroll', preventScroll)
+  //   } 
+  // }, [shownModals])
 
   const toggleLinks = () => {
     setLinksShown(shown => !shown)
@@ -379,8 +387,13 @@ const Profile = () => {
   return (
     <div id="profile-wrapper" className='flex'>
       {
-        shownModals.addLink &&
+        shownModals.addLink ?
           <AddLinkModal user={profileUser} links={userLinks} close={hideModalAfterUpdate} easyClose={easyCloseModal} />
+          :
+        shownModals.changePword ?
+          <ChangePwordModal user={profileUser} close={hideModalAfterUpdate} easyClose={easyCloseModal} />
+          :
+          <></>
       }
 
       <aside className='min-h-screen basis-1/5'>
@@ -495,6 +508,7 @@ const Profile = () => {
               }
             </div>
             <div className='w-full mt-10 px-8 flex flex-col justify-center space-y-8'>
+              {/* about section */}
               <div className='flex flex-col'>
                 <h1 className='mb-3 border-l-4 border-emerald-300 pl-2 font-bold'>About</h1>
                 {
@@ -538,6 +552,7 @@ const Profile = () => {
                   </div>
                 }
               </div>
+              {/* links section */}
               <div>
                 <button className='group flex space-x-1 items-center mb-3 hover:cursor-pointer border-l-4 border-emerald-300 pl-2' onClick={toggleLinks} >
                   <h1 className='font-bold'>Links</h1>
@@ -580,6 +595,22 @@ const Profile = () => {
                   </div>
                 }
               </div>
+              {/* settings section */}
+              {
+                isProfileOwner &&
+                <div className='pt-10 flex flex-col space-y-2'>
+                  <hr className='pb-4'/>
+                  <h1 className='mb-3 border-l-4 border-emerald-300 pl-2 font-bold'>Profile Settings</h1>
+                  <button className='group flex space-x-2 text-sm items-center font-light' onClick={() => setShownModals({...shownModals, changePword: true})}>
+                    <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-emerald-400 duration-100' />
+                    <p>Change Password</p>
+                  </button>
+                  <button className='group flex space-x-2 text-sm items-center font-light'>
+                    <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-emerald-400 duration-100' />
+                    <p>Change Username</p>
+                  </button>
+                </div>
+              }
             </div>
           </div>
           <div className='relative min-h-screen basis-3/4 bg-gray-100'>

@@ -67,7 +67,7 @@ const AddLinkModal = ({user, links, close, easyClose}) => {
   }
 
   return (
-    <div className='fixed top-0 bottom-0 z-20 w-screen h-screen flex items-center justify-center backdrop-filter backdrop-blur-sm'>
+    <div className='fixed top-0 bottom-0 z-20 w-screen h-screen flex items-center justify-center'>
       <div onClick={easyClose} className='absolute w-full h-full backdrop-filter backdrop-blur-sm'>
         {
           alert &&
