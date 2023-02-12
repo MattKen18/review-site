@@ -51,7 +51,7 @@ const Profile = () => {
   const [newBackgroundImage, setNewBackgroundImage] = useState(null)
   const [newProfileImage, setNewProfileImage] = useState(null)
   const [userLinks, setUserLinks] = useState([])
-  
+  const [linksEmpty, setLinksEmpty] = useState(false)
   const [shownModals, setShownModals] = useState({
     addLink: false,
   })
@@ -268,14 +268,19 @@ const Profile = () => {
 
   useEffect(() => {
     if (profileUser) {
-      getUserLinks(profileUser?.uid).then(links => setUserLinks(links))
+      getUserLinks(profileUser?.uid).then(
+        links => setUserLinks(links)
+      )
     }
   }, [profileUser])
 
 
   useEffect(() => {
-    if (userLinks) {
-      console.log(userLinks)
+    setLinksEmpty(checkLinksEmpty())
+  }, [userLinks])
+
+  useEffect(() => {
+    if (!linksEmpty) {
       for (let link of userLinks) {
         if (link[1].length) {
           const linkObj = document.getElementById(`${link[0]}-link-logo`)
@@ -283,8 +288,7 @@ const Profile = () => {
         }
       }
     }
-
-  }, [userLinks])
+  }, [linksEmpty])
 
   const preventScroll = () => {
     window.scroll(0, 0)
@@ -359,6 +363,17 @@ const Profile = () => {
       }
     }
     )
+  }
+
+  // checks if the links are the default values ""
+  const checkLinksEmpty = () => {
+    for (let link of userLinks) {
+      console.log(link)
+      if (link[1].trim() !== '') {
+        return false
+      }
+    }
+    return true
   }
 
   return (
@@ -517,7 +532,7 @@ const Profile = () => {
                       ><EditOutlinedIcon />
                       </span>
                     }
-                    <p className='relative -z-10 border-2 border-slate-200 rounded-xl p-2 text-sm opacity-80 before:content-["\"_"] after:content-["_\""] before:text-emerald-500 after:text-emerald-500'>
+                    <p className='relative -z-10 border-2 border-transparent rounded-xl p-2 text-sm opacity-80 before:content-["\"_"] after:content-["_\""] before:text-emerald-500 after:text-emerald-500'>
                       {profileUser?.about ? profileUser?.about : "User has not set an about"}
                     </p>
                   </div>
@@ -529,7 +544,7 @@ const Profile = () => {
                   <ChevronDownIcon id="links-shown-icon" className={`${linksShown && `rotate-180`} w-4 duration-200`} />
                 </button>
                 {
-                  userLinks.length > 0 &&
+                  !linksEmpty ?
                   <div id="links-container" className=''>
                     <div className='w-full flex-col items-center grid gap-2 grid-cols-2 grid-flow-dense'>
                       {userLinks.map((linkArr, i) => (
@@ -549,18 +564,19 @@ const Profile = () => {
                       ))
                     }
                     {
-                    isProfileOwner &&
+                      isProfileOwner &&
+                        <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
+                        <AddOutlinedIcon />
+                        </span>
+                    }
+                    </div>
+                  </div>
+                  :
+                  <div className='flex flex-col items-center'>
+                    <p className='opacity-70 text-sm'>User has not attached any links</p>
                     <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
                       <AddOutlinedIcon />
                     </span>
-                      // <div onClick={() => setShownModals({...shownModals, addLink: true})} id={`addMore-link-logo`} className="bg-gray-200 items-center rounded-full p-2 hover:scale-110 duration-100 hover:cursor-pointer hover:shadow-2xl hover:shadow-rose-400">
-                      //     <div className='flex space-x-2'>
-                      //       <p className='font-bold text-sm'>+</p>
-                      //       <p className='font-bold text-xs flex items-center'>Add more</p>
-                      //     </div>
-                      // </div>
-                    }
-                    </div>
                   </div>
                 }
               </div>

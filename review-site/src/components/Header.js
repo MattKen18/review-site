@@ -94,7 +94,7 @@ const Header = () => {
               </div>
               <div className='absolute peer-hover:block hover:block hidden w-32 border-0 border-slate-100 bg-slate-100 rounded-md shadow-md overflow-hidden'>
                 <ul>
-                  <li className='hover:bg-papaya hover:text-white hover:cursor-pointer'><Link className='p-2 block w-full h-full' to={`${!currentUser?.isAnonymous ? `/user/${currentUser?.uid}/profile`: `/`}`}>Profile</Link></li>
+                  <li className='hover:bg-papaya hover:text-white hover:cursor-pointer'><a className='p-2 block w-full h-full' href={`${!currentUser?.isAnonymous ? `/user/${currentUser?.uid}/profile`: `/`}`}>Profile</a></li>
                   {/* <li className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Dashboard</li> */}
                   <li  onClick={() => signOutUser()} className='p-2 hover:bg-papaya hover:text-white hover:cursor-pointer'>Logout</li>
                 </ul>

@@ -185,6 +185,15 @@ export const addUserToFirestore  = async ({uid, displayName, email, photoURL}) =
       saves: [],
       helpfulReviews: [],
       unhelpfulReviews: [],
+      links: {    
+        youtube: '',
+        tiktok: '',
+        instagram: '',
+        twitter: '',
+        facebook: '',
+        gmail: '',
+        linkedIn: '',
+      }
     }, {merge: true})
     // userRef = await setDoc(doc(db, 'users', uid), {
     //   uid: uid,
