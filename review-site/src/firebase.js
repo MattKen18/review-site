@@ -686,6 +686,28 @@ const links = {
   }
 }
 
+export const checkUsernameAvailability = async (username) => {
+  const q = query(collection(db, "users"), where("userName", "==", username));
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.length === 0
+}
+
+export const updateUsername = async (userId, newUsername) => {
+  const userRef = doc(db, 'users', userId)
+
+  try {
+    await setDoc(userRef, {
+      userName: newUsername 
+    }, {merge: true})
+    return true 
+  } catch(e) {
+    console.log(e)
+    return false
+  }
+}
+
+
 addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
 // const addFieldsToDocs = async (docType, fieldObj) => {

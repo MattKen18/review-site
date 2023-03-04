@@ -22,6 +22,7 @@ import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ChangePwordModal from '../ChangePwordModal'
+import ChangeUsernameModal from '../ChangeUsernameModal'
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -393,8 +394,11 @@ const Profile = () => {
         shownModals.changePword ?
           <ChangePwordModal user={profileUser} close={hideModalAfterUpdate} easyClose={easyCloseModal} />
           :
+        shownModals.changeUsername ?
+          <ChangeUsernameModal user={profileUser} close={hideModalAfterUpdate} easyClose={easyCloseModal} />
+          :
           <></>
-      }
+        }
 
       <aside className='min-h-screen basis-1/5'>
         <AdSpace />
@@ -564,7 +568,7 @@ const Profile = () => {
                     <div className='w-full flex-col items-center grid gap-2 grid-cols-2 grid-flow-dense'>
                       {userLinks.map((linkArr, i) => (
                         linkArr[1].length > 0 &&
-                        <div id={`${linkArr[0]}-link-logo`} key={i} className="items-center rounded-full p-2 hover:scale-110 duration-100 hover:cursor-pointer hover:shadow-2xl hover:shadow-rose-400">
+                        <div id={`${linkArr[0]}-link-logo`} key={i} className="items-center p-2 rounded-full hover:scale-110 duration-100 hover:cursor-pointer hover:shadow-2xl hover:shadow-rose-400">
                           <a href={`${linkArr[0] === 'gmail' ? 'mailto:'+linkArr[1] : linkArr[1]}`} target="_blank" className=''> 
                             <div className='flex space-x-2'>
                               <img 
@@ -605,7 +609,7 @@ const Profile = () => {
                     <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-emerald-400 duration-100' />
                     <p>Change Password</p>
                   </button>
-                  <button className='group flex space-x-2 text-sm items-center font-light'>
+                  <button className='group flex space-x-2 text-sm items-center font-light' onClick={() => setShownModals({...shownModals, changeUsername: true})}>
                     <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-emerald-400 duration-100' />
                     <p>Change Username</p>
                   </button>
