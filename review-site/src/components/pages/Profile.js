@@ -68,6 +68,8 @@ const Profile = () => {
   const [typingAbout, setTypingAbout] = useState(false)
   const [editAbout, setEditAbout] = useState(false)
 
+  const [spectatorView, setSpectatorView] = useState(false)
+
   const auth = getAuth()
 
   const currentUser = useSelector(selectUser)
@@ -209,6 +211,12 @@ const Profile = () => {
       dispatch(updateUser({'profileBgImageURL': bgImagePath}))
       setStagedBackgroundImage(null)
       setNewBackgroundImage(null)
+      setAlert({body: "Succesfully updated Background Image!", type: "success"})
+      
+      setTimeout(() => {
+        setAlert(null)
+      }, 3000);
+
     }
 
     if (existingPic) {
@@ -320,19 +328,6 @@ const Profile = () => {
     // setShowAddLinkModal(false)
   }
 
-  // prevent scrolling when there is a modal visible
-  // useEffect(() => {
-  //   for(let modal in shownModals) {
-  //     if (shownModals[modal]) {
-  //       document.body.style.overflow = 'hidden'
-  //       window.addEventListener('scroll', preventScroll)
-  //     }
-  //   }
-
-  //   return () => {
-  //     window.removeEventListener('scroll', preventScroll)
-  //   } 
-  // }, [shownModals])
 
   const toggleLinks = () => {
     setLinksShown(shown => !shown)
@@ -407,7 +402,7 @@ const Profile = () => {
         {/* profile background */}
         <div className='group flex justify-center items-center relative h-48 w-full'>
           {
-            isProfileOwner ?
+            isProfileOwner && !spectatorView ?
             <>
              {
               stagedBackgroundImage ?
@@ -445,6 +440,15 @@ const Profile = () => {
              }
             </>
             :
+            spectatorView ?
+            <>
+              <div className='absolute flex items-center justify-center w-full h-full'>
+                <img src={profileUser?.profileBgImageURL ? profileUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
+                  className='relative h-full w-full object-cover'
+                />
+              </div>
+            </>
+            :
             <>
               <div className='absolute flex items-center justify-center w-full h-full'>
                 <img src={profileUser?.profileBgImageURL ? profileUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
@@ -460,7 +464,7 @@ const Profile = () => {
             <div className='relative flex items-center justify-center h-48 w-48 -mt-24 rounded-full bg-white'>
               <div className='relative group hover:cursor-pointer flex items-center justify-center rounded-full h-44 w-44 bg-gray-200 overflow-hidden'>
                 {
-                  isProfileOwner ?
+                  isProfileOwner && !spectatorView?
                   <>
                     {
                       stagedProfileImage ?
@@ -494,6 +498,13 @@ const Profile = () => {
                     }
                   </>
                   :
+                  spectatorView ?
+                  <>
+                    <div className='relative flex items-center justify-center group-hover:z-0 h-full w-full hover:cursor-default'>
+                      <img id='profile-pic' src={`${profileUser?.photoURL ? profileUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
+                    </div>
+                  </>
+                  :
                   <>
                     <div className='relative flex items-center justify-center group-hover:z-0 h-full w-full hover:cursor-default'>
                       <img id='profile-pic' src={`${profileUser?.photoURL ? profileUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
@@ -524,16 +535,18 @@ const Profile = () => {
                 </div>
               </div>
               {
+                spectatorView ?
+                <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2 disabled:cursor-not-allowed' disabled={true} >Follow +</button>
+                :
                 !isProfileOwner &&
                 <>
-                {
-                  !isFollowing ?
-                  <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2' onClick={handleFollow}>Follow +</button>
-                  :
-                  <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2' onClick={handleUnfollow}>Unfollow</button>
-                }
+                  {
+                    !isFollowing ?
+                    <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2' onClick={handleFollow}>Follow +</button>
+                    :
+                    <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2' onClick={handleUnfollow}>Unfollow</button>
+                  }
                 </>
-                
               }
             </div>
             <div className='w-full mt-10 px-8 flex flex-col justify-center space-y-8'>
@@ -541,44 +554,51 @@ const Profile = () => {
               <div className='flex flex-col'>
                 <h1 className='mb-3 border-l-4 border-emerald-300 pl-2 font-bold'>About</h1>
                 {
-                  editAbout ?
-                  <form className='relative flex flex-col items-center space-y-2' onSubmit={saveAbout}>
-                    {
-                      editAbout &&
-                      <span 
-                      onClick={() => setEditAbout(false)}
-                      className={'absolute right-0 opacity-50 z-10 hover:cursor-pointer hover:opacity-100 bg-rose-200 rounded-full'}
-                      ><ClearOutlinedIcon />
-                      </span>
-                    }
-                    <textarea
-                      spellCheck={false}
-                      rows={4}
-                      value={about}
-                      onChange={(e) => updateAbout(e.target.value)}
-                      placeholder={'Say something cool...'}
-                      className='relative resize-none flex-1 w-full focus:outline-none border-2 border-slate-200 focus:border-slate-400 focus:opacity-100 rounded-xl p-2 text-sm opacity-80'
-                    />
-                    
-                    {
-                      typingAbout &&
-                      <button onClick={() => console.log('clicked')} className='w-fit m-auto bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
-                    }
-                  </form> 
+                  !spectatorView ?
+                    editAbout ?
+                    <form className='relative flex flex-col items-center space-y-2' onSubmit={saveAbout}>
+                      {
+                        editAbout &&
+                        <span 
+                        onClick={() => setEditAbout(false)}
+                        className={'absolute right-0 opacity-50 z-10 hover:cursor-pointer hover:opacity-100 bg-rose-200 rounded-full'}
+                        ><ClearOutlinedIcon />
+                        </span>
+                      }
+                      <textarea
+                        spellCheck={false}
+                        rows={4}
+                        value={about}
+                        onChange={(e) => updateAbout(e.target.value)}
+                        placeholder={'Say something cool...'}
+                        className='relative resize-none flex-1 w-full focus:outline-none border-2 border-slate-200 focus:border-slate-400 focus:opacity-100 rounded-xl p-2 text-sm opacity-80'
+                      />
+                      
+                      {
+                        typingAbout &&
+                        <button onClick={() => console.log('clicked')} className='w-fit m-auto bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
+                      }
+                    </form> 
+                    :
+                    <div className={`group relative ${isProfileOwner && 'hover:cursor-pointer'}`} onClick={() => {
+                      if (isProfileOwner) setEditAbout(true)}}>
+                      {
+                        isProfileOwner &&
+                        <span 
+                        className={'absolute right-0 -top-2 z-2 opacity-50 group-hover:opacity-100 bg-emerald-200 rounded-full'}
+                        ><EditOutlinedIcon />
+                        </span>
+                      }
+                      <p className='relative -z-10 border-2 border-transparent rounded-xl p-2 text-sm opacity-80 before:content-["\"_"] after:content-["_\""] before:text-emerald-500 after:text-emerald-500'>
+                        {profileUser?.about ? profileUser?.about : "User has not set an about"}
+                      </p>
+                    </div>
                   :
-                  <div className={`group relative ${isProfileOwner && 'hover:cursor-pointer'}`} onClick={() => {
-                    if (isProfileOwner) setEditAbout(true)}}>
-                    {
-                      isProfileOwner &&
-                      <span 
-                      className={'absolute right-0 -top-2 z-2 opacity-50 group-hover:opacity-100 bg-emerald-200 rounded-full'}
-                      ><EditOutlinedIcon />
-                      </span>
-                    }
-                    <p className='relative -z-10 border-2 border-transparent rounded-xl p-2 text-sm opacity-80 before:content-["\"_"] after:content-["_\""] before:text-emerald-500 after:text-emerald-500'>
-                      {profileUser?.about ? profileUser?.about : "User has not set an about"}
-                    </p>
-                  </div>
+                    <div className={`group relative`}>
+                      <p className='relative -z-10 border-2 border-transparent rounded-xl p-2 text-sm opacity-80 before:content-["\"_"] after:content-["_\""] before:text-emerald-500 after:text-emerald-500'>
+                        {profileUser?.about ? profileUser?.about : "User has not set an about"}
+                      </p>
+                    </div>
                 }
               </div>
               {/* links section */}
@@ -609,24 +629,34 @@ const Profile = () => {
                     }
                     {
                       isProfileOwner &&
+                      !spectatorView &&
                         <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
-                        <AddOutlinedIcon />
+                          <AddOutlinedIcon />
                         </span>
                     }
                     </div>
                   </div>
                   :
+                  isProfileOwner ?
+                    <div className='flex flex-col items-center'>
+                      <p className='opacity-70 text-sm'>User has not attached any links</p>
+                      {
+                        !spectatorView &&
+                          <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
+                            <AddOutlinedIcon />
+                          </span>
+                      }
+                    </div>
+                  :
                   <div className='flex flex-col items-center'>
                     <p className='opacity-70 text-sm'>User has not attached any links</p>
-                    <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
-                      <AddOutlinedIcon />
-                    </span>
-                  </div>
+                  </div>                
                 }
               </div>
               {/* settings section */}
               {
                 isProfileOwner &&
+                !spectatorView &&
                 <div className='pt-10 flex flex-col space-y-2'>
                   <hr className='pb-4'/>
                   <h1 className='mb-3 border-l-4 border-emerald-300 pl-2 font-bold'>Profile Settings</h1>
@@ -649,6 +679,18 @@ const Profile = () => {
                 <Alert content={{body: alert.body, type: alert.type}} />
               </div>
             }
+            <div className='h-2 w-full bg-slate-300'></div>
+            <span className='flex items-center space-x-2 text-xs mt-2 font-light'>
+              <label htmlFor='spectator' className='hover:cursor-pointer hover:opacity-100'>Spectator View</label>
+              <input 
+                type="checkbox" 
+                id='spectator' 
+                name='spectator'
+                checked={spectatorView}
+                onClick={() => setSpectatorView(prev => !prev)}
+                className='appearance-none h-3 w-3 focus:opacity-100 focus:outline-none border-2 border-slate-200 checked:border-none checked:bg-emerald-400 rounded-md hover:cursor-pointer hover:opacity-100' 
+              />
+            </span>
             <h1 className='font-bold text-center text-xl pt-4'>User reviews</h1>
 
             <div className='flex flex-col justify-center'>
@@ -661,8 +703,13 @@ const Profile = () => {
                     </div>
                   ))
                   :
+                  !spectatorView ?
+                    <div className='mt-20 m-auto'>
+                      <p className='font-light'>No Reviews | <Link to='/compose' className='text-blue-500 font-normal hover:underline underline-offset-4'>Create one now</Link></p>
+                    </div>
+                  :
                   <div className='mt-20 m-auto'>
-                    <p className='font-light'>No Reviews | <Link to='/compose' className='text-blue-500 font-normal hover:underline underline-offset-4'>Create one now</Link></p>
+                    <p className='font-light'>No Reviews</p>
                   </div>
                 :
                 reviews.length ?
