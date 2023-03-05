@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic, updateuserProfileWithAbout } from '../../firebase'
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
-import AddAPhotoOutlinedIcon from '@mui/icons-material/AddAPhotoOutlined';
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import { UserCircleIcon, Cog6ToothIcon } from '@heroicons/react/24/solid'
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import { getAuth, onAuthStateChanged, updateProfile } from 'firebase/auth'
@@ -183,7 +183,7 @@ const Profile = () => {
       reader.readAsDataURL(image)
       document.getElementById('background-image-input').value = ''
     } else {
-      alert("Invalid File Type")
+      console.log("Invalid file type")
     }
   }
 
@@ -407,37 +407,49 @@ const Profile = () => {
         {/* profile background */}
         <div className='group flex justify-center items-center relative h-48 w-full'>
           {
-            isProfileOwner &&
-            stagedBackgroundImage ?
+            isProfileOwner ?
             <>
+             {
+              stagedBackgroundImage ?
+              <>
+                <div className='absolute flex items-center justify-center w-full h-full hover:cursor-pointer'>
+                  <input id='background-image-input' type="file" className='hidden' onChange={addBackgroundImage} />
+                  <label htmlFor="background-image-input" className='relative flex items-center justify-center w-full h-full hover:cursor-pointer'>
+                    <span className='peer text-white absolute group-hover:z-10 w-16 h-16 bg-black rounded-full p-2 flex items-center justify-center'>
+                      <AddPhotoAlternateOutlinedIcon className='' fontSize='large' />
+                    </span>                  
+                    <img src={stagedBackgroundImage} alt="profile wallpaper"
+                      className='peer-hover:opacity-70 relative h-full w-full object-cover'
+                    />
+                  </label>
+                  <br />
+                  <button onClick={handleBackgroundImageUpdate} className='absolute bottom-8 bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
+                </div>
+              </>
+              :
+              <>
               <div className='absolute flex items-center justify-center w-full h-full hover:cursor-pointer'>
                 <input id='background-image-input' type="file" className='hidden' onChange={addBackgroundImage} />
                 <label htmlFor="background-image-input" className='relative flex items-center justify-center w-full h-full hover:cursor-pointer'>
-                  <AddAPhotoOutlinedIcon className='peer text-papaya absolute group-hover:z-10' fontSize='large' />
-                  <img src={stagedBackgroundImage} alt="profile wallpaper"
-                    className='peer-hover:opacity-70 relative h-full w-full object-cover'
-                  />
-                </label>
-                <button onClick={handleBackgroundImageUpdate} className='absolute bottom-10 bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
-              </div>
-            </>
-            :
-            <>
-              <div className='absolute flex items-center justify-center w-full h-full hover:cursor-pointer'>
-                <input id='background-image-input' type="file" className='hidden' onChange={addBackgroundImage} />
-                <label htmlFor="background-image-input" className='relative flex items-center justify-center w-full h-full hover:cursor-pointer'>
-                  <AddAPhotoOutlinedIcon className='peer text-papaya absolute group-hover:z-10' fontSize='large' />
+                  <span className='peer text-white absolute group-hover:z-10 w-16 h-16 bg-black rounded-full p-2 flex items-center justify-center'>
+                    <AddPhotoAlternateOutlinedIcon className='' fontSize='large' />
+                  </span>
                   {
-                    isProfileOwner ? 
-                      <img src={currentUser?.profileBgImageURL ? currentUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
-                        className='peer-hover:opacity-70 hover:opacity-70 relative h-full w-full object-cover'
-                      />
-                    :
-                      <img src={profileUser?.profileBgImageURL ? profileUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
+                    <img src={currentUser?.profileBgImageURL ? currentUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
                       className='peer-hover:opacity-70 hover:opacity-70 relative h-full w-full object-cover'
                     />
                   }
                 </label>
+              </div>
+              </>
+             }
+            </>
+            :
+            <>
+              <div className='absolute flex items-center justify-center w-full h-full'>
+                <img src={profileUser?.profileBgImageURL ? profileUser?.profileBgImageURL : profileWallpaper} alt="profile wallpaper"
+                  className='relative h-full w-full object-cover'
+                />
               </div>
             </>
           }
@@ -448,30 +460,43 @@ const Profile = () => {
             <div className='relative flex items-center justify-center h-48 w-48 -mt-24 rounded-full bg-white'>
               <div className='relative group hover:cursor-pointer flex items-center justify-center rounded-full h-44 w-44 bg-gray-200 overflow-hidden'>
                 {
-                  isProfileOwner &&
-                  stagedProfileImage ?
+                  isProfileOwner ?
                   <>
-                    <div className='absolute hidden group-hover:block group-hover:z-10 w-full h-full'>
-                      <input id='profile-image-input' className="hidden" type="file" accept="image/*" onChange={addProfilePic} />
-                      <label htmlFor='profile-image-input' className="w-full h-full flex items-center justify-center hover:cursor-pointer"><AddAPhotoOutlinedIcon className='text-papaya' fontSize='large' /></label>
-                    </div>
-                    <div className='relative flex items-center justify-center group-hover:z-0 group-hover:opacity-50 h-full w-full'>
-                      <img id='profile-pic' src={stagedProfileImage} alt='profile picture' className='h-full w-full object-cover'/>
-                    </div>
+                    {
+                      stagedProfileImage ?
+                      <>
+                        <div className='absolute hidden group-hover:block group-hover:z-10 w-full h-full'>
+                          <input id='profile-image-input' className="hidden" type="file" accept="image/*" onChange={addProfilePic} />
+                          <label htmlFor='profile-image-input' className="w-full h-full flex items-center justify-center hover:cursor-pointer">
+                            <span className='peer text-white absolute group-hover:z-10 w-10 h-10 bg-black rounded-full p-2 flex items-center justify-center'>
+                              <AddPhotoAlternateOutlinedIcon className='' fontSize='medium' />
+                            </span>
+                          </label>
+                        </div>
+                        <div className='relative flex items-center justify-center group-hover:z-0 group-hover:opacity-50 h-full w-full'>
+                          <img id='profile-pic' src={stagedProfileImage} alt='profile picture' className='h-full w-full object-cover'/>
+                        </div>
+                      </>
+                      :
+                      <>
+                        <div className='absolute hidden group-hover:block group-hover:z-10 w-full h-full'>
+                          <input id='profile-image-input' className="hidden" type="file" accept="image/*" onChange={addProfilePic} />
+                          <label htmlFor='profile-image-input' className="w-full h-full flex items-center justify-center hover:cursor-pointer">
+                            <span className='peer text-white absolute group-hover:z-10 w-10 h-10 bg-black rounded-full p-2 flex items-center justify-center'>
+                              <AddPhotoAlternateOutlinedIcon className='' fontSize='medium' />
+                            </span>
+                          </label>
+                        </div>
+                        <div className='relative flex items-center justify-center group-hover:z-0 group-hover:opacity-50 h-full w-full'>
+                          <img id='profile-pic' src={`${currentUser?.photoURL ? currentUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
+                        </div>
+                      </>
+                    }
                   </>
                   :
                   <>
-                    <div className='absolute hidden group-hover:block group-hover:z-10 w-full h-full'>
-                      <input id='profile-image-input' className="hidden" type="file" accept="image/*" onChange={addProfilePic} />
-                      <label htmlFor='profile-image-input' className="w-full h-full flex items-center justify-center hover:cursor-pointer"><AddAPhotoOutlinedIcon className='text-papaya' fontSize='large' /></label>
-                    </div>
-                    <div className='relative flex items-center justify-center group-hover:z-0 group-hover:opacity-50 h-full w-full'>
-                      {
-                        isProfileOwner ? 
-                          <img id='profile-pic' src={`${currentUser?.photoURL ? currentUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
-                        :
-                          <img id='profile-pic' src={`${profileUser?.photoURL ? profileUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
-                      }
+                    <div className='relative flex items-center justify-center group-hover:z-0 h-full w-full hover:cursor-default'>
+                      <img id='profile-pic' src={`${profileUser?.photoURL ? profileUser?.photoURL : defaultProfileImage}`} alt='profile picture' className='h-full w-full object-cover'/>
                     </div>
                   </>
                 }
@@ -628,6 +653,18 @@ const Profile = () => {
 
             <div className='flex flex-col justify-center'>
               {
+                isProfileOwner ?
+                  reviews.length ?
+                  reviews?.map((review, i) => (
+                    <div key={review.id + i} className='-mb-10 scale-90'>
+                      <Review id={i} review={review}/>
+                    </div>
+                  ))
+                  :
+                  <div className='mt-20 m-auto'>
+                    <p className='font-light'>No Reviews | <Link to='/compose' className='text-blue-500 font-normal hover:underline underline-offset-4'>Create one now</Link></p>
+                  </div>
+                :
                 reviews.length ?
                 reviews?.map((review, i) => (
                   <div key={review.id + i} className='-mb-10 scale-90'>
@@ -635,9 +672,10 @@ const Profile = () => {
                   </div>
                 ))
                 :
-                <div className='mt-20'>
-                  <h1 className='text-center'>- No reviews -</h1>
+                <div className='mt-20 m-auto'>
+                  <p className='font-light'>No Reviews</p>
                 </div>
+
               }
             </div>
           </div>
