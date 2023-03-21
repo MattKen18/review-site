@@ -372,7 +372,6 @@ const Profile = () => {
   // checks if the links are the default values ""
   const checkLinksEmpty = () => {
     for (let link of userLinks) {
-      console.log(link)
       if (link[1].trim() !== '') {
         return false
       }
@@ -680,14 +679,14 @@ const Profile = () => {
               </div>
             }
             <div className='h-2 w-full bg-slate-300'></div>
-            <span className='flex items-center space-x-2 text-xs mt-2 font-light'>
+            <span className='flex items-center space-x-2 text-xs mt-2 ml-4 font-light select-none'>
               <label htmlFor='spectator' className='hover:cursor-pointer hover:opacity-100'>Spectator View</label>
               <input 
                 type="checkbox" 
                 id='spectator' 
                 name='spectator'
                 checked={spectatorView}
-                onClick={() => setSpectatorView(prev => !prev)}
+                onChange={() => setSpectatorView(prev => !prev)}
                 className='appearance-none h-3 w-3 focus:opacity-100 focus:outline-none border-2 border-slate-200 checked:border-none checked:bg-emerald-400 rounded-md hover:cursor-pointer hover:opacity-100' 
               />
             </span>
