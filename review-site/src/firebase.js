@@ -234,9 +234,18 @@ export const getUserFromFirestore = async (uid) => {
   const userRef = doc(db, 'users', uid)
   const userSnap = await getDoc(userRef)
   const user = userSnap.data()
-  
-  return user 
+  user.dateJoined = user.dateJoined.toDate().toDateString()
 
+  //convert firebase timestamp to javascript date object so it can be saved in redux state
+  for (let followerId in user.followers) {
+    user.followers[followerId].dateFollowed =  user.followers[followerId].dateFollowed.toDate().toDateString()
+  }
+
+  for (let userId in user.following) {
+    user.following[userId].dateFollowed =  user.following[userId].dateFollowed.toDate().toDateString()
+  }
+
+  return user 
 }
 
 export const getAuthorReviews = async (uid) => {
@@ -541,7 +550,9 @@ export const getCommentReplies = async (commentId) => {
 export const addToUserFollowers = async (userId, followerId) => {
   const userRef = doc(db, 'users', userId)
   const userSnapshot = await getDoc(userRef)
-  const userFollowers = [...userSnapshot.data().followers, followerId]
+
+  const userFollowers = {...userSnapshot.data().followers}
+  userFollowers[followerId] = {dateFollowed: serverTimestamp()}
 
   await setDoc(userRef, {
     followers: userFollowers
@@ -553,7 +564,8 @@ export const addToUserFollowers = async (userId, followerId) => {
 export const addToFollowing = async (userId, followerId) => {
   const followerRef = doc(db, 'users', followerId)
   const followerSnapshot = await getDoc(followerRef)
-  const followerFollowing = [...followerSnapshot.data().following, userId]
+  const followerFollowing = {...followerSnapshot.data().following}
+  followerFollowing[userId] = {dateFollowed: serverTimestamp()}
 
   await setDoc(followerRef, {
     following: followerFollowing
@@ -565,10 +577,12 @@ export const addToFollowing = async (userId, followerId) => {
 export const removeFromUserFollowers = async (userId, followerId) => {
   const userRef = doc(db, 'users', userId)
   const userSnapshot = await getDoc(userRef)
-  const userFollowers = [...userSnapshot.data().followers]
+  const userFollowers = {...userSnapshot.data().followers}
 
-  const index = userFollowers.indexOf(followerId)
-  userFollowers.splice(index, 1)
+  // const index = userFollowers.indexOf(followerId)
+  // userFollowers.splice(index, 1)
+
+  delete userFollowers[followerId]
 
   await setDoc(userRef, {
     followers: userFollowers
@@ -580,11 +594,13 @@ export const removeFromUserFollowers = async (userId, followerId) => {
 export const removeFromFollowing = async (userId, followerId) => {
   const followerRef = doc(db, 'users', followerId)
   const followerSnapshot = await getDoc(followerRef)
-  const followerFollowing = [...followerSnapshot.data().following]
+  const followerFollowing = {...followerSnapshot.data().following}
   
-  const index = followerFollowing.indexOf(userId)
-  followerFollowing.splice(index, 1)
+  // const index = followerFollowing.indexOf(userId)
+  // followerFollowing.splice(index, 1)
   
+  delete followerFollowing[userId]
+
   await setDoc(followerRef, {
     following: followerFollowing
   }, {merge: true})
@@ -707,6 +723,25 @@ export const updateUsername = async (userId, newUsername) => {
   }
 }
 
+export const getUserFollowers = async (followers) => {
+  /*
+    followers => object of follower objects each follower object has an userId/followerId as the key and an object with a timestamp key
+    userId: {
+      timestamp: ...
+    }
+  */
+  const userFollowers = []
+  
+  for (let follower in followers) {
+    const userRef = doc(db, 'users', follower)
+    const userSnapshot = await getDoc(userRef)
+    userFollowers.push(userSnapshot.data())
+  
+  }
+
+  return userFollowers
+}
+
 
 addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
@@ -717,3 +752,4 @@ addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'
 //     console.log(doc.id, " => ", doc.data());
 //   });
 // }
+

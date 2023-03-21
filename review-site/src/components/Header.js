@@ -22,10 +22,8 @@ const Header = () => {
       if (user) {
         // setCurrentUser(user)
         getUserFromFirestore(user.uid).then(user => {
-          user.dateJoined = user.dateJoined.toDate().toDateString()
           dispatch(setUser(user))
         })
-
       } else {
         dispatch(resetUser())
         // setCurrentUser(null)

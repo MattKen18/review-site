@@ -42,11 +42,13 @@ const s3 = new ReactS3Client(config);
 const Profile = () => {
   const { id } = useParams()
 
-  const [profileUser, setProfileUser] = useState(null)
+  const [profileUser, setProfileUser] = useState(null) //user from firestore
   // const [currentUser, setCurrentUser] = useState(null)
   const [isProfileOwner, setIsProfileOwner] = useState(false)
   const [followers, setFollowers] = useState(0)
   const [following, setFollowing] = useState(0)
+  const [profileUserFollowers, setProfileUserFollowers] = useState([])
+  const [userFollowing, setUserFollowing] = useState([])
   const [reviews, setReviews] = useState([])
   const [isFollowing, setIsFollowing] = useState(false)
   const [stagedProfileImage, setStagedProfileImage] = useState(null)
@@ -91,7 +93,7 @@ const Profile = () => {
       if (user) {
         // setCurrentUser(user)
         getUserFromFirestore(user.uid).then(user => {
-          user.dateJoined = user.dateJoined.toDate().toDateString()
+          // user.dateJoined = user.dateJoined.toDate().toDateString()
           dispatch(setUser(user))
         })
       } else {
@@ -105,29 +107,55 @@ const Profile = () => {
   useEffect(() => {
     if (profileUser) {
       setIsProfileOwner(profileUser?.uid === currentUser?.uid)
-      setIsFollowing(profileUser?.followers.indexOf(currentUser?.uid) !== -1)
     }
-
+    
   }, [currentUser, profileUser])
 
   useEffect(() => {
     // console.log('is profile owner? ', isProfileOwner)
   }, [isProfileOwner])
-
+  
   // gets the user that corresponds to the profile that the currently logged in user wants to see
   useEffect(() => {
     getUserFromFirestore(id).then(user => setProfileUser(user))
   }, [])
-
+  
   // gets profile owners reviews
   useEffect(() => {
     if (profileUser) {
       getAuthorReviews(profileUser?.uid).then(reviews => setReviews(reviews))
-      setFollowers(profileUser?.followers.length)
-      setFollowing(profileUser?.following.length)
+      setFollowers(Object.keys(profileUser?.followers).length)
+      setFollowing(Object.keys(profileUser?.following).length)
       setAbout(profileUser?.about)
+      setProfileUserFollowers(convertUserFollowers(profileUser.followers))
     }
   }, [profileUser])
+  
+  useEffect(() => {
+    if (profileUserFollowers.length) {
+      setIsFollowing(profileUserFollowers?.indexOf(currentUser?.uid) !== -1)
+      console.log(profileUserFollowers)
+    }
+  }, [profileUserFollowers])
+
+
+
+  // converts the profile followers from an object to an array of followerIds
+  const convertUserFollowers = (followers) => {
+    const followerIds = []
+
+    /*
+      follower => {
+        followerId: ....,
+        timestamp: ...
+      }
+    */
+    for (let follower in followers) {
+      followerIds.push(follower)
+    }
+
+    return followerIds
+  } 
 
   useEffect(() => {
     // console.log('reviews: ', reviews)
@@ -141,7 +169,7 @@ const Profile = () => {
   const handleFollow = () => {
     setFollowers(followers => followers+1)
     try {
-      addToUserFollowers(profileUser?.uid, currentUser?.uid)
+      addToUserFollowers(profileUser?.uid, currentUser?.uid) //add current user to profile user/owners followers list in firebase
       setIsFollowing(true)
     } catch (e) {
       console.log("Could not follow user")
@@ -518,7 +546,7 @@ const Profile = () => {
               }
             <div className='pt-2'>
               <h1 className='font-bold text-xl text-center'>{profileUser?.userName}</h1>
-              <p className='font-light text-sm text-center'>Joined {profileUser?.dateJoined?.toDate().toDateString()}</p>
+              <p className='font-light text-sm text-center'>Joined {profileUser?.dateJoined}</p>
               <div className='flex mt-5 space-x-4'>
                 <div className='basis-1/3 text-xs'>
                   <p className='text-center font-bold'>{reviews?.length}</p>

@@ -1,7 +1,7 @@
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getAuthorReviews, getUserFromFirestore, getUserSavedReviews } from '../../firebase'
+import { getAuthorReviews, getUserFollowers, getUserFromFirestore, getUserSavedReviews } from '../../firebase'
 import AdSpace from '../AdSpace'
 import Review from '../Review'
 import SidePane from '../SidePane'
@@ -11,6 +11,7 @@ import { PencilSquareIcon } from '@heroicons/react/24/solid'
 import BookmarksOutlinedIcon from '@mui/icons-material/BookmarksOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
+import Follower from '../Follower'
 
 const Dashboard = () => {
   const { id } = useParams()
@@ -23,7 +24,7 @@ const Dashboard = () => {
   const [numOfHelpfuls, setNumOfHelpfuls] = useState(null) // total number of people who vote that the author's reviews are helpful
   const [numOfUnHelpfuls, setNumOfUnHelpfuls] = useState(null) // total number of people who vote that the author's reviews are unhelpful
   const [statShown, setStatShown] = useState('reviews')
-
+  const [followers, setFollowers] = useState([])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -56,11 +57,11 @@ const Dashboard = () => {
   }, [currentUser])
 
 
-  useEffect(() => {
-    if (savedReviews.length) {
-      console.log(savedReviews)
-    }
-  }, [savedReviews])
+  // useEffect(() => {
+  //   if (savedReviews.length) {
+  //     console.log(savedReviews)
+  //   }
+  // }, [savedReviews])
 
   useEffect(() => {
     if (reviews.length) {
@@ -98,6 +99,13 @@ const Dashboard = () => {
     console.log(numOfHelpfuls, numOfUnHelpfuls)
   }, [numOfHelpfuls, numOfUnHelpfuls])
 
+  useEffect(() => {
+    if (author) {
+      getUserFollowers(author?.followers).then(followers => setFollowers(followers))
+    }
+  }, [author])
+
+
   return (
     <div className='flex'>
       <aside className='min-h-screen basis-1/5'>
@@ -106,7 +114,7 @@ const Dashboard = () => {
       <div className='flex-1 px-20 bg-gray-100'>
         <div className='my-10'>
           <h1 className='text-2xl font-bold'>Hello <span className='text-emerald-400'>{author?.userName}</span></h1>
-          <p className='font-light text-sm opacity-60'>Since {author?.dateJoined?.toDate().toDateString()}</p>
+          <p className='font-light text-sm opacity-60'>Since {author?.dateJoined}</p>
         </div>
         <div className='flex space-x-8 select-none'>
           <div onClick={() => setStatShown('reviews')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-blue-400 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'reviews' ? `border-blue-500` : `border-white`}`}>
@@ -121,7 +129,7 @@ const Dashboard = () => {
           </div>
           <div onClick={() => setStatShown('followers')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-amber-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'followers' ? `border-amber-500` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Followers</p>
-            <p className='font-bold text-lg text-amber-500'>{author?.followers.length}</p>
+            <p className='font-bold text-lg text-amber-500'>{followers?.length}</p>
             <span className='w-fit'><GroupsOutlinedIcon className={`w-6 group-hover:text-amber-500 ${statShown === 'followers' ? `opacity-100 text-amber-500` : `opacity-70`}`}/></span>
           </div>
           <div onClick={() => setStatShown('following')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-slate-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'following' ? `border-slate-500` : `border-white`}`}>
@@ -199,9 +207,9 @@ const Dashboard = () => {
                 <h1 className='font-bold text-amber-500 border-l-4 border-slate-300 rounded-sm px-2 py-1'>Followers</h1>
                 <div className='mt-10'>
                   {
-                    currentUser.followers?.length ? 
-                      savedReviews?.map((review, i) => (
-                        <Review key={review.id + i} id={i} review={review} />
+                    followers?.length ? 
+                      followers?.map((follower, i) => (
+                        <Follower key={follower.uid + i} follower={follower} />
                       ))
                     :
                     <p className='font-light'>You have no followers yet</p>
