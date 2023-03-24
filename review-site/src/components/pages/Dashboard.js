@@ -1,7 +1,7 @@
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { getAuthorReviews, getUserFollowers, getUserFromFirestore, getUserSavedReviews } from '../../firebase'
+import { getAuthorReviews, getUserFollowers, getUserFollowing, getUserFromFirestore, getUserSavedReviews } from '../../firebase'
 import AdSpace from '../AdSpace'
 import Review from '../Review'
 import SidePane from '../SidePane'
@@ -11,7 +11,7 @@ import { PencilSquareIcon } from '@heroicons/react/24/solid'
 import BookmarksOutlinedIcon from '@mui/icons-material/BookmarksOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
-import Follower from '../Follower'
+import UserCard from '../UserCard'
 
 const Dashboard = () => {
   const { id } = useParams()
@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [numOfUnHelpfuls, setNumOfUnHelpfuls] = useState(null) // total number of people who vote that the author's reviews are unhelpful
   const [statShown, setStatShown] = useState('reviews')
   const [followers, setFollowers] = useState([])
+  const [following, setFollowing] = useState([])
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -101,9 +102,25 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (author) {
-      getUserFollowers(author?.followers).then(followers => setFollowers(followers))
-    }
+        getUserFollowers(author?.uid, author?.followers).then(followers => {
+          console.log("followers: ", followers)
+          // returns an array from most recent to earliest
+          // followers.sort((a, b) => new Date (b.following[author.uid].dateFollowed) - new Date(a.following[author.uid].dateFollowed))
+          setFollowers(followers)
+        })
+        getUserFollowing(author?.uid, author?.following).then(following => {
+          console.log("following: ", following)
+          // following.sort((a, b) => new Date (b.followers[author.uid].dateFollowed) - new Date(a.followers[author.uid].dateFollowed))
+          setFollowing(following)
+        })
+      }
   }, [author])
+
+  useEffect(() => {
+    getUserFromFirestore(id).then((user) => {
+      setAuthor(user)
+    })
+  }, [statShown])
 
 
   return (
@@ -111,33 +128,34 @@ const Dashboard = () => {
       <aside className='min-h-screen basis-1/5'>
         <SidePane />
       </aside>
+
       <div className='flex-1 px-20 bg-gray-100'>
         <div className='my-10'>
           <h1 className='text-2xl font-bold'>Hello <span className='text-emerald-400'>{author?.userName}</span></h1>
           <p className='font-light text-sm opacity-60'>Since {author?.dateJoined}</p>
         </div>
-        <div className='flex space-x-8 select-none'>
-          <div onClick={() => setStatShown('reviews')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-blue-400 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'reviews' ? `border-blue-500` : `border-white`}`}>
+        <div className='flex items-end space-x-8 select-none'>
+          <div onClick={() => setStatShown('reviews')} className={`relative group items-center justify-center flex flex-row h-fit space-x-2 bg-white hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-blue-400 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'reviews' ? `border-blue-500` : `border-white`}`}>
             <p className='text-center opacity-70 font-bold'>Reviews</p>
             <p className='font-bold text-lg text-blue-400'>{reviews.length}</p>
-            <span className='w-fit'><PencilSquareIcon className={`w-6 group-hover:text-blue-500 ${statShown === 'reviews' ? `opacity-100 text-blue-500` : `opacity-70`}`}/></span>
+            {/* <span className='w-fit'><PencilSquareIcon className={`w-6 group-hover:text-blue-500 ${statShown === 'reviews' ? `opacity-100 text-blue-500` : `opacity-70`}`}/></span> */}
           </div>
-          <div onClick={() => setStatShown('saves')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-papaya duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'saves' ? `border-papaya` : `border-white`}`}>
+          <div onClick={() => setStatShown('saves')} className={`relative group items-center justify-center flex flex-row h-fit space-x-2 bg-white hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-papaya duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'saves' ? `border-papaya` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Saves</p>
             <p className='font-bold text-lg text-papaya'>{savedReviews.length}</p>
-            <span className='w-fit'><BookmarksOutlinedIcon className={`w-6 group-hover:text-papaya ${statShown === 'saves' ? `opacity-100 text-papaya` : `opacity-70`}`}/></span>
+            {/* <span className='w-fit'><BookmarksOutlinedIcon className={`w-6 group-hover:text-papaya ${statShown === 'saves' ? `opacity-100 text-papaya` : `opacity-70`}`}/></span> */}
           </div>
-          <div onClick={() => setStatShown('followers')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-amber-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'followers' ? `border-amber-500` : `border-white`}`}>
+          <div onClick={() => setStatShown('followers')} className={`relative group items-center justify-center flex flex-row h-fit space-x-2 bg-white hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-amber-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'followers' ? `border-amber-500` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Followers</p>
             <p className='font-bold text-lg text-amber-500'>{followers?.length}</p>
-            <span className='w-fit'><GroupsOutlinedIcon className={`w-6 group-hover:text-amber-500 ${statShown === 'followers' ? `opacity-100 text-amber-500` : `opacity-70`}`}/></span>
+            {/* <span className='w-fit'><GroupsOutlinedIcon className={`w-6 group-hover:text-amber-500 ${statShown === 'followers' ? `opacity-100 text-amber-500` : `opacity-70`}`}/></span> */}
           </div>
-          <div onClick={() => setStatShown('following')} className={`relative group items-center justify-center flex flex-col bg-white h-24 hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-slate-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'following' ? `border-slate-500` : `border-white`}`}>
+          <div onClick={() => setStatShown('following')} className={`relative group items-center justify-center flex flex-row h-fit space-x-2 bg-white hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-slate-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'following' ? `border-slate-500` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Following</p>
-            <p className='font-bold text-lg text-slate-500'>{author?.following.length}</p>
-            <span className='w-fit'><PeopleOutlinedIcon className={`w-6 group-hover:text-slate-500 ${statShown === 'following' ? `opacity-100 text-slate-500` : `opacity-70`}`}/></span>
+            <p className='font-bold text-lg text-slate-500'>{following?.length}</p>
+            {/* <span className='w-fit'><PeopleOutlinedIcon className={`w-6 group-hover:text-slate-500 ${statShown === 'following' ? `opacity-100 text-slate-500` : `opacity-70`}`}/></span> */}
           </div>
-          <div className='relative bg-white h-24 duration-200 basis-1/4 rounded-lg shadow-sm p-2 border-b-4 border-emerald-400'>
+          <div className='relative bg-white h-24 duration-200 basis-1/4 rounded-lg shadow-sm p-2'>
             <p className='text-center opacity-70 font-bold'>Helpfuls</p>
             <div className='absolute flex mt-2 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
               <p className='font-bold text-lg text-green-400 text-center'>{numOfHelpfuls}</p>
@@ -152,7 +170,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          <div className='relative bg-white h-24 duration-200 basis-1/4 rounded-lg shadow-sm p-2 border-b-4 border-rose-600'>
+          <div className='relative bg-white h-24 duration-200 basis-1/4 rounded-lg shadow-sm p-2'>
             <p className='text-center opacity-70 font-bold'>Unhelpfuls</p>
             <div className='absolute flex mt-2 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
               <p className='font-bold text-lg text-rose-600 text-center'>{numOfUnHelpfuls}</p>
@@ -205,26 +223,26 @@ const Dashboard = () => {
             statShown === 'followers' ?
                 <>
                 <h1 className='font-bold text-amber-500 border-l-4 border-slate-300 rounded-sm px-2 py-1'>Followers</h1>
-                <div className='mt-10'>
+                <div className='grid grid-cols-3 gap-4 mt-10'>
                   {
                     followers?.length ? 
                       followers?.map((follower, i) => (
-                        <Follower key={follower.uid + i} follower={follower} />
+                        <UserCard key={follower.uid + i} currentUserId={author?.uid} user={follower} />
                       ))
                     :
-                    <p className='font-light'>You have no followers yet</p>
+                    <p className='font-light'>You have no followers</p>
                   }
                 </div>
               </>
             :
             statShown === 'following' ?
                 <>
-                <h1 className='font-bold text-slate-500 border-l-4 border-slate-300 rounded-sm px-2 py-1'>Following</h1>
-                <div className='mt-10'>
+                <h1 className='font-bold text-amber-500 border-l-4 border-slate-300 rounded-sm px-2 py-1'>Following</h1>
+                <div className='grid grid-cols-3 gap-4 mt-10'>
                   {
-                    currentUser.following?.length ? 
-                      savedReviews?.map((review, i) => (
-                        <Review key={review.id + i} id={i} review={review} />
+                    following?.length ? 
+                      following?.map((followedUser, i) => (
+                        <UserCard key={followedUser.uid + i} currentUserId={author?.uid} user={followedUser} />
                       ))
                     :
                     <p className='font-light'>You are not following anyone</p>

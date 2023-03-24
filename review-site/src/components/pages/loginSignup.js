@@ -186,7 +186,7 @@ const LoginSignup = () => {
       }).then(() => {
         addUserToFirestore(user).then(firebaseUser => {
           // console.log('firebaseUser: ', firebaseUser)
-          firebaseUser.dateJoined = firebaseUser.dateJoined.toDate().toDateString()
+          // firebaseUser.dateJoined = firebaseUser.dateJoined.toDate().toDateString()
           dispatch(setUser(firebaseUser))
         })
         // getUserFromFirestore(user.uid).then(user => {

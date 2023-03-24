@@ -238,11 +238,11 @@ export const getUserFromFirestore = async (uid) => {
 
   //convert firebase timestamp to javascript date object so it can be saved in redux state
   for (let followerId in user.followers) {
-    user.followers[followerId].dateFollowed =  user.followers[followerId].dateFollowed.toDate().toDateString()
+    user.followers[followerId].dateFollowed =  user.followers[followerId].dateFollowed.toDate().toString()
   }
 
   for (let userId in user.following) {
-    user.following[userId].dateFollowed =  user.following[userId].dateFollowed.toDate().toDateString()
+    user.following[userId].dateFollowed = user.following[userId].dateFollowed.toDate().toString()
   }
 
   return user 
@@ -551,20 +551,27 @@ export const addToUserFollowers = async (userId, followerId) => {
   const userRef = doc(db, 'users', userId)
   const userSnapshot = await getDoc(userRef)
 
-  const userFollowers = {...userSnapshot.data().followers}
-  userFollowers[followerId] = {dateFollowed: serverTimestamp()}
-
-  await setDoc(userRef, {
-    followers: userFollowers
-  }, {merge: true})
-
-  await addToFollowing(userId, followerId)
+  try {
+    const userFollowers = {...userSnapshot.data().followers}
+    userFollowers[followerId] = {dateFollowed: serverTimestamp()}
+  
+    await setDoc(userRef, {
+      followers: userFollowers
+    }, {merge: true})
+  
+    await addToFollowing(userId, followerId)
+    return true
+  } catch (e) {
+    console.log(e)
+    return false
+  }
 }
 
 export const addToFollowing = async (userId, followerId) => {
   const followerRef = doc(db, 'users', followerId)
   const followerSnapshot = await getDoc(followerRef)
   const followerFollowing = {...followerSnapshot.data().following}
+
   followerFollowing[userId] = {dateFollowed: serverTimestamp()}
 
   await setDoc(followerRef, {
@@ -579,31 +586,35 @@ export const removeFromUserFollowers = async (userId, followerId) => {
   const userSnapshot = await getDoc(userRef)
   const userFollowers = {...userSnapshot.data().followers}
 
-  // const index = userFollowers.indexOf(followerId)
-  // userFollowers.splice(index, 1)
-
-  delete userFollowers[followerId]
-
-  await setDoc(userRef, {
-    followers: userFollowers
-  }, {merge: true})
-
-  await removeFromFollowing(userId, followerId)
+  try {
+    delete userFollowers[followerId]
+  
+    await setDoc(userRef, {
+      followers: userFollowers
+    }, {merge: true})
+  
+    await removeFromFollowing(userId, followerId)
+    return true
+  } catch (e) {
+    console.log(e)
+    return false
+  }
 }
 
 export const removeFromFollowing = async (userId, followerId) => {
   const followerRef = doc(db, 'users', followerId)
   const followerSnapshot = await getDoc(followerRef)
   const followerFollowing = {...followerSnapshot.data().following}
-  
-  // const index = followerFollowing.indexOf(userId)
-  // followerFollowing.splice(index, 1)
-  
-  delete followerFollowing[userId]
 
-  await setDoc(followerRef, {
-    following: followerFollowing
-  }, {merge: true})
+  try {
+    delete followerFollowing[userId]
+    await setDoc(followerRef, {
+      following: followerFollowing
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
+  
 }
 
 export const updateUserProfilePic = async (userId, picPath) => {
@@ -723,7 +734,7 @@ export const updateUsername = async (userId, newUsername) => {
   }
 }
 
-export const getUserFollowers = async (followers) => {
+export const getUserFollowers = async (userId, followers) => {
   /*
     followers => object of follower objects each follower object has an userId/followerId as the key and an object with a timestamp key
     userId: {
@@ -733,13 +744,28 @@ export const getUserFollowers = async (followers) => {
   const userFollowers = []
   
   for (let follower in followers) {
-    const userRef = doc(db, 'users', follower)
-    const userSnapshot = await getDoc(userRef)
-    userFollowers.push(userSnapshot.data())
+    const user = await getUserFromFirestore(follower)
+    // const userRef = doc(db, 'users', follower)
+    // const userSnapshot = await getDoc(userRef)
+    userFollowers.push(user)
   
   }
-
+  userFollowers.sort((a, b) => new Date (b.following[userId].dateFollowed) - new Date(a.following[userId].dateFollowed))
   return userFollowers
+}
+
+
+export const getUserFollowing = async (userId, following) => {
+
+  const userFollowing = []
+  
+  for (let userFollowed in following) {
+    const user = await getUserFromFirestore(userFollowed)
+    userFollowing.push(user)
+  
+  }
+  userFollowing.sort((a, b) => new Date (b.followers[userId].dateFollowed) - new Date(a.followers[userId].dateFollowed))
+  return userFollowing
 }
 
 
