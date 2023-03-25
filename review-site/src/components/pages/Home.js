@@ -58,6 +58,7 @@ const Home = () => {
     alreadyShown.current = true
 
   }, [shownReviews])
+  
 
   return (
     <>

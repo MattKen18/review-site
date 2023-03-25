@@ -238,7 +238,7 @@ export const getUserFromFirestore = async (uid) => {
 
   //convert firebase timestamp to javascript date object so it can be saved in redux state
   for (let followerId in user.followers) {
-    user.followers[followerId].dateFollowed =  user.followers[followerId].dateFollowed.toDate().toString()
+    user.followers[followerId].dateFollowed = user.followers[followerId].dateFollowed.toDate().toString()
   }
 
   for (let userId in user.following) {
@@ -782,6 +782,7 @@ export const getUserFollowing = async (userId, following) => {
   
   }
   userFollowing.sort((a, b) => new Date (b.followers[userId].dateFollowed) - new Date(a.followers[userId].dateFollowed))
+
   return userFollowing
 }
 
