@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic, updateuserProfileWithAbout } from '../../firebase'
+import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, handleUserFollow, handleUserUnfollow, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic, updateuserProfileWithAbout } from '../../firebase'
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
@@ -169,7 +169,8 @@ const Profile = () => {
   const handleFollow = () => {
     setFollowers(followers => followers+1)
     try {
-      addToUserFollowers(profileUser?.uid, currentUser?.uid) //add current user to profile user/owners followers list in firebase
+      handleUserFollow(currentUser?.uid, profileUser?.uid)
+      // addToUserFollowers(profileUser?.uid, currentUser?.uid) //add current user to profile user/owners followers list in firebase
       setIsFollowing(true)
     } catch (e) {
       console.log("Could not follow user")
@@ -179,7 +180,8 @@ const Profile = () => {
   const handleUnfollow = () => {
     setFollowers(followers => followers-1)
     try {
-      removeFromUserFollowers(profileUser?.uid, currentUser?.uid)
+      handleUserUnfollow(currentUser?.uid, profileUser?.uid)
+      // removeFromUserFollowers(profileUser?.uid, currentUser?.uid)
       setIsFollowing(false)
     } catch (e) {
       console.log("Could not unfollow user")
@@ -445,7 +447,7 @@ const Profile = () => {
                     />
                   </label>
                   <br />
-                  <button onClick={handleBackgroundImageUpdate} className='absolute bottom-8 bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
+                  <button onClick={handleBackgroundImageUpdate} className='absolute bottom-8 bg-success px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
                 </div>
               </>
               :
@@ -542,7 +544,7 @@ const Profile = () => {
             </div>
               {
                 stagedProfileImage &&
-                <button onClick={handleProfilePicUpdate} className='bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
+                <button onClick={handleProfilePicUpdate} className='bg-success px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
               }
             <div className='pt-2'>
               <h1 className='font-bold text-xl text-center'>{profileUser?.userName}</h1>
@@ -563,15 +565,15 @@ const Profile = () => {
               </div>
               {
                 spectatorView ?
-                <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2 disabled:cursor-not-allowed' disabled={true} >Follow +</button>
+                <button className='w-full bg-primary mt-4 rounded-sm text-white text-sm py-2 disabled:cursor-not-allowed' disabled={true} >Follow +</button>
                 :
                 !isProfileOwner &&
                 <>
                   {
                     !isFollowing ?
-                    <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2' onClick={handleFollow}>Follow +</button>
+                    <button className='w-full bg-primary mt-4 rounded-sm text-white text-sm py-2' onClick={handleFollow}>Follow +</button>
                     :
-                    <button className='w-full bg-papaya mt-4 rounded-sm text-white text-sm py-2' onClick={handleUnfollow}>Unfollow</button>
+                    <button className='w-full bg-primary mt-4 rounded-sm text-white text-sm py-2' onClick={handleUnfollow}>Unfollow</button>
                   }
                 </>
               }
@@ -603,7 +605,7 @@ const Profile = () => {
                       
                       {
                         typingAbout &&
-                        <button onClick={() => console.log('clicked')} className='w-fit m-auto bg-emerald-400 px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
+                        <button onClick={() => console.log('clicked')} className='w-fit m-auto bg-success px-2 text-white rounded-sm hover:bg-emerald-300'>Update</button>
                       }
                     </form> 
                     :
@@ -612,7 +614,7 @@ const Profile = () => {
                       {
                         isProfileOwner &&
                         <span 
-                        className={'absolute right-0 -top-2 z-2 opacity-50 group-hover:opacity-100 bg-emerald-200 rounded-full'}
+                        className={'absolute right-0 -top-2 z-2 opacity-50 group-hover:opacity-100 bg-highlight rounded-full'}
                         ><EditOutlinedIcon />
                         </span>
                       }
@@ -657,7 +659,7 @@ const Profile = () => {
                     {
                       isProfileOwner &&
                       !spectatorView &&
-                        <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
+                        <span className='bg-highlight p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
                           <AddOutlinedIcon />
                         </span>
                     }
@@ -669,7 +671,7 @@ const Profile = () => {
                       <p className='opacity-70 text-sm'>User has not attached any links</p>
                       {
                         !spectatorView &&
-                          <span className='bg-emerald-200 p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
+                          <span className='bg-highlight p-2 hover:cursor-pointer w-fit rounded-full hover:scale-110 duration-100' onClick={() => setShownModals({...shownModals, addLink: true})}>
                             <AddOutlinedIcon />
                           </span>
                       }
@@ -688,11 +690,11 @@ const Profile = () => {
                   <hr className='pb-4'/>
                   <h1 className='mb-3 border-l-4 border-emerald-300 pl-2 font-bold'>Profile Settings</h1>
                   <button className='group flex space-x-2 text-sm items-center font-light' onClick={() => setShownModals({...shownModals, changePword: true})}>
-                    <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-emerald-400 duration-100' />
+                    <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-success duration-100' />
                     <p>Change Password</p>
                   </button>
                   <button className='group flex space-x-2 text-sm items-center font-light' onClick={() => setShownModals({...shownModals, changeUsername: true})}>
-                    <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-emerald-400 duration-100' />
+                    <Cog6ToothIcon className='w-6 group-hover:rotate-180 group-hover:text-success duration-100' />
                     <p>Change Username</p>
                   </button>
                 </div>
@@ -717,7 +719,7 @@ const Profile = () => {
                   name='spectator'
                   checked={spectatorView}
                   onChange={() => setSpectatorView(prev => !prev)}
-                  className='appearance-none h-3 w-3 focus:opacity-100 focus:outline-none border-2 border-slate-200 checked:border-none checked:bg-emerald-400 rounded-md hover:cursor-pointer hover:opacity-100' 
+                  className='appearance-none h-3 w-3 focus:opacity-100 focus:outline-none border-2 border-slate-200 checked:border-none checked:bg-success rounded-md hover:cursor-pointer hover:opacity-100' 
                 />
               </span>
 

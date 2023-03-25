@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { doc, getDoc, getFirestore, query, queryEqual, setDoc, where } from "firebase/firestore";
+import { deleteField, doc, getDoc, getFirestore, query, queryEqual, setDoc, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -546,20 +546,16 @@ export const getCommentReplies = async (commentId) => {
   return replies
 }
 
-
-export const addToUserFollowers = async (userId, followerId) => {
-  const userRef = doc(db, 'users', userId)
-  const userSnapshot = await getDoc(userRef)
+export const handleUserFollow = async (followerId, followedId) => {
+  const followerRef = doc(db, 'users', followerId)
+  const followedRef = doc(db, 'users', followedId)
 
   try {
-    const userFollowers = {...userSnapshot.data().followers}
-    userFollowers[followerId] = {dateFollowed: serverTimestamp()}
-  
-    await setDoc(userRef, {
-      followers: userFollowers
-    }, {merge: true})
-  
-    await addToFollowing(userId, followerId)
+    // add followed to follower's following
+    addToFollowerFollowing(followerRef, followedId)
+    // add follower to followed's followers
+    addToFollowedFollowers(followerId, followedRef)
+
     return true
   } catch (e) {
     console.log(e)
@@ -567,33 +563,40 @@ export const addToUserFollowers = async (userId, followerId) => {
   }
 }
 
-export const addToFollowing = async (userId, followerId) => {
-  const followerRef = doc(db, 'users', followerId)
-  const followerSnapshot = await getDoc(followerRef)
-  const followerFollowing = {...followerSnapshot.data().following}
+const addToFollowerFollowing = async (followerRef, followedId) => {
+  const follower = await getDoc(followerRef)
 
-  followerFollowing[userId] = {dateFollowed: serverTimestamp()}
+  const followerFollowing = {...follower.data().following}
+  followerFollowing[followedId] = {dateFollowed: serverTimestamp()}
 
   await setDoc(followerRef, {
     following: followerFollowing
   }, {merge: true})
 }
 
+const addToFollowedFollowers = async (followerId, followedRef) => {
+  const followed = await getDoc(followedRef)
+
+  const followedFollowers = {...followed.data().follows}
+  followedFollowers[followerId] = {dateFollowed: serverTimestamp()}
+
+  await setDoc(followedRef, {
+    followers: followedFollowers
+  }, {merge: true})
+
+}
 
 
-export const removeFromUserFollowers = async (userId, followerId) => {
-  const userRef = doc(db, 'users', userId)
-  const userSnapshot = await getDoc(userRef)
-  const userFollowers = {...userSnapshot.data().followers}
+export const handleUserUnfollow = async (followerId, followedId) => {
+  const followerRef = doc(db, 'users', followerId)
+  const followedRef = doc(db, 'users', followedId)
 
   try {
-    delete userFollowers[followerId]
-  
-    await setDoc(userRef, {
-      followers: userFollowers
-    }, {merge: true})
-  
-    await removeFromFollowing(userId, followerId)
+    //remove from follower's following
+    removeFromFollowerFollowing(followerRef, followedId)
+    //remove from followed's followers
+    removeFromFollowedFollowers(followerId, followedRef)
+
     return true
   } catch (e) {
     console.log(e)
@@ -601,20 +604,34 @@ export const removeFromUserFollowers = async (userId, followerId) => {
   }
 }
 
-export const removeFromFollowing = async (userId, followerId) => {
-  const followerRef = doc(db, 'users', followerId)
-  const followerSnapshot = await getDoc(followerRef)
-  const followerFollowing = {...followerSnapshot.data().following}
+const removeFromFollowerFollowing = async (followerRef, followedId) => {
+  const follower = await getDoc(followerRef)
+
+  const followerFollowing = {...follower.data().following}
 
   try {
-    delete followerFollowing[userId]
-    await setDoc(followerRef, {
+    followerFollowing[followedId] = deleteField()
+    setDoc(followerRef, {
       following: followerFollowing
     }, {merge: true})
   } catch (e) {
     console.log(e)
   }
-  
+}
+
+const removeFromFollowedFollowers = async (followerId, followedRef) => {
+  const followed = await getDoc(followedRef)
+
+  const followedFollowers = {...followed.data().followers}
+
+  try {
+    followedFollowers[followerId] = deleteField()
+    setDoc(followedRef, {
+      followers: followedFollowers
+    }, {merge: true})
+  } catch (e) {
+    console.log(e)
+  }
 }
 
 export const updateUserProfilePic = async (userId, picPath) => {
@@ -769,7 +786,7 @@ export const getUserFollowing = async (userId, following) => {
 }
 
 
-addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
+// addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
 // const addFieldsToDocs = async (docType, fieldObj) => {
 //   const querySnapshot = await getDocs(collection(db, docType));

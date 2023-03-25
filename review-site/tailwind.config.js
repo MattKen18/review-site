@@ -7,8 +7,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'papaya': '#D96846',
+        'papaya': '#3F51B5',//'#3F51B5', '#D96846',
         'moss': '#596235',
+        'primary': '#3F51B5',
+        'success': '#4CAF50',
+        'fail': '#F44336',
+        'highlight': '#FFEB3B',
       },
       lineClamp: {
         7: '7',

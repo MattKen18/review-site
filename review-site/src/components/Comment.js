@@ -184,10 +184,10 @@ const Comment = ({comment}) => {
         <p>{comment?.body}</p> 
         <div className='flex space-x-2'>
           <div className='flex space-x-1'>
-            <button className='text-xs' onClick={() => handleLike()}><ThumbUpOutlinedIcon className={`p-1 rounded-full  duration-100 ${commentLiked ? `bg-papaya text-white` : `hover:text-papaya`}`} /> {commentLikes}</button>
-            <button className='text-xs' onClick={() => handleDislike()}><ThumbDownOutlinedIcon className={`p-1 active:scale-90 duration-100 rounded-full ${commentLiked === false ? `bg-papaya text-white` : `hover:text-papaya`}`} /> {commentDislikes}</button>
+            <button className='text-xs' onClick={() => handleLike()}><ThumbUpOutlinedIcon className={`p-1 rounded-full  duration-100 ${commentLiked ? `bg-primary text-white` : `hover:text-primary`}`} /> {commentLikes}</button>
+            <button className='text-xs' onClick={() => handleDislike()}><ThumbDownOutlinedIcon className={`p-1 active:scale-90 duration-100 rounded-full ${commentLiked === false ? `bg-primary text-white` : `hover:text-primary`}`} /> {commentDislikes}</button>
           </div>
-          <button className='text-xs text-papaya' onClick={() => toggleReplies()}>
+          <button className='text-xs text-primary' onClick={() => toggleReplies()}>
             {
               numOfReplies > 0 ?
               <>
@@ -224,7 +224,7 @@ const Comment = ({comment}) => {
                 className='text-sm w-full py-2 opacity-70 focus:opacity-100 focus:outline-none border-b-2 border-slate-500 bg-transparent'
                 autoComplete='off'
               />
-              <button className='absolute right-0 hover:text-papaya disabled:hover:text-inherit' disabled={replyBody.trim() === '' ? true : false}><SendOutlinedIcon className='transform' /></button>
+              <button className='absolute right-0 hover:text-primary disabled:hover:text-inherit' disabled={replyBody.trim() === '' ? true : false}><SendOutlinedIcon className='transform' /></button>
 
             </div>
           </form>

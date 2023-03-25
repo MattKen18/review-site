@@ -80,7 +80,7 @@ const AddImage = () =>  {
       { 
         uploadedImages.length < 3 &&
         <div className='flex h-full w-[250px] border-2 border-slate-100 bg-slate-100 opacity-100 items-center justify-center rounded-md'>
-          <label htmlFor="review-image-input" className='w-fit hover:cursor-pointer transform hover:scale-110 duration-300 active:text-red'><AddCircleOutlinedIcon className={`${!selectedFile ? `text-papaya` : `text-moss opacity-70`}`} sx={{ fontSize: 60 }} /></label>
+          <label htmlFor="review-image-input" className='w-fit hover:cursor-pointer transform hover:scale-110 duration-300 active:text-red'><AddCircleOutlinedIcon className={`${!selectedFile ? `text-primary` : `text-moss opacity-70`}`} sx={{ fontSize: 60 }} /></label>
         </div>
       }
 
@@ -93,7 +93,7 @@ const AddImage = () =>  {
         selectedFile &&
         <p className='mb-4 text-sm'>Image staged, hit 'save' to upload image</p>
       }
-      <button onClick={() => uploadImage(selectedFile)} className='w-20 border-2 border-papaya bg-papaya rounded-md text-white p-2 focus:outline-papaya disabled:opacity-70' disabled={selectedFile ? false : true} >Save</button>
+      <button onClick={() => uploadImage(selectedFile)} className='w-20 border-2 border-primary bg-primary rounded-md text-white p-2 focus:outline-primary disabled:opacity-70' disabled={selectedFile ? false : true} >Save</button>
     </div>
     </div>
   )

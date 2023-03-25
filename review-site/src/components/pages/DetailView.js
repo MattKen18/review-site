@@ -70,13 +70,13 @@ const DetailView = () => {
         <div className='flex flex-col relative p-8 rounded-md bg-white'>
           {
             userCanEdit && 
-            <span className='absolute right-2 top-2 duration-100 p-1 hover:text-papaya hover:cursor-pointer opacity-60 hover:opacity-100'>
+            <span className='absolute right-2 top-2 duration-100 p-1 hover:text-primary hover:cursor-pointer opacity-60 hover:opacity-100'>
               <Link to={`/review/${id}/edit`}><BorderColorOutlinedIcon className='' /></Link>
             </span>
           }
           <h1 className='text-2xl font-bold'>{review?.headline}</h1>
           <div className='flex space-x-4'>
-            <p className='font-light'><LocalOfferOutlinedIcon className='text-papaya' fontSize='extra-small'/> {review?.tag}</p>
+            <p className='font-light'><LocalOfferOutlinedIcon className='text-primary' fontSize='extra-small'/> {review?.tag}</p>
             <span className='flex'><RatingStars rating={review?.rating}/> {review?.rating}/5</span>
           </div>
           <br />

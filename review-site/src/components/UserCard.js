@@ -1,12 +1,15 @@
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import { React, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom';
-import { addToUserFollowers, removeFromUserFollowers } from '../firebase';
+import { handleUserFollow, handleUserUnfollow } from '../firebase';
 
-const UserCard = ({currentUserId, user}) => {
+const UserCard = ({currentUserId, user, incFollowing, decFollowing}) => {
   const [dateFollowed, setDateFollowed] = useState(null)
   const [isUserFollowingCurrentUser, setIsUserFollowingCurrentUser] = useState(false) //then user is a follower of current user
   const [isCurrentUserFollowingUser, setIsCurrentUserFollowingUser] = useState(false) //then current user is following user
+  const [followerCount, setFollowerCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
+
 
   useEffect(() => {
     const dateFollowed = new Date(user.following[currentUserId].dateFollowed)
@@ -30,18 +33,27 @@ const UserCard = ({currentUserId, user}) => {
 
   }, [])
 
+  useEffect(() => {
+    setFollowerCount(Object.keys(user.followers).length)
+    setFollowingCount(Object.keys(user.following).length)
+  }, [])
+
   const handleFollow = () => {
-    addToUserFollowers(user.uid, currentUserId).then(result => {
-      if (result) {
+    handleUserFollow(currentUserId, user.uid).then(result => {
+        if (result) {
         setIsCurrentUserFollowingUser(true)
+        incFollowing()
+        setFollowerCount(count => count+1)
       }
     })
   }
 
   const handleUnFollow = () => {
-    removeFromUserFollowers(user.uid, currentUserId).then(result => {
+    handleUserUnfollow(currentUserId, user.uid).then(result => {
       if (result) {
         setIsCurrentUserFollowingUser(false)
+        decFollowing()
+        setFollowerCount(count => count-1)
       }
     })
   }
@@ -68,8 +80,8 @@ const UserCard = ({currentUserId, user}) => {
           <div className='flex-1'>
             <p className='font-bold'>{user.userName}</p>
             <div className='flex flex-row text-xs space-x-2'>
-              <p>Followers <span>{Object.keys(user.followers).length}</span></p>
-              <p>Following <span>{Object.keys(user.following).length}</span></p>
+              <p>Followers <span>{followerCount}</span></p>
+              <p>Following <span>{followingCount}</span></p>
             </div>
             <p className='text-xs font-light -mt-1 opacity-80'>Follower since {dateFollowed}</p>
           </div>
@@ -77,9 +89,9 @@ const UserCard = ({currentUserId, user}) => {
         <div className=''>
           {
             isCurrentUserFollowingUser ?
-            <button className='p-2 bg-rose-500 text-white text-xs rounded-md hover:scale-105 duration-100' onClick={() => handleUnFollow()}>unfollow</button>
+            <button className='p-2 bg-fail text-white text-xs rounded-md hover:scale-105 duration-100' onClick={() => handleUnFollow()}>unfollow</button>
             :
-            <button className='p-2 bg-emerald-400 text-white text-xs rounded-md hover:scale-105 duration-100' onClick={() => handleFollow()}>follow</button>
+            <button className='p-2 bg-success text-white text-xs rounded-md hover:scale-105 duration-100' onClick={() => handleFollow()}>follow</button>
           }
         </div>
       </div>

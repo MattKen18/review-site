@@ -233,7 +233,7 @@ const EditReview = () => {
                 name='headline'
                 id='review-headline' 
                 placeholder=' '
-                className='peer w-full rounded-md p-2 px-4 font-lg border-2 border-slate-300 focus:outline-papaya focus:outline-2 focus:border-transparent placeholder-transparent'
+                className='peer w-full rounded-md p-2 px-4 font-lg border-2 border-slate-300 focus:outline-primary focus:outline-2 focus:border-transparent placeholder-transparent'
                 autoComplete='off'
                 required
                 autoFocus
@@ -242,7 +242,7 @@ const EditReview = () => {
               <label 
                 id='review-headline-label'
                 htmlFor='review-headline'
-                className='absolute left-4 -top-[10px] text-blue-500 bg-white text-sm duration-100 px-1 hover:cursor-text peer-placeholder-shown:left-4 peer-placeholder-shown:top-2 peer-placeholder-shown:text-lg peer-placeholder-shown:text-slate-500 peer-focus:text-sm peer-focus:text-papaya peer-focus:-top-[10px]'
+                className='absolute left-4 -top-[10px] text-blue-500 bg-white text-sm duration-100 px-1 hover:cursor-text peer-placeholder-shown:left-4 peer-placeholder-shown:top-2 peer-placeholder-shown:text-lg peer-placeholder-shown:text-slate-500 peer-focus:text-sm peer-focus:text-primary peer-focus:-top-[10px]'
               >
                 Headline
               </label>
@@ -251,7 +251,7 @@ const EditReview = () => {
               <select 
                 value={review ? review?.genre : ''}
                 onChange={(e) => setReview({...review, genre: e.target.value})}
-                name="genre" id="review-genre" className='border-2 border-slate-300 rounded-md p-2 px-4 focus:border-papaya focus:outline-papaya text-sm'>
+                name="genre" id="review-genre" className='border-2 border-slate-300 rounded-md p-2 px-4 focus:border-primary focus:outline-primary text-sm'>
                 {
                   genres.map((genre, i) => (
                     <option key={i} value={JSON.stringify(genre)}>{genre.title}</option>
@@ -269,7 +269,7 @@ const EditReview = () => {
                 name='tag'
                 id='review-tag' 
                 placeholder=' '
-                className='peer w-full rounded-md p-2 px-4 text-sm font-light border-2 border-slate-300 focus:outline-papaya focus:outline-2 focus:border-transparent placeholder-transparent'
+                className='peer w-full rounded-md p-2 px-4 text-sm font-light border-2 border-slate-300 focus:outline-primary focus:outline-2 focus:border-transparent placeholder-transparent'
                 autoComplete='off'
                 maxLength={50}
               />
@@ -277,7 +277,7 @@ const EditReview = () => {
               <label 
                 id='review-tag-label'
                 htmlFor='review-tag'
-                className='absolute left-4 -top-[10px] text-blue-500 bg-white text-sm duration-100 px-1 hover:cursor-text peer-placeholder-shown:left-4 peer-placeholder-shown:top-[10px] peer-placeholder-shown:text-slate-500 peer-focus:text-sm peer-focus:text-papaya peer-focus:-top-[10px]'
+                className='absolute left-4 -top-[10px] text-blue-500 bg-white text-sm duration-100 px-1 hover:cursor-text peer-placeholder-shown:left-4 peer-placeholder-shown:top-[10px] peer-placeholder-shown:text-slate-500 peer-focus:text-sm peer-focus:text-primary peer-focus:-top-[10px]'
               >
                 Tag
               </label>
@@ -288,9 +288,9 @@ const EditReview = () => {
                 value={review ? review?.body : ''}
                 onChange={(e) => setReview({...review, body: e.target.value})}
                 name="body" id="review-body" placeholder=' ' required
-                className='peer w-full h-96 p-4 border-2 border-slate-300 rounded-md focus:outline-papaya focus:outline-2 placeholder-transparent' 
+                className='peer w-full h-96 p-4 border-2 border-slate-300 rounded-md focus:outline-primary focus:outline-2 placeholder-transparent' 
               />
-              <label htmlFor="review-body" className='absolute -top-[10px] left-4 text-blue-500 duration-100 bg-white px-1 text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-500 hover:cursor-text peer-focus:text-papaya peer-focus:text-sm peer-focus:-top-[10px]'
+              <label htmlFor="review-body" className='absolute -top-[10px] left-4 text-blue-500 duration-100 bg-white px-1 text-sm peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-slate-500 hover:cursor-text peer-focus:text-primary peer-focus:text-sm peer-focus:-top-[10px]'
               >
                 Body
               </label>
@@ -300,14 +300,14 @@ const EditReview = () => {
                 value={review ? review?.rating : ''}
                 onChange={(e) => setReview({...review, rating: Number(e.target.value)})}
                 id='review-rating' name='review-rating' type='number' min={1} step={0.5} max={5} placeholder=' ' 
-                className='peer font-bold border-2 border-slate-300 rounded-md p-2 w-16 placeholder-transparent focus:outline-2 focus:outline-papaya'
+                className='peer font-bold border-2 border-slate-300 rounded-md p-2 w-16 placeholder-transparent focus:outline-2 focus:outline-primary'
                 required
               />
               <label 
                 id='review-rating-label'
                 htmlFor="review-rating"
                 defaultValue={5}
-                className='absolute text-xs -top-[8px] left-1/2 -translate-x-1/2 bg-white px-1 py-0 text-blue-500 peer-placeholder-shown:top-[5px] peer-placeholder-shown:text-slate-500 peer-placeholder-shown:py-2 peer-focus:-top-[8px] peer-focus:py-0 peer-focus:text-papaya duration-100'
+                className='absolute text-xs -top-[8px] left-1/2 -translate-x-1/2 bg-white px-1 py-0 text-blue-500 peer-placeholder-shown:top-[5px] peer-placeholder-shown:text-slate-500 peer-placeholder-shown:py-2 peer-focus:-top-[8px] peer-focus:py-0 peer-focus:text-primary duration-100'
               >
                 Rating
               </label>
@@ -340,7 +340,7 @@ const EditReview = () => {
                 { 
                   review?.images.length < 3 &&
                   <div className='flex w-[250px] h-[300px] border-2 border-slate-100 bg-slate-100 opacity-100 items-center justify-center rounded-md'>
-                    <label htmlFor="review-image-input" className='w-fit hover:cursor-pointer transform hover:scale-110 duration-300 active:text-red'><AddOutlinedIcon className={`${!selectedFile ? `text-papaya` : `text-moss opacity-70`}`} sx={{ fontSize: 60 }} /></label>
+                    <label htmlFor="review-image-input" className='w-fit hover:cursor-pointer transform hover:scale-110 duration-300 active:text-red'><AddOutlinedIcon className={`${!selectedFile ? `text-primary` : `text-moss opacity-70`}`} sx={{ fontSize: 60 }} /></label>
                   </div>
                 }
 
@@ -349,7 +349,7 @@ const EditReview = () => {
               <input type="file" accept="image/*" id='review-image-input' className='hidden'  onChange={addImageToReviewState} />
   {/*             
               <div className='flex flex-col items-center justify-center'>
-                <button onClick={(e) => {e.preventDefault();uploadImage(selectedFile)}} className={`w-20 border-2 text-white bg-sky-600 border-sky-600 p-2 focus:outline-papaya disabled:opacity-70 ${!selectedFile ? `hidden` : `block` } mb-4`}>Save</button>
+                <button onClick={(e) => {e.preventDefault();uploadImage(selectedFile)}} className={`w-20 border-2 text-white bg-sky-600 border-sky-600 p-2 focus:outline-primary disabled:opacity-70 ${!selectedFile ? `hidden` : `block` } mb-4`}>Save</button>
               </div> */}
             </div>
             <br />
@@ -357,7 +357,7 @@ const EditReview = () => {
             <br />
             <div className='flex w-full items-center justify-center space-x-2'>
 
-                <button id="publish-review-btn" type='submit' disabled={loading ? true : false} className='border-2 border-papaya bg-papaya w-80 h-20 text-white font-bold p-2 focus:outline-papaya'>
+                <button id="publish-review-btn" type='submit' disabled={loading ? true : false} className='border-2 border-primary bg-primary w-80 h-20 text-white font-bold p-2 focus:outline-primary'>
                   {/* <span className='flex items-center w-fit m-auto'> */}
                   {loading ? 
                     <span className='flex items-center w-fit m-auto'>

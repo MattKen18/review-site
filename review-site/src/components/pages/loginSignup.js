@@ -326,14 +326,14 @@ const LoginSignup = () => {
                 value={email}
                 placeholder=' '
                 type="email"
-                className='font-body font-normal peer text-normal outline-0 border-b-2 focus:border-papaya border-slate-300 placeholder-transparent p-3 autofill:mt-2'
+                className='font-body font-normal peer text-normal outline-0 border-b-2 focus:border-primary border-slate-300 placeholder-transparent p-3 autofill:mt-2'
                 onChange={(e) => setEmail(e.target.value.trim())}
                 required
                 autoFocus
                 />
               <label 
                 htmlFor="email"
-                className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-papaya'
+                className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-primary'
               >
                 Email
               </label>
@@ -347,13 +347,13 @@ const LoginSignup = () => {
                     name='username'
                     value={username}
                     placeholder=' '
-                    className='font-body font-normal peer text-normal outline-0 border-b-2 focus:border-papaya border-slate-300 placeholder-transparent p-3 autofill:mt-2'
+                    className='font-body font-normal peer text-normal outline-0 border-b-2 focus:border-primary border-slate-300 placeholder-transparent p-3 autofill:mt-2'
                     onChange={(e) => {setUsername(e.target.value.trim())}}
                     required
                   />
                   <label 
                     htmlFor="username"
-                    className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-papaya'
+                    className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-primary'
                     >
                     Username
                   </label>
@@ -373,13 +373,13 @@ const LoginSignup = () => {
                 placeholder=' '
                 type="password"
                 name='password1input'
-                className='peer font-body font-normal text-normal outline-0 border-b-2 focus:border-papaya border-slate-300 placeholder-transparent p-3 pr-10'
+                className='peer font-body font-normal text-normal outline-0 border-b-2 focus:border-primary border-slate-300 placeholder-transparent p-3 pr-10'
                 onChange={(e) => setPassword1(e.target.value.trim())}
                 required
                 />
               <label 
                 htmlFor="password1"
-                className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-papaya'
+                className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-primary'
               >
                 Enter Password
               </label>
@@ -423,13 +423,13 @@ const LoginSignup = () => {
                   id='password2'
                   placeholder=' '
                   type="password"
-                  className='peer font-body font-normal text-normal outline-0 border-b-2 focus:border-papaya border-slate-300 placeholder-transparent p-3'
+                  className='peer font-body font-normal text-normal outline-0 border-b-2 focus:border-primary border-slate-300 placeholder-transparent p-3'
                   onChange={(e) => setPassword2(e.target.value.trim())}
                   required
                   />
                 <label 
                   htmlFor="password2"
-                  className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-papaya'
+                  className='absolute text-sm font-normal top-0 left-3 opacity-75 -translate-y-1/2 peer-placeholder-shown:text-[15px] peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:left-3 hover:cursor-text peer-focus:top-0 duration-100 peer-focus:text-sm peer-focus:text-primary'
                 >
                   Re-enter Password
                 </label>
@@ -450,9 +450,9 @@ const LoginSignup = () => {
             <div className='flex items-center justify-center w-full'>
               {
                 method === "signup" ?
-                <button className='p-2 border-2 border-papaya rounded-sm bg-papaya text-white disabled:hover:cursor-not-allowed' disabled={!validPassword || !passwordMatch || !validEmail}>Sign Up</button>
+                <button className='p-2 border-2 border-primary rounded-sm bg-primary text-white disabled:hover:cursor-not-allowed' disabled={!validPassword || !passwordMatch || !validEmail}>Sign Up</button>
                 :
-                <button id='submit-btn' className='group p-2 border-2 border-papaya rounded-md bg-papaya text-white disabled:hover:cursor-not-allowed skew-x-3 w-16'>
+                <button id='submit-btn' className='group p-2 border-2 border-primary rounded-md bg-primary text-white disabled:hover:cursor-not-allowed skew-x-3 w-16'>
                   <LoginOutlinedIcon className='' fontSize='medium' />
                 </button>
               }
@@ -485,16 +485,16 @@ const LoginSignup = () => {
               method === "signup" ?
               <>
                 <p className=''>Already have an account? </p>
-                <button className='text-papaya' onClick={() => setMethod('login')}>Login</button>
+                <button className='text-primary' onClick={() => setMethod('login')}>Login</button>
               </>
               :
               <>
                 <p className=''>Don't have an account? </p>
-                <button className='text-papaya font-bold' onClick={() => setMethod('signup')}>Sign Up</button>
+                <button className='text-primary font-bold' onClick={() => setMethod('signup')}>Sign Up</button>
               </>
             }
             <p className='text-center'> | </p>
-            <button className='text-papaya' onClick={() => continueAsAnonymous()}>Continue as Anonymous</button>
+            <button className='text-primary' onClick={() => continueAsAnonymous()}>Continue as Anonymous</button>
           </div>
           <div className='flex'>
             <button><img src="" alt="" /></button>

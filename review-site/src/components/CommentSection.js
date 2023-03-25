@@ -101,7 +101,7 @@ const CommentSection = ({review}) => {
             aria-label='write comment'
             placeholder='Write comment...'
           />
-          <button className='absolute right-0 hover:text-papaya disabled:hover:text-inherit' disabled={body.trim() === '' ? true : false}><SendOutlinedIcon className='transform' /></button>
+          <button className='absolute right-0 hover:text-primary disabled:hover:text-inherit' disabled={body.trim() === '' ? true : false}><SendOutlinedIcon className='transform' /></button>
         </form>
       </div>
       <div className='flex flex-col space-y-6'>
