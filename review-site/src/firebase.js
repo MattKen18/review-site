@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { deleteField, doc, getDoc, getFirestore, query, queryEqual, setDoc, where } from "firebase/firestore";
+import { deleteField, doc, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -86,6 +86,35 @@ export const getShownReviews =  async () => {
   // }
   return shownReviews
 }
+
+export const getUserFeed = async (maxNumOfItems) => {
+  const reviewsRef = collection(db, "reviews")
+  const q = query(reviewsRef, orderBy('timestamp', 'desc'), limit(maxNumOfItems))
+  
+  const feedSnapshot = await getDocs(q)
+  const feed = [] 
+  feedSnapshot.forEach(review => {
+    feed.push({...review.data(), id: review.id})
+  })
+  return feed
+}
+
+export const convertReview = async (review) => {
+  const genreRef = doc(db, 'genres', review.genre.id)
+  const genreSnap = await getDoc(genreRef)
+
+  review.genre = genreSnap.data()
+
+  if (review.author.id) {
+    const authorRef = doc(db, 'users', review.author.id)
+    const authorSnap = await getDoc(authorRef)
+    review.author = authorSnap.data()
+  }
+
+  return review
+
+}
+
 
 export const convertShownReviews = async (reviews) => { //convert reference fields to actual objects that can be used in frontend
   for (let i=0; i<reviews.length; i++) {
@@ -215,18 +244,20 @@ export const addUserToFirestore  = async ({uid, displayName, email, photoURL}) =
 export const getReviewFromFirestore = async (id) => { //gets the review and converts the reference fields to usable objects
   const reviewRef = doc(db, 'reviews', id)
   const reviewSnap = await getDoc(reviewRef)
-  const review = reviewSnap.data()
+  const review = {...reviewSnap.data(), id: reviewSnap.id}
 
-  const genreRef = doc(db, 'genres', reviewSnap.data().genre.id)
-  const genreSnap = await getDoc(genreRef)
-  const genre = genreSnap.data()
+  // const genreRef = doc(db, 'genres', reviewSnap.data().genre.id)
+  // const genreSnap = await getDoc(genreRef)
+  // const genre = genreSnap.data()
 
-  const authorRef = doc(db, 'users', reviewSnap.data().author.id)
-  const authorSnap = await getDoc(authorRef)
-  const author = authorSnap.data()
-  const saves = []
+  // const authorRef = doc(db, 'users', reviewSnap.data().author.id)
+  // const authorSnap = await getDoc(authorRef)
+  // const author = authorSnap.data()
 
-  return {...review, id: reviewSnap.id, author: author, genre: genre}
+  // const convertedReview = await convertReview(review)
+
+  return review
+  // return {...review, id: reviewSnap.id, author: author, genre: genre}
 }
 
 
@@ -251,25 +282,11 @@ export const getUserFromFirestore = async (uid) => {
 export const getAuthorReviews = async (uid) => {
   const authorRef = doc(db, 'users', uid)
   const q = query(collection(db, 'reviews'), where('author', '==', authorRef))
+  const reviewsSnapshot = await getDocs(q)
   const reviews = []
-  const reviewIds = []
-  const convertedReviews = []
 
-  const querySnapshot = await getDocs(q)
-
-  querySnapshot.forEach(doc => {
-    reviews.push(doc.data())
-    reviewIds.push(doc.id)
-  })
-
-  for (let reviewId of reviewIds) {
-    const review = await getReviewFromFirestore(reviewId)
-    convertedReviews.push(review)
-  }
-
-  return convertedReviews
-
-
+  reviewsSnapshot.forEach(review => reviews.push({...review.data(), id: review.id}))
+  return reviews
 }
 
 export const addReviewToUserSaved = async (reviewId, userId) => {
@@ -304,21 +321,16 @@ export const removeReviewFromUserSaved = async (reviewId, userId) => {
   }
 }
 
-export const getUserSavedReviews = async (userId) => {
-  const user = await getUserFromFirestore(userId)
+export const getUserSavedReviews = async (user) => {
   const savedReviews = []
-  // console.log("user saves: ", user.saves)
-  
+
   if (user.saves) {
     for (let reviewId of user?.saves) {
       const review = await getReviewFromFirestore(reviewId)
-      // console.log(review)
       savedReviews.push(review)
     }
   }
-  // console.log("user saves: ", user.saves)
   return savedReviews
-  
 }
 
 export const addHelpful = async (userId, reviewId) => {

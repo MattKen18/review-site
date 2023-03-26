@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [statShown, setStatShown] = useState('reviews')
   const [followers, setFollowers] = useState([])
   const [following, setFollowing] = useState([])
+  const [savesCount, setSavesCount] = useState(0)
   const [followerCount, setFollowerCount] = useState(0)
   const [followingCount, setFollowingCount] = useState(0)
 
@@ -55,16 +56,13 @@ const Dashboard = () => {
       getAuthorReviews(user.uid).then((reviews) => {
         setReviews(reviews)
       })
-      getUserSavedReviews(user.uid).then(saves => setSavedReviews(saves))
+      getUserSavedReviews(user).then(saves => {
+        setSavedReviews(saves)
+        setSavesCount(saves.length)
+      })
     })
-  }, [currentUser])
+  }, [currentUser, statShown])
 
-
-  // useEffect(() => {
-  //   if (savedReviews.length) {
-  //     console.log(savedReviews)
-  //   }
-  // }, [savedReviews])
 
   useEffect(() => {
     if (reviews.length) {
@@ -79,11 +77,6 @@ const Dashboard = () => {
     }
   }, [reviews])
 
-  useEffect(() => {
-    if (statShown === 'saves') {
-      getUserSavedReviews(currentUser?.uid).then(saves => setSavedReviews(saves))
-    }
-  }, [statShown])
 
   useEffect(() => {
     let helpfuls = 0
@@ -129,6 +122,14 @@ const Dashboard = () => {
     setFollowingCount(count => count-1)
   }
 
+  const increaseSavesCount = () => {
+    setSavesCount(count => count+1)
+  }
+
+  const decreaseSavesCount = () => {
+    setSavesCount(count => count-1)
+  }
+
   return (
     <div className='flex'>
       <aside className='min-h-screen basis-1/5'>
@@ -148,7 +149,7 @@ const Dashboard = () => {
           </div>
           <div onClick={() => setStatShown('saves')} className={`relative group items-center justify-center flex flex-row h-fit space-x-2 bg-white hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-primary duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'saves' ? `border-primary` : `border-white`}`}>
             <p className='text-center font-bold opacity-70'>Saves</p>
-            <p className='font-bold text-lg text-primary'>{savedReviews.length}</p>
+            <p className='font-bold text-lg text-primary'>{savesCount}</p>
             {/* <span className='w-fit'><BookmarksOutlinedIcon className={`w-6 group-hover:text-primary ${statShown === 'saves' ? `opacity-100 text-primary` : `opacity-70`}`}/></span> */}
           </div>
           <div onClick={() => setStatShown('followers')} className={`relative group items-center justify-center flex flex-row h-fit space-x-2 bg-white hover:scale-[1.05] hover:cursor-pointer border-b-4 hover:border-amber-500 duration-200 basis-1/4 rounded-md shadow-sm p-2 ${statShown === 'followers' ? `border-amber-500` : `border-white`}`}>
@@ -203,7 +204,7 @@ const Dashboard = () => {
                       {
                         reviews.length ? 
                           reviews?.map((review, i) => (
-                            <Review key={review.id + i} id={i} review={review} />
+                            <Review key={review.id + i} review={review} incSaves={increaseSavesCount} decSaves={decreaseSavesCount} />
                           ))
                         :
                         <p className='font-light'>No Reviews | <Link to='/compose' className='text-blue-500 font-normal hover:underline underline-offset-4'>Create one now</Link></p>
@@ -218,7 +219,7 @@ const Dashboard = () => {
                       {
                         savedReviews.length ? 
                           savedReviews?.map((review, i) => (
-                            <Review key={review.id + i} id={i} review={review} />
+                            <Review key={review.id + i} review={review} incSaves={increaseSavesCount} decSaves={decreaseSavesCount} />
                           ))
                         :
                         <p className='font-light'>No Saves yet</p>

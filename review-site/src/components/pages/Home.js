@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getShownReviews } from '../../firebase';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getShownReviews, getUserFeed } from '../../firebase';
 import { useSelector } from 'react-redux';
 import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
 import Review from '../Review';
@@ -21,43 +21,28 @@ const Home = () => {
   const mossFiltering = useSelector(selectMossFiltering)
   const authFiltering = useSelector(selectAuthFiltering)
 
-  const [shownReviews, setShownReviews] = useState([])
-
-  const alreadyShown = useRef(false)
+  const [userFeed, setUserFeed] = useState([])
 
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    // if (createdUser.current) return; //strict mode makes it run twice so using useRef keeps track of if it was already ran
-    // addToFireStore();
-    // getFromFireStore();
-    // createdUser.current = true;
 
-    getShownReviews().then(data => { 
+  // useEffect(() => {
+  //   getShownReviews().then(data => { 
+  //     convertShownReviews(data).then(data => {
+  //       setUserFeed(data)
+  //       setLoading(false)
+  //     })
+  //   })
+  // }, [])
+
+  useEffect(() => {
+    getUserFeed(100).then(feed => {
+      // console.log(feed)
+      setUserFeed(feed)
       setLoading(false)
-      convertShownReviews(data).then(data => setShownReviews(data))
     })
-
-    if (alreadyShown.current) {
-      // getShownReviews().then(data =>{
-      //   setShownReviews(data)}
-      // )
-      getShownReviews().then(data => convertShownReviews(data).then(data => setShownReviews(data)))
-
-    }
-    alreadyShown.current = true
-
-  }, []);
-
+  }, [])
   
-
-  useEffect(() => {
-    if (alreadyShown.current) {
-      // console.log(shownReviews)
-    }
-    alreadyShown.current = true
-
-  }, [shownReviews])
   
 
   return (
@@ -72,7 +57,7 @@ const Home = () => {
               {/* <hr /> */}
             </div>
             {
-              !loading ?
+              // !loading ?
               <div className='m-auto'>
               {
                 genreFiltering || mossFiltering || authFiltering ? 
@@ -86,22 +71,22 @@ const Home = () => {
                   </>
                 : 
                 <div className='w-11/12 m-auto'>
-                  {shownReviews.map((review, i) => (
-                    <Review key={i} id={i} review={review} />
+                  {userFeed.map((review, i) => (
+                    <Review key={review+i} review={review} />
                   )) 
                   }
 
                 </div>
               }
               </div>
-              :
-              <div className='mt-20 m-auto'>
-                <ReviewPlaceholder />
-                <ReviewPlaceholder />
-                <ReviewPlaceholder />
-                <ReviewPlaceholder />
-                <ReviewPlaceholder />
-              </div>
+              // :
+              // <div className='mt-20 m-auto'>
+              //   <ReviewPlaceholder />
+              //   <ReviewPlaceholder />
+              //   <ReviewPlaceholder />
+              //   <ReviewPlaceholder />
+              //   <ReviewPlaceholder />
+              // </div>
             }
           </div>
     
