@@ -732,7 +732,7 @@ const Profile = () => {
                   reviews.length ?
                   reviews?.map((review, i) => (
                     <div key={review.id + i} className='-mb-10 scale-90'>
-                      <Review id={i} review={review}/>
+                      <Review id={i} reviewId={review.id}/>
                     </div>
                   ))
                   :
@@ -748,7 +748,7 @@ const Profile = () => {
                 reviews.length ?
                 reviews?.map((review, i) => (
                   <div key={review.id + i} className='-mb-10 scale-90'>
-                    <Review id={i} review={review}/>
+                    <Review id={i} reviewId={review.id}/>
                   </div>
                 ))
                 :

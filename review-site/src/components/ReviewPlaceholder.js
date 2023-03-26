@@ -2,7 +2,7 @@ import React from 'react'
 
 const ReviewPlaceholder = () => {
   return (
-    <div className='relative animate-pulse flex h-[300px] bg-white w-11/12 m-auto rounded-md shadow-sm mb-10 p-6 space-x-4 overflow-hidden'>
+    <div className='relative animate-pulse flex h-[300px] bg-white w-full m-auto rounded-md shadow-sm mb-10 p-6 space-x-4 overflow-hidden'>
       <div className={'absolute bg-gray-200 -top-20 -right-20 w-36 h-28 z-1 rotate-45'}></div>
       <div className='w-[25%] h-full bg-gray-200 border-2 border-gray-200 rounded-md'>
       </div>

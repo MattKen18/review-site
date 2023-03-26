@@ -29,7 +29,7 @@ const ReviewImageCarousel = ({ imgSources }) => {
     <div className='group relative flex items-center justify-center overflow-hidden rounded-md w-[250px] h-[300px] bg-slate-200'>
       <div className={'relative flex justify-center items-center h-full'}>
         {/* <img src={sources[0]} className='absolute scale-150 opacity-100 h-[300px] w-[300px] blur-md' /> */}
-        <img src={sources[0]} className='relative peer max-w-[250px] object-cover' />
+        <img src={sources[0]} className='relative peer max-w-[250px] object-cover' loading='lazy' />
       </div>
       { sources.length > 1 &&
       <>

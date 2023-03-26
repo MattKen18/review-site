@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { deleteField, doc, getDoc, getFirestore, query, queryEqual, setDoc, where } from "firebase/firestore";
+import { deleteField, doc, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -76,16 +76,35 @@ export const getShownReviews =  async () => {
       const { helpfuls, comments, saves, timestamp } = review
       const relevanceScore = Math.round(helpfuls*weights['helpfuls'] + comments.length*weights['comments'] + saves*weights['saves'] + (timestamp*10**-9)*weights['timestamp']*100)/100
       review.relevanceScore = relevanceScore
-      shownReviews = shownReviews.sort((a, b) => b.timestamp - a.timestamp)
     } catch (e) {
       
     }
   }
+  shownReviews = shownReviews.sort((a, b) => b.timestamp - a.timestamp)
   // for (let x=0; x<shownReviews.length; x++) {
   //   // console.log("genre from firebase:", shownReviews[x].genre)
   // }
   return shownReviews
 }
+
+
+export const getUserFeed = async (maxNumOfItems) => {
+  const reviewsRef = collection(db, "reviews")
+  const q = query(reviewsRef, orderBy('timestamp', 'desc'), limit(maxNumOfItems))
+  
+  const feedSnapshot = await getDocs(q)
+  const feed = [] 
+  feedSnapshot.forEach(review => {
+    // console.log(review)
+    feed.push(review.id)
+  })
+
+  return feed//convertShownReviews(feed)
+  // const reviewsSnapshot = await getDocs(collection(db, 'reviews'), orderBy(timestamp), limit(limit))
+
+
+}
+
 
 export const convertShownReviews = async (reviews) => { //convert reference fields to actual objects that can be used in frontend
   for (let i=0; i<reviews.length; i++) {
@@ -99,7 +118,7 @@ export const convertShownReviews = async (reviews) => { //convert reference fiel
       reviews[i].author = authorSnap.data()
     }
 
-    reviews[i].genre = genreSnap.data ()
+    reviews[i].genre = genreSnap.data()
 
       // console.log(reviews[i])
   }
@@ -221,12 +240,39 @@ export const getReviewFromFirestore = async (id) => { //gets the review and conv
   const genreSnap = await getDoc(genreRef)
   const genre = genreSnap.data()
 
-  const authorRef = doc(db, 'users', reviewSnap.data().author.id)
-  const authorSnap = await getDoc(authorRef)
-  const author = authorSnap.data()
-  const saves = []
-
+  let author = {}
+  try {
+    const authorRef = doc(db, 'users', reviewSnap.data().author.id)
+    const authorSnap = await getDoc(authorRef)
+    author = authorSnap.data()
+  } catch (e) {
+    author = {
+      uid: 'uid',
+      userName: 'displayName',
+      email: 'email',
+      photoURL: '',
+      profileBgImageURL: '',
+      // reviews: [],
+      followers: [],
+      following: [],
+      dateJoined: serverTimestamp(),
+      saves: [],
+      helpfulReviews: [],
+      unhelpfulReviews: [],
+      links: {    
+        youtube: '',
+        tiktok: '',
+        instagram: '',
+        twitter: '',
+        facebook: '',
+        gmail: '',
+        linkedIn: '',
+    } 
+  }
+  }
+  
   return {...review, id: reviewSnap.id, author: author, genre: genre}
+
 }
 
 
