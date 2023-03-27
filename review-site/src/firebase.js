@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { deleteField, doc, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, where } from "firebase/firestore";
+import { deleteField, doc, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, startAfter, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -87,16 +87,42 @@ export const getShownReviews =  async () => {
   return shownReviews
 }
 
-export const getUserFeed = async (maxNumOfItems) => {
+export const getInitialUserFeed = async (maxNumOfItems) => {
   const reviewsRef = collection(db, "reviews")
   const q = query(reviewsRef, orderBy('timestamp', 'desc'), limit(maxNumOfItems))
   
   const feedSnapshot = await getDocs(q)
+  const lastRef = feedSnapshot.docs[feedSnapshot.docs.length-1]
+  // console.log('last ref:', lastRef)
+
   const feed = [] 
   feedSnapshot.forEach(review => {
     feed.push({...review.data(), id: review.id})
   })
-  return feed
+
+  return [feed, lastRef]
+}
+
+export const updateUserFeed = async (prevRef, maxNumOfItems) => {
+  const reviewsRef = collection(db, "reviews")
+  try {
+    if (prevRef) { //if there are more items to get
+      const q = query(reviewsRef, orderBy('timestamp', 'desc'), startAfter(prevRef), limit(maxNumOfItems))
+      const feedSnapshot = await getDocs(q)
+      const lastRef = feedSnapshot.docs[feedSnapshot.docs.length-1]
+      const feed = [] 
+      feedSnapshot.forEach(review => {
+        feed.push({...review.data(), id: review.id})
+      })
+      return [feed, lastRef]
+    } else {
+      return [[], prevRef] //prevRef will be undefined when there are no more items to get
+    }
+  } catch (e) {
+    console.log(e)
+  }
+
+
 }
 
 export const convertReview = async (review) => {

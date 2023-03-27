@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getShownReviews, getUserFeed } from '../../firebase';
+import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getInitialUserFeed, getShownReviews, getUserFeed, updateUserFeed } from '../../firebase';
 import { useSelector } from 'react-redux';
 import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
 import Review from '../Review';
@@ -21,29 +21,43 @@ const Home = () => {
   const mossFiltering = useSelector(selectMossFiltering)
   const authFiltering = useSelector(selectAuthFiltering)
 
+  const [numOfItemsToGet, setNumOfItemsToGet] = useState(10)
   const [userFeed, setUserFeed] = useState([])
-
+  const [lastItem, setLastItem] = useState(null)
   const [loading, setLoading] = useState(true)
-
-
-  // useEffect(() => {
-  //   getShownReviews().then(data => { 
-  //     convertShownReviews(data).then(data => {
-  //       setUserFeed(data)
-  //       setLoading(false)
-  //     })
-  //   })
-  // }, [])
-
+  // const [updatingFeed, setUpdating] = useState(false)
+  
   useEffect(() => {
-    getUserFeed(100).then(feed => {
-      // console.log(feed)
-      setUserFeed(feed)
-      setLoading(false)
+    getInitialUserFeed(numOfItemsToGet).then(feed => {
+      // feed[0] is the actual feed
+      // feed[1] is the ref of the last item in the feed 
+      setUserFeed(feed[0])
+      setLastItem(feed[1])
     })
   }, [])
-  
-  
+
+  useEffect(() => {
+    console.log(lastItem)
+    if (userFeed.length) {
+      document.addEventListener('scroll', handleFeedUpdate)
+      return () => document.removeEventListener('scroll', handleFeedUpdate)
+    }
+  }, [userFeed, lastItem])
+
+  const handleFeedUpdate = () => {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+      // at the bottom of the page
+      updateUserFeed(lastItem, numOfItemsToGet)
+      .then(newFeed => {
+        setUserFeed(prevFeed => [...prevFeed, ...newFeed[0]])
+        setLastItem(newFeed[1])
+      })
+    }
+  }
+
+  // useEffect(() => {
+  //   console.log(userFeed)
+  // }, [userFeed])
 
   return (
     <>

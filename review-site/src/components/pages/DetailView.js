@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getReviewFromFirestore } from '../../firebase'
+import { convertReview, getReviewFromFirestore } from '../../firebase'
 import AdSpace from '../AdSpace'
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined';
 import RatingStars from '../RatingStars';
@@ -21,7 +21,11 @@ const DetailView = () => {
   }, [])
 
   useEffect(() => {
-    getReviewFromFirestore(id).then((review) => setReview(review))
+    getReviewFromFirestore(id).then((review) => {
+      convertReview(review).then(convertedReview => {
+        setReview(convertedReview)
+      })
+    })
   }, [])
 
   useEffect(() => {
