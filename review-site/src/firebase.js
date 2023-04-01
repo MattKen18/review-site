@@ -104,9 +104,9 @@ export const getInitialUserFeed = async (maxNumOfItems) => {
 }
 
 export const updateUserFeed = async (prevRef, maxNumOfItems) => {
-  const reviewsRef = collection(db, "reviews")
   try {
     if (prevRef) { //if there are more items to get
+      const reviewsRef = collection(db, "reviews")
       const q = query(reviewsRef, orderBy('timestamp', 'desc'), startAfter(prevRef), limit(maxNumOfItems))
       const feedSnapshot = await getDocs(q)
       const lastRef = feedSnapshot.docs[feedSnapshot.docs.length-1]
