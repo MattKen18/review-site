@@ -4,7 +4,11 @@ const initialState = {
   genreFiltering: false,
   mossFiltering: false, // if a moss rating is one of the filters
   authFiltering: false,
-  filters: [], // filters applied including genre, moss rating, verified, created-date
+  filters: {
+    genres: [],
+    rating: null,
+    authenticated: null,
+  }, // filters applied including genre, moss rating, verified, created-date
 }
 
 export const filterSlice = createSlice({
@@ -12,84 +16,55 @@ export const filterSlice = createSlice({
   initialState,
   reducers: {
     addFilter: (state, action) => {
-      switch(action.payload.title.split('-')[0]) {
+      const filterTitle = action.payload.title.split('-')[0]
+      const filterVal = action.payload.title.split('-')[1]
+
+      switch(filterTitle) {
         case 'genre':
-          if (!state.filters.includes(action.payload.title)) { // runs if filter is not already applied
-            state.filters = [...state.filters, action.payload.title]
+            state.filters.genres = [...state.filters.genres, filterVal]
             state.genreFiltering = true
-          } else { // if filter is already applied
-            return state
-          }
           break
 
         case 'moss':
-          if (state.mossFiltering) {
-            // replace existing moss rating
-            for (let i=0; i<state.filters.length; i++) {
-              if (state.filters[i].startsWith("moss")) {
-                const newFilters = [...state.filters]
-                newFilters[i] = action.payload.title
-                state.filters = newFilters
-              }
-            }
-          } else {
-            // add new moss rating to filters
-            state.filters = [...state.filters, action.payload.title]
-            state.mossFiltering = true
-          }
+          state.filters.rating = Number(filterVal)
+          state.mossFiltering = true
           break
 
         case 'authenticated':
-          if (state.authFiltering) {
-            for(let i=0; i<state.filters.length; i++) {
-              if (state.filters[i].startsWith('authenticated')) {
-                const newFilters = [...state.filters]
-                newFilters[i] = action.payload.title
-                state.filters = newFilters
-              }
-            }
-          } else {
-            state.filters = [...state.filters, action.payload.title]
-            state.authFiltering = true
-          }
+          state.filters.authenticated = filterVal
+          state.authFiltering = true  
       }
     },
     removeFilter: (state, action) => {
-      const indexToRemove = state.filters.findIndex((filter) => filter === action.payload.title);//returns -1 if not found
+      const filterTitle = action.payload.title.split('-')[0]
+      const filterVal = action.payload.title.split('-')[1]
 
-      if (indexToRemove !== -1) {
-        const newFilters = [...state.filters]
-        newFilters.splice(indexToRemove, 1) //removes the filter from the list of filters
-        state.filters = newFilters
+      switch (filterTitle) {
+        case 'genre':
+          const indexToRemove = state.filters.genres.findIndex((genre) => genre === filterVal);//returns -1 if not found
+          const newGenres = [...state.filters.genres]
+          newGenres.splice(indexToRemove, 1)
+          state.filters.genres = newGenres
+          state.genreFiltering = !newGenres.length ? false : true
+          break
 
-        switch (action.payload.title.split('-')[0]) {
-          case 'genre':
-            state.genreFiltering = !state.filters.length ? false : true
-            break
-          case 'moss':
-            state.mossFiltering = false
-            break
-          case 'authenticated':
-            state.authFiltering = false
-        }
-        if (!state.filters.length) {
+        case 'moss':
+          state.filters.rating = null
           state.mossFiltering = false
-          state.genreFiltering = false
+          break
+        
+        case 'authenticated':
+          state.authFiltering = null
           state.authFiltering = false
-        }
-      } else {
-        return state
-      }
+    }
     },
 
     clearFilter: (state) => {
-      // state = {
-      //   mossFiltering: false,
-      //   genreFiltering: false,
-      //   authFiltering: false,
-      //   filters: []
-      // }
-      state.filters = []
+      state.filters = {
+        genres: [], 
+        rating: null,
+        authenticated: true,
+      }
       state.mossFiltering = false
       state.genreFiltering = false
       state.authFiltering = false

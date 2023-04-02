@@ -121,22 +121,126 @@ export const updateUserFeed = async (prevRef, maxNumOfItems) => {
   } catch (e) {
     console.log(e)
   }
+}
+
+export const getFilteredUserFeed = async (maxNumOfItems, filters) => {
+  const filteredReviews = []
+  let genresQuery = null
+
+  //get all genres
+  const allGenresRef = collection(db, 'genres')
+  const allGenresSnapshot = await getDocs(allGenresRef)
+  const allGenres = []
+  allGenresSnapshot.forEach(genre => {
+    allGenres.push(doc(db, 'genres', genre.id))
+  })
+
+  //convert filtered genres to refs and assign genres query
+  if (filters.genres.length) {
+    const filteredGenres = []
+    const genreQuery = query(allGenresRef, where("title", "in", filters.genres))
+    const filteredGenresSnapshot = await getDocs(genreQuery)
+    filteredGenresSnapshot.forEach(genre => {
+      filteredGenres.push(doc(db, 'genres', genre.id))
+    })
+    genresQuery = where('genre', 'in', filteredGenres) //query filtered genres if filters.genres is not an empty array
+  } else {
+    genresQuery = where('genre', 'in', allGenres) // query on all genres if filters.genres is empty i.e. not filtering based on a genre
+  }
+  
+  const reviewsRef = collection(db, "reviews")
+  let q = null
+
+  //cannot have multiple 'in' clauses so have check for not filtering on rating i.e., when i wouldve used an additional in [1, 2, 3, 4, 5]
+  if (filters.rating) {
+    q = query(reviewsRef, orderBy('rating', 'desc'), orderBy('timestamp', 'desc'), limit(maxNumOfItems), genresQuery, where('rating', '<=', filters.rating), where('rating', '>=', filters.rating-0.5))
+  } else {
+    q = query(reviewsRef, orderBy('timestamp', 'desc'), limit(maxNumOfItems), genresQuery)
+  }
+
+  const filteredFeedSnapshot = await getDocs(q)
+  
+  filteredFeedSnapshot.forEach(review => {
+    filteredReviews.push({...review.data(), id: review.id})
+  })
+  const lastRef = filteredFeedSnapshot.docs[filteredFeedSnapshot.docs.length-1]
 
 
+  return [filteredReviews, lastRef]
+}
+
+
+export const updateFilteredUserFeed = async (prevRef, maxNumOfItems, filters) => {
+  try {
+    if (prevRef) { //if there are more items to get
+      const filteredReviews = []
+      let genresQuery = null
+    
+      //get all genres
+      const allGenresRef = collection(db, 'genres')
+      const allGenresSnapshot = await getDocs(allGenresRef)
+      const allGenres = []
+      allGenresSnapshot.forEach(genre => {
+        allGenres.push(doc(db, 'genres', genre.id))
+      })
+    
+      //convert filtered genres to refs and assign genres query
+      if (filters.genres.length) {
+        const filteredGenres = []
+        const genreQuery = query(allGenresRef, where("title", "in", filters.genres))
+        const filteredGenresSnapshot = await getDocs(genreQuery)
+        filteredGenresSnapshot.forEach(genre => {
+          filteredGenres.push(doc(db, 'genres', genre.id))
+        })
+        genresQuery = where('genre', 'in', filteredGenres) //query filtered genres if filters.genres is not an empty array
+      } else {
+        genresQuery = where('genre', 'in', allGenres) // query on all genres if filters.genres is empty i.e. not filtering based on a genre
+      }
+      
+      const reviewsRef = collection(db, "reviews")
+      let q = null
+    
+      //cannot have multiple 'in' clauses so have check for not filtering on rating i.e., when i wouldve used an additional in [1, 2, 3, 4, 5]
+      if (filters.rating) {
+        q = query(reviewsRef, orderBy('rating', 'desc'), orderBy('timestamp', 'desc'), limit(maxNumOfItems), startAfter(prevRef), genresQuery, where('rating', '<=', filters.rating), where('rating', '>=', filters.rating-0.5))
+      } else {
+        q = query(reviewsRef, orderBy('timestamp', 'desc'), limit(maxNumOfItems), startAfter(prevRef), genresQuery)
+      }
+    
+      const filteredFeedSnapshot = await getDocs(q)
+      
+      filteredFeedSnapshot.forEach(review => {
+        filteredReviews.push({...review.data(), id: review.id})
+      })
+      const lastRef = filteredFeedSnapshot.docs[filteredFeedSnapshot.docs.length-1]
+    
+    
+      return [filteredReviews, lastRef]
+    } else {
+      return [[], prevRef] //prevRef will be undefined when there are no more items to get
+    }
+  } catch (e) {
+    console.log(e)
+  }
 }
 
 export const convertReview = async (review) => {
-  const genreRef = doc(db, 'genres', review.genre.id)
-  const genreSnap = await getDoc(genreRef)
-
-  review.genre = genreSnap.data()
-
-  if (review.author.id) {
-    const authorRef = doc(db, 'users', review.author.id)
-    const authorSnap = await getDoc(authorRef)
-    review.author = authorSnap.data()
+  try {
+    const genreRef = doc(db, 'genres', review.genre.id)
+    const genreSnap = await getDoc(genreRef)
+    
+    review.genre = genreSnap.data()
+    
+    if (review.author.id) {
+      const authorRef = doc(db, 'users', review.author.id)
+      const authorSnap = await getDoc(authorRef)
+      review.author = authorSnap.data()
+    }
+    review['converted'] = true
+  } catch (e) {
+    console.log(e)
   }
-
+    
   return review
 
 }

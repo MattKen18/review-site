@@ -23,6 +23,8 @@ import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ChangePwordModal from '../ChangePwordModal'
 import ChangeUsernameModal from '../ChangeUsernameModal'
+import SidePane from '../SidePane'
+import { selectFilters } from '../../slices/filterSlice'
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -76,6 +78,10 @@ const Profile = () => {
 
   const currentUser = useSelector(selectUser)
   const dispatch = useDispatch()
+
+  const filters = useSelector(selectFilters)
+
+
 
 
   const linkColors = {
@@ -425,7 +431,7 @@ const Profile = () => {
         }
 
       <aside className='min-h-screen basis-1/5'>
-        <AdSpace />
+        <SidePane />
       </aside>
       <div className='relative flex-1 min-h-screen'>
         {/* profile background */}
@@ -728,7 +734,24 @@ const Profile = () => {
 
             <div className='flex flex-col justify-center'>
               {
-                isProfileOwner ?
+                !filters.length ?
+                  isProfileOwner ?
+                    reviews.length ?
+                    reviews?.map((review, i) => (
+                      <div key={review.id + i} className='-mb-10 scale-90'>
+                        <Review id={i} review={review}/>
+                      </div>
+                    ))
+                    :
+                    !spectatorView ?
+                      <div className='mt-20 m-auto'>
+                        <p className='font-light'>No Reviews | <Link to='/compose' className='text-blue-500 font-normal hover:underline underline-offset-4'>Create one now</Link></p>
+                      </div>
+                    :
+                    <div className='mt-20 m-auto'>
+                      <p className='font-light'>No Reviews</p>
+                    </div>
+                  :
                   reviews.length ?
                   reviews?.map((review, i) => (
                     <div key={review.id + i} className='-mb-10 scale-90'>
@@ -736,26 +759,13 @@ const Profile = () => {
                     </div>
                   ))
                   :
-                  !spectatorView ?
-                    <div className='mt-20 m-auto'>
-                      <p className='font-light'>No Reviews | <Link to='/compose' className='text-blue-500 font-normal hover:underline underline-offset-4'>Create one now</Link></p>
-                    </div>
-                  :
                   <div className='mt-20 m-auto'>
                     <p className='font-light'>No Reviews</p>
                   </div>
                 :
-                reviews.length ?
-                reviews?.map((review, i) => (
-                  <div key={review.id + i} className='-mb-10 scale-90'>
-                    <Review id={i} review={review}/>
-                  </div>
+                filters.map(filter => (
+                  <p key={filter} >{filter}</p>
                 ))
-                :
-                <div className='mt-20 m-auto'>
-                  <p className='font-light'>No Reviews</p>
-                </div>
-
               }
             </div>
           </div>

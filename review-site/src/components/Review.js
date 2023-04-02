@@ -39,12 +39,20 @@ const Review = ({review, incSaves, decSaves}) => {//{review: {id, author, headli
 
 
   useEffect(() => {
-    //convert the author and genre from a reference to a usable object and update the state
-    convertReview(review).then((convertedReview) => {
-      setAuthor(convertedReview.author)
-      setGenre(convertedReview.genre)
+    //already converted so no need to convert again
+    if (review.hasOwnProperty('converted')) {
+      setAuthor(review.author)
+      setGenre(review.genre)
       setLoading(false)
-    })
+    }else {
+      //convert the author and genre from a reference to a usable object and update the state if the review is not already converted
+      convertReview(review).then((convertedReview) => {
+        // console.log("review: ", review)
+        setAuthor(convertedReview.author)
+        setGenre(convertedReview.genre)
+        setLoading(false)
+      })
+    }
   }, [])
 
 
@@ -197,6 +205,7 @@ const Review = ({review, incSaves, decSaves}) => {//{review: {id, author, headli
           <>
             {!review?.images.length > 0 ? 
               <>
+                {/* review with no image  */}
                 <div id={`${review?.id}-review`} className={`relative z-0 flex flex-col min-h-[200px] h-fit bg-white rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
                   <div id={`${review?.id}-review-detail-click`} className={`group absolute -top-20 -right-20 w-36 h-28 z-1 rotate-45 duration-300 hover:scale-150 hover:cursor-pointer`}>
                     <Link to={`/review/${review?.id}`} className='relative w-full h-full block'>
@@ -262,6 +271,7 @@ const Review = ({review, incSaves, decSaves}) => {//{review: {id, author, headli
               </> 
               :
               <>
+                {/* review with image */}
                 <div className={`relative z-0 flex min-h-[300px] h-fit bg-white rounded-md shadow-sm mb-10 p-6 overflow-hidden`}>
                   {/* image section */}
                   <div className='flex items-center justify-center pr-10'>

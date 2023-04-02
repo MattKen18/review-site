@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { addGenre, addToFireStore, convertShownReviews, getFromFireStore, getInitialUserFeed, getShownReviews, getUserFeed, updateUserFeed } from '../../firebase';
+import { addGenre, addToFireStore, convertShownReviews, getFilteredUserFeed, getFromFireStore, getInitialUserFeed, getShownReviews, getUserFeed, updateFilteredUserFeed, updateUserFeed } from '../../firebase';
 import { useSelector } from 'react-redux';
 import { selectAuthFiltering, selectFilters, selectGenreFiltering, selectMossFiltering } from '../../slices/filterSlice';
 import Review from '../Review';
@@ -10,6 +10,8 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import $ from 'jquery'
 import Alert from '../Alert';
 import Loader from '../Loader';
+import InformCard from '../InformCard';
+import ShowContent from '../ShowContent';
 
 const Home = () => {
   const auth = getAuth()
@@ -27,6 +29,7 @@ const Home = () => {
   const [initialLoading, setInitialLoading] = useState(true)
   const [updatingFeed, setUpdatingFeed] = useState(false)
   const [endOfResults, setEndOfResults] = useState(false)
+  const [noResults, setNoResults] = useState(false)
   
 
   useEffect(() => {
@@ -45,12 +48,16 @@ const Home = () => {
 
   useEffect(() => {
     if (userFeed.length) {
+      setNoResults(false)
       if (!lastItem) {
         setEndOfResults(true)
       }
       document.addEventListener('scroll', handleFeedUpdate)
       return () => document.removeEventListener('scroll', handleFeedUpdate)
-    }
+    } else { // if there are no results from filter
+      setNoResults(true)
+      setEndOfResults(false)
+    } 
   }, [userFeed, lastItem])
 
 
@@ -63,13 +70,22 @@ const Home = () => {
 
   useEffect(() => {
     if (updatingFeed) {
-      updateUserFeed(lastItem, numOfItemsToGet)
-      .then(newFeed => {
-        setUserFeed(prevFeed => [...prevFeed, ...newFeed[0]])
-        setLastItem(newFeed[1])
-      }) 
+      if (genreFiltering || mossFiltering || authFiltering) {
+        updateFilteredUserFeed(lastItem, numOfItemsToGet, filters)
+        .then(newFeed => {
+          setUserFeed(prevFeed => [...prevFeed, ...newFeed[0]])
+          setLastItem(newFeed[1])
+        })
+      } else {
+        updateUserFeed(lastItem, numOfItemsToGet)
+        .then(newFeed => {
+          setUserFeed(prevFeed => [...prevFeed, ...newFeed[0]])
+          setLastItem(newFeed[1])
+        }) 
+      }
     }
-  }, [updatingFeed])
+  }, [updatingFeed, genreFiltering, mossFiltering, authFiltering, filters])
+
 
 
 
@@ -80,9 +96,30 @@ const Home = () => {
     }
   }, [userFeed])
 
+
   useEffect(() => {
-    console.log(userFeed)
-  }, [userFeed])
+    if (genreFiltering || mossFiltering || authFiltering) { //if a filter is active
+      getFilteredUserFeed(numOfItemsToGet, filters).then(filteredReviews => {
+        setUserFeed(filteredReviews[0])
+        setLastItem(filteredReviews[1])
+      })
+    } else {
+      getInitialUserFeed(numOfItemsToGet).then(feed => {
+        // feed[0] is the actual feed
+        // feed[1] is the ref of the last item in the feed 
+        setUserFeed(feed[0])
+        setLastItem(feed[1])
+      })
+    }
+  }, [genreFiltering, mossFiltering, authFiltering, filters])
+
+  // useEffect(() => {
+  //   console.log(userFeed)
+  // }, [userFeed])
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [filters])
 
   return (
     <>
@@ -93,7 +130,6 @@ const Home = () => {
           <div className='flex-1 bg-gray-100'>
             <div className='w-11/12 m-auto my-16'>
               <h1 className='text-3xl font-bold text-center mb-3'>Your Feed</h1>
-              {/* <hr /> */}
             </div>
             {
               <div className='m-auto'>
@@ -101,28 +137,30 @@ const Home = () => {
                   !initialLoading ?
                   <>
                     {
-                      genreFiltering || mossFiltering || authFiltering ? 
-                      <>
-                        <h2 className='text-center'>Filtering...</h2>
-                        <ul>
-                          {filters.map((filter, i) => (
-                            <li key={i} className='block text-center'>{filter}</li>
-                          ))}
-                        </ul>
-                      </>
-                      : 
+                      // <ShowContent params={{
+                      //   content: userFeed,
+                      //   type: 'reviews',
+                      //   endOfResults: endOfResults,
+                      //   updatingFeed: updatingFeed,
+                      //   noResults: noResults,
+                      // }}/>
                       <div className='w-11/12 m-auto'>
                         <>
                           {
                             userFeed.map((review, i) => (
-                              <Review key={review+i} review={review} />
+                              <Review key={review.id+i} review={review} />
                             )) 
                           }
                           {
                             endOfResults ?
-                              <div><h1 className='text-center font-bold text-sm my-4 text-primary'>You've reached the end :)</h1></div>
+                              <InformCard params={{                                
+                                content: "No more results",
+                                type: "alert",
+                                emoji: "🫠",
+                              }}
+                              />
                             :
-                            updatingFeed &&
+                            updatingFeed ?
                             <Loader params={{
                               // content: 'Loading more content',
                               type: 'bars',
@@ -130,6 +168,15 @@ const Home = () => {
                               height: '40px',
                               width: '40px',
                             }} />
+                            :
+                            noResults &&
+                              <InformCard params={{                                
+                                content: "No results match filter",
+                                subContent: "Please update filter and try again",
+                                type: "alert",
+                                emoji: '🥺',
+                              }}
+                            />
                           }
                         </>
 
@@ -145,16 +192,6 @@ const Home = () => {
                       height: '30px',
                       width: '30px',
                     }} />
-                    {/* <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder />
-                    <ReviewPlaceholder /> */}
                   </div>
                 }
               </div>

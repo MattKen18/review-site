@@ -55,10 +55,9 @@ const Genre = ({genre: { title, color }}) => {
   }
 
   return (
-    <a 
-    href="#"
+    <span 
     id={title} //have check for unique genre title
-    className={`p-2 mb-2 text-sm text-white border-2 rounded-full duration-300 hover:opacity-100`}
+    className={`p-2 mb-2 text-sm text-white border-2 rounded-full duration-300 hover:opacity-100 hover:cursor-pointer`}
     onMouseOver={(e) => e.target.style.opacity = '1'}
     onMouseOut={
       (e) => {
@@ -70,7 +69,7 @@ const Genre = ({genre: { title, color }}) => {
     onClick={handleFilter}
     >
       {title}
-    </a>
+    </span>
   )
 }
 

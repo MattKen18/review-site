@@ -23,6 +23,13 @@ const SidePane = () => {
   useEffect(() => {
     // console.log(genres)
   }, [genres])
+
+  useEffect(() => {
+    //clear filter when component unmounts
+    return () => {
+      dispatch(clearFilter())
+    }
+  }, [])
   
   return (
     <>
@@ -46,7 +53,7 @@ const SidePane = () => {
           ))}
         </ul>
         <div className='mt-12 pl-2'>
-          <h1 className='font-bold text-xl text-slate-500'>Moss Rating <span>≤</span></h1>
+          <h1 className='font-bold text-xl text-slate-500'>Moss Rating</h1>
           <div className='flex flex-col mt-3 border-2 border-slate-50 rounded-md bg-slate-50 w-3/4'>
             {
               [5, 4, 3, 2, 1].map(mossRating => (
@@ -57,14 +64,14 @@ const SidePane = () => {
             }
           </div>
         </div>
-        <div className='mt-12'>
+        {/* <div className='mt-12'>
           <RadioFilter details={{
             ids: ['verified', 'unverified'],
             name: 'authenticated',
-            values: ['verified', 'unverified'],
+            values: [true, false],
             radioValues: ['Verified', 'Unverified'],
           }} />
-        </div>
+        </div> */}
         {/* <div className='mt-8'>
           <RadioFilter details={{
             ids: ['newest', 'oldest'],
