@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { deleteField, doc, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, startAfter, where } from "firebase/firestore";
+import { deleteField, doc, getCountFromServer, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, startAfter, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -223,6 +223,59 @@ export const updateFilteredUserFeed = async (prevRef, maxNumOfItems, filters) =>
     console.log(e)
   }
 }
+
+
+export const getUserReviewsCount = async (userId) => {
+  const reviewsCollection = collection(db, "reviews");
+  const userRef = doc(db, 'users', userId)
+
+  const q = query(reviewsCollection, where('author', '==', userRef))
+  const reviewsSnapshot = await getCountFromServer(q);
+
+  // console.log("number of reviews: ", reviewsSnapshot.data().count)
+  return reviewsSnapshot.data().count
+}
+
+
+// content for profile page
+export const getInitialUserReviews = async (userId, maxNumOfItems) => {
+  const reviewsRef = collection(db, "reviews")
+  const userRef = doc(db, 'users', userId)
+
+  const q = query(reviewsRef, orderBy('timestamp', 'desc'), where('author', '==', userRef), limit(maxNumOfItems))
+  
+  const reviewsSnapshot = await getDocs(q)
+  const lastRef = reviewsSnapshot.docs[reviewsSnapshot.docs.length-1]
+
+  const reviews = [] 
+  reviewsSnapshot.forEach(review => {
+    reviews.push({...review.data(), id: review.id})
+  })
+
+  return [reviews, lastRef]
+}
+
+export const updateUserReviews = async (userId, maxNumOfItems, prevRef) => {
+  try {
+    if (prevRef) { //if there are more items to get
+      const reviewsRef = collection(db, "reviews")
+      const userRef = doc(db, 'users', userId)
+      const q = query(reviewsRef, orderBy('timestamp', 'desc'), where('author', '==', userRef), startAfter(prevRef), limit(maxNumOfItems))
+      const reviewsSnapshot = await getDocs(q)
+      const lastRef = reviewsSnapshot.docs[reviewsSnapshot.docs.length-1]
+      const reviews = [] 
+      reviewsSnapshot.forEach(review => {
+        reviews.push({...review.data(), id: review.id})
+      })
+      return [reviews, lastRef]
+    } else {
+      return [[], prevRef] //prevRef will be undefined when there are no more items to get
+    }
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 
 export const convertReview = async (review) => {
   try {

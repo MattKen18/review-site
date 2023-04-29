@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { addToUserFollowers, getAuthorReviews, getUserFromFirestore, getUserLinks, handleUserFollow, handleUserUnfollow, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic, updateuserProfileWithAbout } from '../../firebase'
+import { addToUserFollowers, getAuthorReviews, getInitialUserReviews, getUserFromFirestore, getUserLinks, getUserReviewsCount, handleUserFollow, handleUserUnfollow, removeFromUserFollowers, updateUserBackgroundImage, updateUserProfilePic, updateuserProfileWithAbout, updateUserReviews } from '../../firebase'
 import AdSpace from '../AdSpace'
 import profileWallpaper from '../../assets/profile-wallpaper.jfif'
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
@@ -25,6 +25,10 @@ import ChangePwordModal from '../ChangePwordModal'
 import ChangeUsernameModal from '../ChangeUsernameModal'
 import SidePane from '../SidePane'
 import { selectFilters } from '../../slices/filterSlice'
+import PaginateContent from '../PaginateContent'
+import ArrowRightOutlinedIcon from '@mui/icons-material/ArrowRightOutlined';
+import ArrowLeftOutlinedIcon from '@mui/icons-material/ArrowLeftOutlined';
+import { current } from '@reduxjs/toolkit'
 
 const S3_BUCKET ='test-image-store-weviews';
 const REGION ='us-east-2'; 
@@ -51,7 +55,23 @@ const Profile = () => {
   const [following, setFollowing] = useState(0)
   const [profileUserFollowers, setProfileUserFollowers] = useState([])
   const [userFollowing, setUserFollowing] = useState([])
+
+
   const [reviews, setReviews] = useState([])
+  const [reviewCount, setReviewCount] = useState(0)
+  const [profileUserReviews, setProfileUserReviews] = useState([])
+  const [numOfItemsToGet, setNumOfItemsToGet] = useState(1) // same as number of reviews per page
+  const [lastItem, setLastItem] = useState(null)
+  const [fetchingMoreReviews, setFetchingMoreReviews] = useState(false) // true when user hits button to get more reviews
+  const [totalNumOfPages, setTotalNumOfPages] = useState(null) // review count divided by number of reviews per page
+  const [pageNavSet, setPageNavSet] = useState([]) //
+  const [currentPageNavIndex, setCurrentPageNavIndex] = useState(0)
+  const [numOfPagesPerNav, setNumOfPagesPerNav] = useState(3) //
+  const [currentPage, setCurrentPage] = useState(1)
+  const [prevPage, setPrevPage] = useState(null)
+
+  const [atFinalNavSet, setAtFinalNavSet] = useState(false)
+
   const [isFollowing, setIsFollowing] = useState(false)
   const [stagedProfileImage, setStagedProfileImage] = useState(null)
   const [stagedBackgroundImage, setStagedBackgroundImage] = useState(null)
@@ -82,8 +102,6 @@ const Profile = () => {
   const filters = useSelector(selectFilters)
 
 
-
-
   const linkColors = {
     'facebook': '#a5b4fc',
     'instagram': '#f9a8d4',
@@ -110,26 +128,297 @@ const Profile = () => {
   }, [])
 
 
+
+
+
+
+  // Handle Paginating and filtering profile user reviews
+
+  useEffect(() => {
+    getUserReviewsCount(id).then(count => setReviewCount(count))
+  }, []) 
+  
+  
+  // fetching first page of results i.e. initial reviews
+  useEffect(() => {
+    if (profileUser) {
+      getInitialUserReviews(id, numOfItemsToGet)
+      .then(reviews => {
+        setProfileUserReviews([reviews[0]])
+        setLastItem(reviews[1])
+
+      })
+    }
+  }, [profileUser])
+
+
+
+
+
+
+
+
+
+
+
+  // fetching more reviews
+
+  // useEffect(() => {
+  //   // profileUserReviews => [[], [], []] each inner list is a page
+
+  //   console.log('current page: ', currentPage)
+  //   console.log('current reviews:', profileUserReviews.length)
+  //   if (currentPage > profileUserReviews.length) { //need to fetch more reviews
+  //     if (currentPage === profileUserReviews.length+1) { //if clicked on the next page after current
+  //       setFetchingMoreReviews(true)
+  //       updateUserReviews(id, numOfItemsToGet, lastItem)
+  //       .then(newReviews => {
+  //         // newReviews[0] is the actual feed
+  //         // newReviews[1] is the ref of the last item in the feed 
+  
+  //         const newProfileUserReviews = [...profileUserReviews]
+  //         newProfileUserReviews.push(newReviews[0])
+  //         setProfileUserReviews(newProfileUserReviews)
+  //         setLastItem(newReviews[1])
+  //       })
+  //     } else { // if clicked farther i.e. from page 1 to page 5
+  //       setFetchingMoreReviews(true)
+  //       updateUserReviews(id, numOfItemsToGet*(currentPage-profileUserReviews.length), lastItem)
+  //       .then(newReviews => {
+  //         let pages = []
+  //         let singlePage = []
+  //         for (let review of newReviews[0]) {
+  //           singlePage.push(review)
+  //           if (singlePage.length == numOfItemsToGet) { // if a single page is completed
+  //             pages.push(singlePage)
+  //             singlePage = []
+  //           }
+  //         }
+  //         if (singlePage.length) { // if an incomplete page exists i.e. one that does not have the total numOfItemsToGet on it [{1, 2, 3}, {1, 2, 3}, ->{1, 2}<-]
+  //           pages.push(singlePage)
+  //         }
+  //         const currReviews = [...profileUserReviews]
+  //         const aggregatedReviews = currReviews.concat(pages)
+  //         setProfileUserReviews(aggregatedReviews)
+  //         setLastItem(newReviews[1])
+  //       })
+  //     }
+  //   } 
+
+  //   // window.scrollTo(0, 0)
+  // }, [currentPage])
+
+  // useEffect(() => {
+  //   // console.log("userReviews: ", profileUserReviews)
+  // }, [profileUserReviews, currentPage])
+
+
+
+  // // handles how many pages to paginate data with
+  // useEffect(() => {
+  //   // const numberOfPages = Math.ceil(reviewCount/numOfItemsToGet)
+  //   // const pages = []
+
+  //   // for (let page=1; page<=numberOfPages; page++) {
+  //   //   pages.push(page)
+  //   // }
+
+  //   // setPagesToShow(pages)
+  //   const numOfPages = Math.ceil(reviewCount/numOfItemsToGet)
+  //   setTotalNumOfPages(numOfPages)
+  //   let navSet = []
+  //   let nav = []
+
+  //   for (let page = 1; page <= numOfPages; page++) {
+  //     nav.push(page)
+  //     if (nav.length == numOfPagesPerNav) {
+  //       navSet.push(nav)
+  //       nav = []
+  //     }
+  //   }
+  //   if (nav.length) {
+  //     navSet.push(nav)
+  //   }
+  //   setPageNavSet(navSet)
+
+  // }, [reviewCount])
+
+
+  // useEffect(() => {
+  //   if ((currentPageNav > currentPage/numOfPagesPerNav) && (currentPageNav-1 == currentPage/numOfPagesPerNav)) { // if went back to the last page in prev navset
+  //     setPrevPage(null)
+  //     setCurrentPageNav(currNav => currNav-1)
+  //   } else if (currentPageNav == currentPage/numOfPagesPerNav) { // if at last page in nav set
+  //     setPrevPage(currentPage)
+  //     setCurrentPageNav(currNav => currNav+1)
+  //   } else {
+  //     // within the nav set so no need to do anything
+  //   }
+  //     // setCurrentPageNav(prev+1)
+  // }, [currentPage])
+
+  // useEffect(() => {
+  //   console.log("page set: ", pageNavSet)
+  // }, [pageNavSet])
+
+
+
+  
+  useEffect(() => {
+    if (reviewCount) {
+      setTotalNumOfPages(Math.ceil(reviewCount/numOfItemsToGet))
+    }
+  }, [reviewCount])
+
+  // set initial navSet
+  useEffect(() => {
+    // initial nav set is [[numOfPagesPerNav], ] i.e. [[1, 2, 3, 4, 5], ]
+
+    const nav = []
+    const lastPageOfNav = numOfPagesPerNav < totalNumOfPages ? numOfPagesPerNav : totalNumOfPages
+    for (let pageNum=1; pageNum <= lastPageOfNav; pageNum++) {
+      nav.push(pageNum)
+    }
+    setPageNavSet([nav])
+
+  }, [totalNumOfPages])
+  
+  useEffect(() => {
+    if (pageNavSet.length) {
+      const currentNav = pageNavSet[currentPageNavIndex]
+      if (currentPage >= currentNav[currentNav.length-1] && !atFinalNavSet) { // load new nav
+        // let newNav = []
+        // let pageNumStart = numOfPagesPerNav%2 === 0 ? currentPage-(Math.floor(numOfPagesPerNav/2)) + 1 : currentPage-(Math.floor(numOfPagesPerNav/2))
+        // // pageNumStart = pageNumStart <= Math.floor(numOfPagesPerNav/2) ? pageNumStart : currentPage - Math.floor(numOfPagesPerNav/2) + 1
+        // let pageNumEnd = currentPage + (Math.floor(numOfPagesPerNav/2))
+
+        // if (pageNumEnd <= totalNumOfPages) {
+        //   for (let pageNum = pageNumStart; pageNum <= pageNumEnd; pageNum++) {
+        //     newNav.push(pageNum)
+        //   }
+        // } else {
+        //   for (let pageNum = pageNumStart; pageNum <= totalNumOfPages; pageNum++) {
+        //     newNav.push(pageNum)
+        //   }
+        // }
+
+        // const newNavSet = [...pageNavSet]
+
+        // let includesTargetArray = newNavSet.some(array => 
+        //   array.length === newNav.length && array.every((value, index) => value === newNav[index])
+        // );
+        
+
+        // newNavSet.push(newNav)
+        // setCurrentPageNavIndex(prev => prev+1)
+        // if (!includesTargetArray) {
+        //   setPageNavSet(newNavSet)
+        // }
+
+        const newNav = createNewNav(currentPage)
+        const navSet = [...pageNavSet]
+
+        let includesNewNav = navSet.some(array => 
+          array.length === newNav.length && array.every((value, index) => value === newNav[index])
+        );
+    
+        navSet.push(newNav)
+        setCurrentPageNavIndex(prev => prev+1)
+        if (!includesNewNav) {
+          setPageNavSet(navSet)
+        }
+
+
+      } else if (currentPage <= currentNav[0] && currentPage != 1) { // go back one nav
+        setCurrentPageNavIndex(prev => prev-1)
+        setAtFinalNavSet(false)
+      }
+    }
+  }, [currentPage])
+
+
+  const createNewNav = (startingPage) => {
+    let newNav = []
+    let pageNumStart = numOfPagesPerNav%2 === 0 ? startingPage-(Math.floor(numOfPagesPerNav/2)) + 1 : startingPage-(Math.floor(numOfPagesPerNav/2))
+    // pageNumStart = pageNumStart <= Math.floor(numOfPagesPerNav/2) ? pageNumStart : currentPage - Math.floor(numOfPagesPerNav/2) + 1
+    let pageNumEnd = startingPage + (Math.floor(numOfPagesPerNav/2))
+
+    if (pageNumEnd <= totalNumOfPages) {
+      if(pageNumEnd === totalNumOfPages) {
+        setAtFinalNavSet(true)
+      }
+
+      for (let pageNum = pageNumStart; pageNum <= pageNumEnd; pageNum++) {
+        newNav.push(pageNum)
+      }
+
+    } else {
+      for (let pageNum = pageNumStart; pageNum <= totalNumOfPages; pageNum++) {
+        newNav.push(pageNum)
+      }
+    }
+
+    return newNav
+  }
+
+  const getCompleteNavSet = () => {
+    const navsNeeded = Math.ceil(totalNumOfPages/numOfPagesPerNav)-pageNavSet.length
+    const startingPageNum = pageNavSet[pageNavSet.length-1][pageNavSet[pageNavSet.length-1].length-1]
+
+    const navSet = [...pageNavSet]
+    let nav = []
+
+    for (let navCount=0; navCount < navsNeeded; navCount++) {
+      navSet.push(createNewNav(startingPageNum))
+    }
+
+    // if (nav.length) {
+    //   navSet.push(nav)
+    // }
+
+    setPageNavSet(navSet)
+    setCurrentPage(totalNumOfPages)
+    setCurrentPageNavIndex(navSet.length-1)
+  }
+
+
+  useEffect(() => {
+    if (pageNavSet.length) {
+      console.log("Page Navigation Set: ", pageNavSet)
+    }
+  }, [pageNavSet])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   useEffect(() => {
     if (profileUser) {
       setIsProfileOwner(profileUser?.uid === currentUser?.uid)
     }
-    
   }, [currentUser, profileUser])
 
-  useEffect(() => {
-    // console.log('is profile owner? ', isProfileOwner)
-  }, [isProfileOwner])
   
   // gets the user that corresponds to the profile that the currently logged in user wants to see
   useEffect(() => {
     getUserFromFirestore(id).then(user => setProfileUser(user))
   }, [])
   
+
   // gets profile owners reviews
   useEffect(() => {
     if (profileUser) {
       getAuthorReviews(profileUser?.uid).then(reviews => setReviews(reviews))
+
       setFollowers(Object.keys(profileUser?.followers).length)
       setFollowing(Object.keys(profileUser?.following).length)
       setAbout(profileUser?.about)
@@ -137,6 +426,8 @@ const Profile = () => {
     }
   }, [profileUser])
   
+
+
   useEffect(() => {
     if (profileUserFollowers.length) {
       setIsFollowing(profileUserFollowers?.indexOf(currentUser?.uid) !== -1)
@@ -415,6 +706,23 @@ const Profile = () => {
     return true
   }
 
+  const tempNavSet = () => {
+    const navSet = []
+    let nav = []
+    for (let i=1; i<=100; i++) {
+      nav.push(i)
+      if (i % numOfPagesPerNav === 0 && i !== 0) {
+        navSet.push(nav)
+        nav = []
+      }
+    }
+
+    if (nav.length) {
+      navSet.push(nav)
+    }
+    return navSet
+  }
+
   return (
     <div id="profile-wrapper" className='flex'>
       {
@@ -557,7 +865,7 @@ const Profile = () => {
               <p className='font-light text-sm text-center'>Joined {profileUser?.dateJoined}</p>
               <div className='flex mt-5 space-x-4'>
                 <div className='basis-1/3 text-xs'>
-                  <p className='text-center font-bold'>{reviews?.length}</p>
+                  <p className='text-center font-bold'>{reviewCount}</p>
                   <p className='text-center'>Reviews</p>
                 </div>
                 <div className='basis-1/3 text-xs'>
@@ -732,16 +1040,51 @@ const Profile = () => {
             }
             <h1 className='font-bold text-center text-xl pt-4'>User reviews</h1>
 
-            <div className='flex flex-col justify-center'>
+            <div className='flex flex-col'>
               {
                 !filters.length ?
                   isProfileOwner ?
                     reviews.length ?
-                    reviews?.map((review, i) => (
-                      <div key={review.id + i} className='-mb-10 scale-90'>
-                        <Review id={i} review={review}/>
+                      <div className='min-h-screen flex flex-col'>
+                        <div className='flex-1 scale-90'>
+                          <PaginateContent params={{
+                            content: profileUserReviews[currentPage-1],
+                            type: 'reviews',
+                          }}/>
+                        </div>
+                        <div className='w-fit flex m-auto flex-row space-x-2 pb-10'>
+                          <button onClick={() => setCurrentPage(prev => prev-1)}>{currentPage !== 1 && <ArrowLeftOutlinedIcon />}</button>
+                          {/* {
+                            prevPage &&
+                            <button 
+                            className={`px-2 text-white rounded-md ${prevPage === currentPage ? `bg-papaya` : `bg-slate-500`} ease-in hover:cursor-pointer hover:scale-110 duration-100 active:scale-90`}
+                            onClick={() => setCurrentPage(prevPage)}>
+                              {prevPage}
+                            </button>
+                          } */}
+                          {
+                            pageNavSet[currentPageNavIndex].map((page, key) => (
+                              <button key={page+""+key} 
+                              className={`px-2 text-white rounded-md ${page === currentPage ? `bg-papaya` : `bg-slate-500`} ease-in hover:cursor-pointer hover:scale-110 duration-100 active:scale-90`}
+                              onClick={() => setCurrentPage(page)}>
+                                {page}
+                              </button>
+                            ))
+                          }
+                          <button onClick={() => setCurrentPage(prev => prev+1)} className=''>{currentPage !== Math.ceil(reviewCount/numOfItemsToGet) && <ArrowRightOutlinedIcon />}</button>
+                          <button onClick={getCompleteNavSet} className=''>
+                            <span className='flex flex-row -space-x-4 items-center justify-center'>
+                              <ArrowRightOutlinedIcon /><ArrowRightOutlinedIcon />
+                            </span>
+                          </button>
+
+                        </div>
                       </div>
-                    ))
+                    // reviews?.map((review, i) => (
+                    //   <div key={review.id + i} className='-mb-10 scale-90'>
+                    //     <Review id={i} review={review}/>
+                    //   </div>
+                    // ))
                     :
                     !spectatorView ?
                       <div className='mt-20 m-auto'>
@@ -753,11 +1096,12 @@ const Profile = () => {
                     </div>
                   :
                   reviews.length ?
-                  reviews?.map((review, i) => (
-                    <div key={review.id + i} className='-mb-10 scale-90'>
-                      <Review id={i} review={review}/>
+                    <div className='-mb-10 scale-90'>
+                      <PaginateContent params={{
+                        content: profileUserReviews,
+                        type: 'reviews',
+                      }}/>
                     </div>
-                  ))
                   :
                   <div className='mt-20 m-auto'>
                     <p className='font-light'>No Reviews</p>
@@ -767,6 +1111,7 @@ const Profile = () => {
                   <p key={filter} >{filter}</p>
                 ))
               }
+              
             </div>
           </div>
         </div>

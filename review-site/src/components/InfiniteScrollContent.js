@@ -3,7 +3,7 @@ import InformCard from './InformCard'
 import Loader from './Loader'
 import Review from './Review'
 
-const ShowContent = ({params: {content, type, endOfResults, updatingFeed, noResults}}) => {
+const InfiniteScrollContent = ({params: {content, type, endOfResults, updatingFeed, noResults}}) => {
   return (
     <div className='w-11/12 m-auto'>
       {
@@ -43,4 +43,4 @@ const ShowContent = ({params: {content, type, endOfResults, updatingFeed, noResu
   )
 }
 
-export default ShowContent
+export default InfiniteScrollContent

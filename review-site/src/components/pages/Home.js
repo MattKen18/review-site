@@ -11,7 +11,7 @@ import $ from 'jquery'
 import Alert from '../Alert';
 import Loader from '../Loader';
 import InformCard from '../InformCard';
-import ShowContent from '../ShowContent';
+import InfiniteScrollContent from '../InfiniteScrollContent';
 
 const Home = () => {
   const auth = getAuth()
@@ -113,9 +113,6 @@ const Home = () => {
     }
   }, [genreFiltering, mossFiltering, authFiltering, filters])
 
-  // useEffect(() => {
-  //   console.log(userFeed)
-  // }, [userFeed])
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -137,50 +134,50 @@ const Home = () => {
                   !initialLoading ?
                   <>
                     {
-                      // <ShowContent params={{
-                      //   content: userFeed,
-                      //   type: 'reviews',
-                      //   endOfResults: endOfResults,
-                      //   updatingFeed: updatingFeed,
-                      //   noResults: noResults,
-                      // }}/>
-                      <div className='w-11/12 m-auto'>
-                        <>
-                          {
-                            userFeed.map((review, i) => (
-                              <Review key={review.id+i} review={review} />
-                            )) 
-                          }
-                          {
-                            endOfResults ?
-                              <InformCard params={{                                
-                                content: "No more results",
-                                type: "alert",
-                                emoji: "🫠",
-                              }}
-                              />
-                            :
-                            updatingFeed ?
-                            <Loader params={{
-                              // content: 'Loading more content',
-                              type: 'bars',
-                              color: '#3F51B5',
-                              height: '40px',
-                              width: '40px',
-                            }} />
-                            :
-                            noResults &&
-                              <InformCard params={{                                
-                                content: "No results match filter",
-                                subContent: "Please update filter and try again",
-                                type: "alert",
-                                emoji: '🥺',
-                              }}
-                            />
-                          }
-                        </>
+                      <InfiniteScrollContent params={{
+                        content: userFeed,
+                        type: 'reviews',
+                        endOfResults: endOfResults,
+                        updatingFeed: updatingFeed,
+                        noResults: noResults,
+                      }}/>
+                      // <div className='w-11/12 m-auto'>
+                      //   <>
+                      //     {
+                      //       userFeed.map((review, i) => (
+                      //         <Review key={review.id+i} review={review} />
+                      //       )) 
+                      //     }
+                      //     {
+                      //       endOfResults ?
+                      //         <InformCard params={{                                
+                      //           content: "No more results",
+                      //           type: "alert",
+                      //           emoji: "🫠",
+                      //         }}
+                      //         />
+                      //       :
+                      //       updatingFeed ?
+                      //       <Loader params={{
+                      //         // content: 'Loading more content',
+                      //         type: 'bars',
+                      //         color: '#3F51B5',
+                      //         height: '40px',
+                      //         width: '40px',
+                      //       }} />
+                      //       :
+                      //       noResults &&
+                      //         <InformCard params={{                                
+                      //           content: "No results match filter",
+                      //           subContent: "Please update filter and try again",
+                      //           type: "alert",
+                      //           emoji: '🥺',
+                      //         }}
+                      //       />
+                      //     }
+                      //   </>
 
-                      </div>
+                      // </div>
                     }
                   </>
                   :
