@@ -3,14 +3,14 @@ import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined';
 import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined';
 import $ from 'jquery'
 
-const Alert = ({content: {body, type}}) => {
+const Alert = ({content: {body, type}, timeout=3000}) => {
   // type = error or inform
 
   useEffect(() => {
     $('#alert').fadeIn(500, () => {
       setTimeout(() => {
         $('#alert').fadeOut(500)
-      }, 3000)
+      }, timeout)
     });
   }, [])
 

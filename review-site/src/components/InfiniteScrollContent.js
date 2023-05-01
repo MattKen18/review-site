@@ -22,13 +22,15 @@ const InfiniteScrollContent = ({params: {content, type, endOfResults, updatingFe
           />
         :
         updatingFeed ?
-        <Loader params={{
-          // content: 'Loading more content',
-          type: 'bars',
-          color: '#3F51B5',
-          height: '40px',
-          width: '40px',
-        }} />
+        <div className='w-40 m-auto flex flex-row justify-center items-center animate-pulse my-5'>
+          <Loader params={{
+            // content: 'Loading more content',
+            type: 'bars',
+            color: '#3F51B5',
+            height: '30px',
+            width: '30px',
+          }} />
+        </div>
         :
         noResults &&
           <InformCard params={{                                

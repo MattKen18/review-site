@@ -13,6 +13,7 @@ module.exports = {
         'success': '#4CAF50',
         'fail': '#F44336',
         'highlight': '#FFEB3B',
+        'error': '#C62828',
       },
       lineClamp: {
         7: '7',

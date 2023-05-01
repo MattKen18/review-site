@@ -982,6 +982,67 @@ export const getUserFollowing = async (userId, following) => {
 }
 
 
+
+export const createForumInFirestore = async (userId, forumData) => {
+  try {
+    const forumRef = await addDoc(collection(db, 'forums'), {
+
+      owner: userId,
+      name: forumData.name,
+      topic: forumData.topic,
+      maxNumOfMembers: forumData.maxNumOfMembers,
+      lifespan: forumData.lifespan,
+      members: [userId],
+      thumbnail: '', //forumData.thumbnail
+      created: serverTimestamp(),
+    })
+
+    const forumSnap = await getDoc(forumRef)
+    addForumToUser(userId, forumRef.id)
+
+    return {...forumSnap.data(), id: forumSnap.id}
+  } catch (e) {
+    console.log(e)
+    return null
+  }
+}
+
+
+const addForumToUser = async (userId, forumId) => {
+  try {
+    const userRef = doc(db, 'users', userId)
+    const userSnap = await getDoc(userRef)
+
+    const forumRef = doc(db, 'forums', forumId)
+    const forumSnap = await getDoc(forumRef)
+
+    await setDoc(userRef, {
+      forums: userSnap.data().forums ? [...userSnap.data().forums, forumId] : [forumId]
+    }, {merge: true})
+
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+export const getUserForums = async (userId) => {
+  const userRef = doc(db, 'users', userId)
+  const userSnap = await getDoc(userRef)
+
+  const forums = []
+
+  for (let i=0; i<userSnap.data().forums?.length; i++) {
+    const forumRef = doc(db, 'forums', userSnap.data().forums[i])
+    const forumSnap = await getDoc(forumRef)
+    
+    forums.push({...forumSnap.data(), id: forumSnap.id})
+  }
+  return forums
+}
+
+
+
+
 // addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')
 
 // const addFieldsToDocs = async (docType, fieldObj) => {

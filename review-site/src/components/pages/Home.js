@@ -37,6 +37,7 @@ const Home = () => {
       getInitialUserFeed(numOfItemsToGet).then(feed => {
         // feed[0] is the actual feed
         // feed[1] is the ref of the last item in the feed 
+          
         setInitialLoading(false)
         setUserFeed(feed[0])
         setLastItem(feed[1])
@@ -182,13 +183,15 @@ const Home = () => {
                   </>
                   :
                   <div className='w-11/12 m-auto mt-20'>
-                    <Loader params={{
-                      content: ['Generating feed', 'Just a minute', 'Almost there...'],
-                      type: 'bars',
-                      color: '#3F51B5',
-                      height: '30px',
-                      width: '30px',
-                    }} />
+                    <div className='w-40 m-auto flex flex-row justify-center items-center animate-pulse my-5'>
+                      <Loader params={{
+                        content: ['Generating feed', 'Just a minute', 'Almost there...'],
+                        type: 'bars',
+                        color: '#3F51B5',
+                        height: '30px',
+                        width: '30px',
+                      }} />
+                    </div>
                   </div>
                 }
               </div>

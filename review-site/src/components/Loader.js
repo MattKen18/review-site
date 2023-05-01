@@ -22,7 +22,7 @@ const Loader = ({params: {content = [], type, color, height, width}}) => {
 
   const displayContent = () => {
     if (shownContentIndex < content.length-1) {
-      if (timePassed%5 === 0 && timePassed > 0) {
+      if (timePassed%10 === 0 && timePassed > 0) {
         setShownContentIndex(prev => prev+1)
       } 
     }
@@ -37,10 +37,13 @@ const Loader = ({params: {content = [], type, color, height, width}}) => {
   }, [timePassed])
 
   return (
-    <div className='w-40 m-auto flex flex-row justify-center items-center animate-pulse my-5'>
-      <p className='text-center flex-1 font-bold text-sm'>{shownContent}</p>
+    <>
+      {
+        shownContent &&
+        <p className='text-center flex-1 font-bold text-sm'>{shownContent}</p>
+      }
       <LoadingAnimation className="" type={type} color={color} height={height} width={width} />
-    </div>
+    </>
   )
 }
 

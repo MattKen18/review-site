@@ -9,6 +9,7 @@ import DetailView from './components/pages/DetailView';
 import EditReview from './components/pages/EditReview';
 import Dashboard from './components/pages/Dashboard';
 import Profile from './components/pages/Profile';
+import Forum from './components/pages/Forum';
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
               <Route path='/user/:id/dashboard' element={<Dashboard />} />
               <Route path='/user/:id/profile' element={<Profile />} />
 
+              <Route path='/Forum' element={<Forum />} />
               {/* <Route path='*' element={<Error404Page />} /> */}
 
             </Routes>
