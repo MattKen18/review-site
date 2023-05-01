@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { getUserForums, getUserFromFirestore } from '../../firebase'
 import Alert from '../Alert'
 import CreateForum from '../CreateForum'
+import ForumCard from '../ForumCard'
 import ForumRoom from '../ForumRoom'
 import JoinForum from '../JoinForum'
 
@@ -82,7 +83,7 @@ const Forum = () => {
 
 
   return (
-    <div className='flex'>
+    <div className='flex space-x-1'>
       <aside className='h-screen basis-1/4'>
         <div className='h-screen border-r-2 border-slate-200 fixed w-[20.9%] select-none bg-white'>
           <div className='flex space-x-2 h-16 text-white bg-slate-100 p-2'>
@@ -96,12 +97,12 @@ const Forum = () => {
               >Join</button>
           </div>
           
-          <div className='px-2'>
-            <h1 className='py-10 font-extrabold text-xl'>Forums</h1>
+          <div className='px-2 pt-2'>
+            {/* <h1 className='py-10 font-extrabold text-xl text-center'>Forums</h1> */}
             <ul>
               {
                 activeUserForums.map((forum, key) => (
-                  <li key={key} onClick={() => enterForum(forum)}>{forum.id}</li>
+                  <li key={key} className='mb-3'><ForumCard forum={forum} enterForum={enterForum} /></li>
                 ))
               }                
             </ul> 
@@ -109,7 +110,7 @@ const Forum = () => {
 
         </div>
       </aside>
-      <div className='relative flex-1 min-h-screen bg-gray-100 flex justify-center pt-10'>
+      <div className='relative flex-1 min-h-screen bg-gray-100 flex justify-center'>
         {
           alert &&
           <div className='absolute top-0 left-1/2 -translate-x-1/2'>
@@ -118,9 +119,9 @@ const Forum = () => {
         }
         {
           activeForum ?
-            <div>
+            <>
               <ForumRoom forum={activeForum} />
-            </div>
+            </>
           :
           forumOption ?
             forumOption === 'create' ?

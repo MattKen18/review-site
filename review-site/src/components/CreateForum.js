@@ -113,7 +113,7 @@ const CreateForum = ({user, addForumToState}) => {
 
 
   return (
-    <div className='relative w-7/12'>
+    <div className='relative w-7/12 pt-10'>
       {
         alert &&
         <div className='absolute top-0 left-1/2 -translate-x-1/2'>

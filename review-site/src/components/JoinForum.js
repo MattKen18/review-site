@@ -5,7 +5,7 @@ const JoinForum = ({user}) => {
   const [forumName, setForumName] = useState('')
 
   return (
-    <div>
+    <div className='pt-10'>
       <h1 className='font-bold text-xl text-center'>Join Forum</h1>
       <form className='pt-10' autoComplete='off'>
         <div className='flex space-x-2 items-center'>
