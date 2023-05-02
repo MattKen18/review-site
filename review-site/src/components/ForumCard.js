@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react'
 import forumDefaultThumb from '../assets/default-forum-thumbnail.jpg'
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import MoreVertOutlinedIcon from '@mui/icons-material/MoreVertOutlined';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getUserFromFirestore } from '../firebase';
 
-const ForumCard = ({forum, enterForum}) => {
+const ForumCard = ({forum, enterForum, leaveForum, active}) => {
   const [userJoined, setUserJoined] = useState(true) //if the user is a member of the forum
   const [optionsShown, setOptionsShown] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
 
   // const toggleOptionsMenu = () => {
   //   const optionsMenu = document.getElementById('options-menu-'+forum.id)
@@ -17,6 +20,19 @@ const ForumCard = ({forum, enterForum}) => {
   //     setOptionsShown(true)
   //   }
   // }
+
+  const auth = getAuth()
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        getUserFromFirestore(user.uid).then(data => {
+          // console.log(data)
+          setCurrentUser(data)
+        })
+      }
+    })
+  }, [])
 
   useEffect(() => {
     const optionsMenu = document.getElementById('options-menu-'+forum.id)
@@ -51,10 +67,10 @@ const ForumCard = ({forum, enterForum}) => {
 
 
   return (
-    <div className='group relative w-full border-[1px] rounded-xl h-16 bg-gray-100 hover:cursor-pointer'>
+    <div className={`group relative w-full border-[1px] rounded-xl h-16 hover:bg-blue-50 ${active && `bg-blue-50`} hover:cursor-pointer`}>
       <div onClick={() => enterForum(forum)} className={`${optionsShown && `blur-[1px]`} relative z-0 flex space-x-2 items-center py-2 px-1 h-full w-full`}>
         <div className='w-1/5 h-full flex items-center justify-center'>
-          <div className='h-12 w-12 rounded-full overflow-hidden'>
+          <div className='h-12 w-12 rounded-lg overflow-hidden'>
             <img src={forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
           </div>
         </div>
@@ -70,10 +86,10 @@ const ForumCard = ({forum, enterForum}) => {
         </div>
       </div>
       <div className='absolute z-10 bottom-2 right-2 w-8 h-8 items-end justify-center rounded-xl '>
-        <button id={`${'options-button-'+forum.id}`} onClick={() => setOptionsShown(shown => !shown)} className={`relative z-10 text-[.55rem] w-full h-full rounded-lg hover:bg-gray-200 ${optionsShown && `bg-gray-200`} active:scale-90 duration-100`}>
+        <button id={`${'options-button-'+forum.id}`} onClick={() => setOptionsShown(shown => !shown)} className={`relative hidden group-hover:block z-10 text-[.55rem] w-full h-full rounded-lg hover:bg-gray-200 ${optionsShown && `bg-gray-200`} active:scale-90 duration-100`}>
           <MoreVertOutlinedIcon className='' />
         </button>
-        <div id={`${'options-menu-'+forum.id}`} className={`${!optionsShown && `hidden`} absolute bg-gray-200 -bottom-20 right-10 rounded-lg overflow-hidden w-20 `}>
+        <div id={`${'options-menu-'+forum.id}`} className={`${!optionsShown && `hidden`} absolute bg-gray-200 -bottom-20 right-10 rounded-lg overflow-hidden w-20`}>
           <ul className='text-sm'>
             <li className=' hover:bg-success hover:text-white px-2 py-1'>Enter</li>
             <li className=' hover:bg-primary hover:text-white px-2 py-1'>Details</li>
@@ -81,9 +97,9 @@ const ForumCard = ({forum, enterForum}) => {
 
             {
               userJoined ?
-              <li className=' hover:bg-error hover:text-white px-2 py-1'>Leave</li>
+              <li onClick={() => leaveForum(forum, currentUser.uid)} className='hover:bg-error hover:text-white px-2 py-1'>Leave</li>
               :
-              <li className=' hover:bg-primary hover:text-white px-2 py-1'>Join</li>
+              <li className='hover:bg-primary hover:text-white px-2 py-1'>Join</li>
             }
           </ul>
         </div>

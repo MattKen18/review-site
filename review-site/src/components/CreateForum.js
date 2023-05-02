@@ -88,12 +88,12 @@ const CreateForum = ({user, addForumToState}) => {
       }
 
       setLoading(true)
-      createForumInFirestore(user.uid, forumData).then(forumId => {
+      createForumInFirestore(user.uid, forumData).then(forum => {
         setLoading(false)
-        if (forumId) {
+        if (forum) {
           setForumCreated(true)
         } 
-        addForumToState(forumId)
+        addForumToState(forum)
       })
     }
   }

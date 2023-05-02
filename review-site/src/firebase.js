@@ -28,7 +28,7 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
 // Initialize Cloud Firestore and get a reference to the service
-const db = getFirestore(app);
+export const db = getFirestore(app);
 
 export async function addToFireStore() {
   const collection = collection(db, "users")
@@ -994,17 +994,26 @@ export const createForumInFirestore = async (userId, forumData) => {
       lifespan: forumData.lifespan,
       members: [userId],
       thumbnail: '', //forumData.thumbnail
+      chat: [],
       created: serverTimestamp(),
     })
 
     const forumSnap = await getDoc(forumRef)
     addForumToUser(userId, forumRef.id)
+    // addChatEntryInFirestore(body, 'welcome', userId, forumRef.id, null)
 
     return {...forumSnap.data(), id: forumSnap.id}
   } catch (e) {
     console.log(e)
     return null
   }
+}
+
+export const getForum = async (forumId) => {
+  const forumRef = doc(db, 'forums', forumId)
+  const forumSnap = await getDoc(forumRef)
+
+  return {...forumSnap.data(), id: forumRef.id} 
 }
 
 
@@ -1025,6 +1034,7 @@ const addForumToUser = async (userId, forumId) => {
   }
 }
 
+
 export const getUserForums = async (userId) => {
   const userRef = doc(db, 'users', userId)
   const userSnap = await getDoc(userRef)
@@ -1040,6 +1050,110 @@ export const getUserForums = async (userId) => {
   return forums
 }
 
+
+export const joinForumWithCode = async (forumId, userId, userName) => {
+  try {
+    const forumRef = doc(db, 'forums', forumId)
+    const forumSnap = await getDoc(forumRef)
+    
+    const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
+      type: 'notification',
+      body: userName + " just joined the forum",
+      forum: forumId,
+      user: userId,
+      replyingTo: null,
+      created: serverTimestamp()
+    })
+
+    const chatEntrySnap = await getDoc(chatEntryRef)
+
+    await setDoc(forumRef, {
+      members: [...forumSnap.data().members, userId],
+      chat: [...forumSnap.data().chat, chatEntrySnap.data()]
+    }, {merge: true})
+
+    addForumToUser(userId, forumId)
+
+    return getForum(forumId)
+
+  } catch (e) {
+    console.log(e)
+    return null
+  }
+}
+
+export const leaveForumRoom = async (forumId, userId) => {
+  console.log(forumId, userId)
+  try {
+    const userRef = doc(db, 'users', userId)
+    const userSnap = await getDoc(userRef)
+
+    const forumRef = doc(db, 'forums', forumId)
+    const forumSnap = await getDoc(forumRef)
+
+    const forumMembers = [...forumSnap.data().members]
+    forumMembers.splice(forumMembers.indexOf(userId), 1)
+
+    const userForums = [...userSnap.data().forums]
+    userForums.splice(userForums.indexOf(forumId), 1)
+
+    const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
+      type: 'notification',
+      body: userSnap.data().userName + " has left the forum",
+      forum: forumId,
+      user: userId,
+      replyingTo: null,
+      created: serverTimestamp()
+    })
+
+    const chatEntrySnap = await getDoc(chatEntryRef)
+
+    await setDoc(forumRef, {
+      members: forumMembers,
+      chat: [...forumSnap.data().chat, chatEntrySnap.data()]
+    }, {merge: true})
+
+    await setDoc(userRef, {
+      forums: userForums
+    }, {merge: true})
+
+    return true
+  } catch (e) {
+    console.log(e)
+
+    return false
+  }
+}
+
+
+export const addChatEntryInFirestore = async (body, type, userId, forumId, replyingTo=null) => {
+  try {
+    const forumRef = doc(db, 'forums', forumId)
+    const forumSnap = await getDoc(forumRef)
+
+    const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
+      type: type,
+      body: body,
+      forum: forumId,
+      user: userId,
+      replyingTo: replyingTo,
+      created: serverTimestamp()
+    })
+
+    const chatEntrySnap = await getDoc(chatEntryRef)
+
+    await setDoc(forumRef, {
+      chat: [...forumSnap.data().chat, {...chatEntrySnap.data(), id: chatEntryRef.id}] 
+    }, {merge:true})
+
+    return true
+
+  } catch (e) {
+    console.log(e)
+
+    return false
+  }
+}
 
 
 

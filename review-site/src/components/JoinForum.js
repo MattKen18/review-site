@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from 'react'
+import { joinForumWithCode } from '../firebase'
 
-const JoinForum = ({user}) => {
+const JoinForum = ({user, joinForum}) => {
   const [forumCode, setForumCode] = useState('')
   const [forumName, setForumName] = useState('')
+
+  const joinForumRoomWithCode = (e) => {
+    e.preventDefault()
+
+    console.log("forumCode: ", forumCode)
+    joinForumWithCode(forumCode, user.uid, user.userName).then(forumId => {
+      joinForum(forumId)
+    })
+  }
 
   return (
     <div className='pt-10'>
@@ -14,10 +24,10 @@ const JoinForum = ({user}) => {
             id='forum-join-code'
             placeholder='Enter Code'
             value={forumCode}
-            onChange={(e) => setForumCode(e.target.value.trim().toUpperCase())}
+            onChange={(e) => setForumCode(e.target.value.trim())}
             className='flex-1 outline-none p-2 rounded-md font-bold text-center text-xl opacity-90'
           />
-          <button className='bg-blue-600 h-full text-white p-2 rounded-md'>Join</button>
+          <button onClick={joinForumRoomWithCode} className='bg-blue-600 h-full text-white p-2 rounded-md'>Join</button>
         </div>
         <br />
         <br />

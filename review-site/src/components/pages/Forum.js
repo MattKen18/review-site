@@ -1,6 +1,6 @@
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import React, { useEffect, useState } from 'react'
-import { getUserForums, getUserFromFirestore } from '../../firebase'
+import { getUserForums, getUserFromFirestore, leaveForumRoom } from '../../firebase'
 import Alert from '../Alert'
 import CreateForum from '../CreateForum'
 import ForumCard from '../ForumCard'
@@ -10,7 +10,7 @@ import JoinForum from '../JoinForum'
 const Forum = () => {
   const [currentUser, setCurrentUser] = useState(null)
   const [forumOption, setForumOption] = useState(null) //join or create forum
-  const [activeUserForums, setActiveUserForums] = useState([])
+  const [userForums, setUserForums] = useState([]) // array of forum objects
   
   const [activeForum, setActiveForum] = useState(null) //forum object
   
@@ -34,22 +34,52 @@ const Forum = () => {
     if (currentUser) {
       getUserForums(currentUser.uid).then(forums => {
         // console.log('forums: ', forums)
-        setActiveUserForums(forums)
+        setUserForums(forums)
       })
     }
   }, [currentUser])
 
 
-  const addForumToState = (forumId) => {
-    if (forumId) {
-      setActiveUserForums([...activeUserForums, forumId])
-      setActiveForum(forumId)
+  const addForumToState = (forum) => {
+    if (forum) {
+      setUserForums([...userForums, forum])
+      setActiveForum(forum)
       setForumOption(null)
       setAlert({body: "Forum Created", type: "success"})
     } else {
       setAlert({body: "Error Creating Forum. Please try again", type: "error"})
     }
     
+  }
+
+  const joinForum = (forum) => {
+    if (forum) {
+      const newUserForums = [...userForums, forum]
+      
+      setAlert({body: "You just joined the forum", type: "success"})
+      setUserForums(newUserForums)
+      setActiveForum(forum)
+      setForumOption(null)
+
+    } else {
+      setAlert({body: "Error joining Forum. Please try again", type: "error"})
+    }
+  }
+
+  const leaveForum = (forum, userId) => {
+    leaveForumRoom(forum.id, userId).then(result => {
+      if (result) {
+        const newUserForums = [...userForums]
+        newUserForums.splice(newUserForums.indexOf(forum), 1)
+
+        setUserForums(newUserForums)
+        setActiveForum(null)
+        setForumOption(null)
+        setAlert({body: "You left the forum", type: "success"})
+      } else {
+        setAlert({body: "Error leaving Forum. Please try again", type: "error"})
+      }
+    })
   }
   
   
@@ -76,9 +106,9 @@ const Forum = () => {
   }, [alert])
 
 
-  useEffect(() => {
-    console.log(activeUserForums)
-  }, [activeUserForums])
+  // useEffect(() => {
+  //   console.log(userForums)
+  // }, [userForums])
 
 
 
@@ -101,8 +131,8 @@ const Forum = () => {
             {/* <h1 className='py-10 font-extrabold text-xl text-center'>Forums</h1> */}
             <ul>
               {
-                activeUserForums.map((forum, key) => (
-                  <li key={key} className='mb-3'><ForumCard forum={forum} enterForum={enterForum} /></li>
+                userForums.map((forum, key) => (
+                  <li key={forum.id+key} className='mb-3'><ForumCard forum={forum} enterForum={enterForum} leaveForum={leaveForum} active={forum === activeForum} /></li>
                 ))
               }                
             </ul> 
@@ -120,7 +150,7 @@ const Forum = () => {
         {
           activeForum ?
             <>
-              <ForumRoom forum={activeForum} />
+              <ForumRoom key={activeForum.id} forum={activeForum} />
             </>
           :
           forumOption ?
@@ -130,7 +160,7 @@ const Forum = () => {
             :
             forumOption === 'join' && 
               currentUser &&
-              <JoinForum user={currentUser} />
+              <JoinForum user={currentUser} joinForum={joinForum} />
           :
           <div>
             <h1>No forum selected</h1>

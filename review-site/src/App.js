@@ -14,7 +14,7 @@ import Forum from './components/pages/Forum';
 const App = () => {
   return (
     <Router>
-      <div className='min-h-screen font-display text-slate-600'>
+      <div className='min-h-screen font-display text-body'>
         <Header />
         <div className='flex'>
           <div className='flex-1'>
