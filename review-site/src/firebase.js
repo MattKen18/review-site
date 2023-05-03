@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { deleteField, doc, getCountFromServer, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, startAfter, where } from "firebase/firestore";
+import { deleteDoc, deleteField, doc, getCountFromServer, getDoc, getFirestore, limit, orderBy, query, queryEqual, setDoc, startAfter, where } from "firebase/firestore";
 import { collection, addDoc, getDocs } from "firebase/firestore"; 
 import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
@@ -1137,6 +1137,7 @@ export const addChatEntryInFirestore = async (body, type, userId, forumId, reply
       forum: forumId,
       user: userId,
       replyingTo: replyingTo,
+      edited: false,
       created: serverTimestamp()
     })
 
@@ -1155,6 +1156,66 @@ export const addChatEntryInFirestore = async (body, type, userId, forumId, reply
   }
 }
 
+
+export const deleteChatEntryInFirestore = async (chatEntryId, forumId) => {
+  try {
+    const forumRef = doc(db, 'forums', forumId)
+    const forumSnap = await getDoc(forumRef)
+
+    const newChat = [...forumSnap.data().chat]
+    newChat.forEach(chatEntry => {
+      if (chatEntry.id === chatEntryId) {
+        chatEntry.type = 'deleted'
+      }
+    })
+    
+    await setDoc(forumRef, {
+      chat: newChat
+    }, {merge: true})
+    
+    //delete ChatEntry document
+    const chatEntryRef = doc(db, 'chatEntries', chatEntryId)
+    await deleteDoc(chatEntryRef);
+
+    return true
+
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+
+}
+
+
+export const editChatEntryInFirestore = async (chatEntryId, forumId, body) => {
+  try {
+    const forumRef = doc(db, 'forums', forumId)
+    const forumSnap = await getDoc(forumRef)
+
+    const newChat = [...forumSnap.data().chat]
+    newChat.forEach(chatEntry => {
+      if (chatEntry.id === chatEntryId) {
+        try {
+          chatEntry.body = body
+          chatEntry.edited = true
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    })
+    
+    await setDoc(forumRef, {
+      chat: newChat,
+    }, {merge: true})
+
+    return true
+
+  } catch (e) {
+    console.log(e)
+    return false
+  }
+
+}
 
 
 // addFieldToDoc('users', {about: 'My name is Matthew and I like to write reviews!'}, 'cYMpWrnMXReaWMUGnI8eKFz02WW2')

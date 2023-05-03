@@ -12,6 +12,7 @@ import Profile from './components/pages/Profile';
 import Forum from './components/pages/Forum';
 
 const App = () => {
+
   return (
     <Router>
       <div className='min-h-screen font-display text-body'>
@@ -32,9 +33,11 @@ const App = () => {
 
             </Routes>
           </div>
-          <aside className='min-h-screen basis-1/6'>
-            <AdSpace />
-          </aside>
+          {
+            <aside className='basis-1/6'>
+              <AdSpace pos={'right'} />
+            </aside>
+          }
         </div>
       </div>
     </Router>

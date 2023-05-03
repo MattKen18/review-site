@@ -106,14 +106,24 @@ const Forum = () => {
   }, [alert])
 
 
-  // useEffect(() => {
-  //   console.log(userForums)
-  // }, [userForums])
+  useEffect(() => {
+    const resizeForum = () => {
+      const headerHeight = window.getComputedStyle(document.getElementById('header')).getPropertyValue('height')
+      const forum = document.getElementById('forum')
+  
+      const newForumHeight = window.innerHeight - headerHeight.slice(0, headerHeight.length-2)
+      forum.style.height = newForumHeight+'px'
+    }
 
+    resizeForum()
+    window.addEventListener('resize', resizeForum)
+
+    return () => window.removeEventListener('resize', resizeForum)
+  }, [])
 
 
   return (
-    <div className='flex space-x-1'>
+    <div id='forum' className='flex space-x-1 overflow-hidden'>
       <aside className='h-screen basis-1/4'>
         <div className='h-screen border-r-2 border-slate-200 fixed w-[20.9%] select-none bg-white'>
           <div className='flex space-x-2 h-16 text-white bg-slate-100 p-2'>
