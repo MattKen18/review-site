@@ -150,7 +150,7 @@ const Forum = () => {
 
         </div>
       </aside>
-      <div className='relative flex-1 min-h-screen bg-gray-100 flex justify-center'>
+      <div className='relative flex-1 min-h-screen bg-gray-100 flex justify-center basis-3/4'>
         {
           alert &&
           <div className='absolute top-0 left-1/2 -translate-x-1/2'>

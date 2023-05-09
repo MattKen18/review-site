@@ -127,25 +127,29 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
           chatEntryDetails?.replyingTo ?
             // if chat entry is a reply 
             isAuthor ? 
-              <div className={`relative flex flex-col w-full p-2 mb-3 items-end`}>
+              <div className={`relative flex flex-col w-full p-2 mb-3 items-end` }>
                 {/* chatEntry Content */}
-                <div id={'chatEntry-'+chatEntryDetails.id} className={`relative`}>
+                <div className={`relative flex flex-col items-end`}>
+                
+                {/* Replying to section */}
                   <div className='flex flex-col mb-2 -ml-8'>
-                    <small className='text-2xs mb-2'>Replying to: {chatEntryDetails?.replyingTo.userName}</small>
+                    {/* <small className='text-2xs mb-2'>Replying to: {chatEntryDetails?.replyingTo.userName}</small> */}
 
                     <div>
-                      <div className={`relative flex space-x-2 rounded-xl text-white opacity-60 hover:opacity-70 hover:cursor-pointer`}>
+                      <div className={`relative flex space-x-2 rounded-xl text-white opacity-60 hover:opacity-100 hover:cursor-pointer mb-2`}>
                         {/* profile thumbnail */}
-                        <div className='w-8 h-8 overflow-hidden rounded-full'>
+                        {/* <div className='w-8 h-8 overflow-hidden rounded-full'>
                           <img src={chatEntryDetails.replyingTo?.author.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
-                        </div>
+                        </div> */}
 
                         {/* chat content */}
                         <div className='relative flex flex-col'>
                           {/* chat body */}
                           <div className='flex flex-col w-fit'>
-                            <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryDetails.replyingTo?.author.uid}/profile`}>{chatEntryDetails.replyingTo?.author.userName}</a></small>
-                            <p className='bg-amber-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px]'>{chatEntryDetails.replyingTo?.body}</p>
+                            <a href={`/user/${chatEntryDetails.replyingTo?.author.uid}/profile`} className='w-full hover:text-[#94D096]'><small className='text-[.55rem] font-bold'>{chatEntryDetails.replyingTo?.author.userName}</small></a>
+                            <div className='bg-amber-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[75px] max-w-[250px] '>
+                              <p className='w-full h-full line-clamp-1 relative'>{chatEntryDetails.replyingTo?.body}</p>
+                            </div>
                           </div>
                           {/* extra content */}
                           <div className=' flex justify-between items-center pl-1 opacity-80'>
@@ -155,19 +159,28 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
                       </div>
                     </div>
                   </div>
-                  <div className={`relative group pl-10 before:absolute before:w-10 before:h-10 before:-left-5 before:-top-5 before:opacity-50 before:border-l-2 before:border-b-2 before:border-gray-200 before:rounded-bl-lg `}>
-                    <div className={`relative flex space-x-2 rounded-xl text-white ${optionsShown && `opacity-50`}`}>
+
+
+
+
+                  {/* response section */}
+                  <div id={'chatEntry-'+chatEntryDetails.id} className={`relative group pl-12`}>
+                    <div className={`relative flex rounded-xl text-white flex-row-reverse ${optionsShown && `opacity-50`}`}>
                       {/* profile thumbnail */}
-                      <div className='w-8 h-8 overflow-hidden rounded-full'>
-                        <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                      <div className='relative before:absolute before:w-[2px] before:h-5 before:bg-gray-200 before:opacity-20 before:-top-6 before:left-1/2 before:-translate-x-1/2 ml-2'>
+                        <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-8 h-8 overflow-hidden rounded-full block ${optionsShown && `hover:cursor-default`}`}>
+                          <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                        </a>
                       </div>
 
                       {/* chat content */}
                       <div className='relative flex flex-col'>
                         {/* chat body */}
                         <div className='flex flex-col w-fit'>
-                          <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryAuthor?.uid}/profile`}>{chatEntryAuthor?.userName}</a></small>
-                          <p className='bg-primary p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px]'>{chatEntryDetails.body}</p>
+                          <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-full text-right ${!optionsShown ? `hover:text-[#94D096]` : `cursor-default`}`}><small className='text-[.55rem] font-bold'>{chatEntryAuthor?.userName}</small></a>
+                          <div className='bg-primary p-2 pl-1 pt-[1px] rounded-lg rounded-tr-none min-w-[75px] max-w-[250px] '>
+                            <p className='w-full h-full break-words relative'>{chatEntryDetails?.body}</p>
+                          </div>
                         </div>
                         {/* extra content */}
                         <div className=' flex justify-between items-center pl-1 opacity-80'>
@@ -181,14 +194,15 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
                       </div>
                     </div>
                     {/* more options button */}
-                    <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 left-5 group-hover:block ${!optionsShown && `hidden`}`}>
-                      <button onClick={handleShowOptions}>
+                    <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 left-4 group-hover:block ${!optionsShown && `hidden`}`}>
+                      <button onClick={handleShowOptions} className={`hover:text-[#94D096] ${optionsShown && `text-[#94D096]`}`}>
                         <MoreVertOutlinedIcon className='' />
                       </button>
                       <div className={`absolute top-8 left-4 z-[10000] ${optionsShown ? 'block' : 'hidden'} w-20 h-fit bg-gray-300 rounded-lg overflow-hidden`}>
                         <ul className='text-body font-[400] hover:cursor-pointer text-sm'>
                           <li onClick={() => handleStartReply()} className='hover:bg-amber-600 hover:text-white py-1 pl-2'>Reply</li>
-                          <li onClick={() => handleStartEdit()} className='hover:bg-primary hover:text-white py-1 pl-2'>Edit</li>
+                          <li className='hover:bg-primary hover:text-white py-1 pl-2'>Copy</li>
+                          <li onClick={() => handleStartEdit()} className='hover:bg-green-700 hover:text-white py-1 pl-2'>Edit</li>
                           <li onClick={() => deleteChatEntry(chatEntryDetails.id, chatEntryDetails.forum)} className='hover:bg-error hover:text-white py-1 pl-2'>Remove</li>
                         </ul>
                       </div>
@@ -202,101 +216,57 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
             :
               <div className={`relative flex flex-col w-full p-2 mb-3`}>
                 {/* chatEntry Content */}
-                <div id={'chatEntry-'+chatEntryDetails.id} className={`relative`}>
+                <div className={`relative flex flex-col items-start`}>
+
+
                   {/* Replying to section */}
                   <div className='flex flex-col mb-2 -mr-8'>
-                    <small className='text-2xs mb-2'>Replying to: {chatEntryDetails?.replyingTo.userName}</small>
+                    {/* <small className='text-2xs mb-2'>Replying to: {chatEntryDetails?.replyingTo.userName}</small> */}
 
                     <div>
-                      <div className={`relative flex space-x-2 rounded-xl text-white opacity-60 hover:opacity-70 hover:cursor-pointer`}>
+                      <div className={`relative flex space-x-2 rounded-xl text-white opacity-60 hover:opacity-100 hover:cursor-pointer mb-2`}>
                         {/* profile thumbnail */}
-                        <div className='w-8 h-8 overflow-hidden rounded-full'>
+                        {/* <div className='w-8 h-8 overflow-hidden rounded-full'>
                           <img src={chatEntryDetails.replyingTo?.author.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
-                        </div>
+                        </div> */}
 
                         {/* chat content */}
                         <div className='relative flex flex-col'>
                           {/* chat body */}
                           <div className='flex flex-col w-fit'>
-                            <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryDetails.replyingTo?.author.uid}/profile`}>{chatEntryDetails.replyingTo?.author.userName}</a></small>
-                            <p className='bg-amber-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px]'>{chatEntryDetails.replyingTo?.body}</p>
+                            <a href={`/user/${chatEntryDetails.replyingTo?.author.uid}/profile`} className='w-full hover:text-[#94D096]'><small className='text-[.55rem] font-bold'>{chatEntryDetails.replyingTo?.author.userName}</small></a>
+                            <div className='bg-amber-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[75px] max-w-[250px] '>
+                              <p className='w-full h-full line-clamp-1 relative'>{chatEntryDetails.replyingTo?.body}</p>
+                            </div>
                           </div>
                           {/* extra content */}
                           <div className=' flex justify-between items-center pl-1 opacity-80'>
-                            <small className='text-2xs w-fit'>{replyCreatedTimestamp}</small>
+                            <small className='text-2xs w-full text-right'>{replyCreatedTimestamp}</small>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Response section */}
-                  <div className={`relative flex w-full p-2 mb-3 ml-8 pl-10`}>
-                    {/* chatEntry Content */}
-                    <div id={'chatEntry-'+chatEntryDetails.id} className={`relative`}>
-                      <div className={`relative group pr-10 before:absolute before:w-10 before:h-10 before:-left-14 before:-top-5 before:opacity-50 before:border-l-2 before:border-b-2 before:border-gray-200 before:rounded-bl-lg `}>
-                        <div className={`relative flex space-x-2 rounded-xl text-white ${optionsShown && `opacity-50`}`}>
-                          {/* profile thumbnail */}
-                          <div className='w-8 h-8 overflow-hidden rounded-full'>
-                            <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
-                          </div>
 
-                          {/* chat content */}
-                          <div className='relative flex flex-col'>
-                            {/* chat body */}
-                            <div className='flex flex-col w-fit'>
-                              <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryAuthor?.uid}/profile`}>{chatEntryAuthor?.userName}</a></small>
-                              <p className='bg-slate-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px]'>{chatEntryDetails.body}</p>
-                            </div>
-                            {/* extra content */}
-                            <div className=' flex justify-between items-center pl-1 opacity-80'>
-                              <small className='text-2xs w-fit'>{createdTimestamp}</small>
-                              <small onClick={() => handleStartReply()} className={`${optionsShown && `text-white`} group-hover:text-white text-transparent`}><UndoOutlinedIcon className={'hover:text-amber-600 hover:cursor-pointer'} sx={{ fontSize: 12 }} /></small>
-                            </div>
-                            {
-                              chatEntryDetails.edited &&
-                                <small className='text-2xs -mt-1 pl-1'>edited</small>
-                            }
-                          </div>
-                        </div>
-                        {/* more options button */}
-                        <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 right-3 group-hover:block ${!optionsShown && `hidden`}`}>
-                          <button onClick={handleShowOptions}>
-                            <MoreVertOutlinedIcon className='' />
-                          </button>
-                          <div className={`absolute top-8 left-4 z-[10000] ${optionsShown ? 'block' : 'hidden'} w-20 h-fit bg-gray-300 rounded-lg overflow-hidden`}>
-                            <ul className='text-body font-[400] hover:cursor-pointer text-sm'>
-                              <li onClick={() => handleStartReply()} className='hover:bg-amber-600 hover:text-white py-1 pl-2'>Reply</li>
-                              <li onClick={() => deleteChatEntry(chatEntryDetails.id, chatEntryDetails.forum)} className='hover:bg-error hover:text-white py-1 pl-2'>Report</li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-
-              </div>
-          : //if chat entry is not a reply
-            isAuthor ? 
-              <div className={`relative flex w-full p-2 mb-3 justify-end`}>
-                {/* chatEntry Content */}
-                <div id={'chatEntry-'+chatEntryDetails.id} className={`relative`}>
-
-                  <div className={`relative group pl-10`}>
-                    <div className={`relative flex space-x-2 rounded-xl text-white ${optionsShown && `opacity-50`}`}>
+                  {/* response section */}
+                  <div id={'chatEntry-'+chatEntryDetails.id} className={`relative group pr-12`}>
+                    <div className={`relative flex rounded-xl space-x-2 text-white ${optionsShown && `opacity-50`}`}>
                       {/* profile thumbnail */}
-                      <div className='w-8 h-8 overflow-hidden rounded-full'>
-                        <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                      <div className='relative before:absolute before:w-[2px] before:h-5 before:bg-gray-200 before:opacity-20 before:-top-6 before:left-1/2 before:-translate-x-1/2 ml-2'>
+                        <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-8 h-8 overflow-hidden rounded-full block ${optionsShown && `hover:cursor-default`}`}>
+                          <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                        </a>
                       </div>
 
                       {/* chat content */}
                       <div className='relative flex flex-col'>
                         {/* chat body */}
                         <div className='flex flex-col w-fit'>
-                          <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryAuthor?.uid}/profile`}>{chatEntryAuthor?.userName}</a></small>
-                          <p className='bg-primary p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px]'>{chatEntryDetails.body}</p>
+                          <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-full ${!optionsShown ? `hover:text-[#94D096]` : `cursor-default`}`}><small className='text-[.55rem] font-bold'>{chatEntryAuthor?.userName}</small></a>
+                          <div className='bg-slate-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[75px] max-w-[250px] '>
+                            <p className='w-full h-full break-words relative'>{chatEntryDetails?.body}</p>
+                          </div>
                         </div>
                         {/* extra content */}
                         <div className=' flex justify-between items-center pl-1 opacity-80'>
@@ -310,40 +280,97 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
                       </div>
                     </div>
                     {/* more options button */}
-                    <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 left-3 group-hover:block ${!optionsShown && `hidden`}`}>
-                      <button onClick={handleShowOptions}>
+                    <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 right-4 group-hover:block ${!optionsShown && `hidden`}`}>
+                      <button onClick={handleShowOptions} className={`hover:text-[#94D096] ${optionsShown && `text-[#94D096]`}`}>
                         <MoreVertOutlinedIcon className='' />
                       </button>
                       <div className={`absolute top-8 left-4 z-[10000] ${optionsShown ? 'block' : 'hidden'} w-20 h-fit bg-gray-300 rounded-lg overflow-hidden`}>
                         <ul className='text-body font-[400] hover:cursor-pointer text-sm'>
                           <li onClick={() => handleStartReply()} className='hover:bg-amber-600 hover:text-white py-1 pl-2'>Reply</li>
-                          <li onClick={() => handleStartEdit()} className='hover:bg-primary hover:text-white py-1 pl-2'>Edit</li>
+                          <li className='hover:bg-primary hover:text-white py-1 pl-2'>Copy</li>
+                          <li onClick={() => handleStartEdit()} className='hover:bg-green-700 hover:text-white py-1 pl-2'>Edit</li>
                           <li onClick={() => deleteChatEntry(chatEntryDetails.id, chatEntryDetails.forum)} className='hover:bg-error hover:text-white py-1 pl-2'>Remove</li>
                         </ul>
                       </div>
                     </div>
                   </div>
+
+
                 </div>
 
               </div>
-            :
-              <div className={`relative flex w-full p-2 mb-3`}>
+          : //if chat entry is not a reply
+            isAuthor ? 
+              <div className={`relative flex w-full p-2 mt-2 justify-end`}>
                 {/* chatEntry Content */}
-                <div id={'chatEntry-'+chatEntryDetails.id} className={`relative`}>
-
-                  <div className={`relative group pr-10`}>
-                    <div className={`relative flex space-x-2 rounded-xl text-white ${optionsShown && `opacity-50`}`}>
+                <div id={'chatEntry-'+chatEntryDetails.id} className={`relative group pl-12 before:absolute`}>
+                    <div className={`relative flex rounded-xl text-white flex-row-reverse ${optionsShown && `opacity-50`}`}>
                       {/* profile thumbnail */}
-                      <div className='w-8 h-8 overflow-hidden rounded-full'>
-                        <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                      <div className='relative ml-2'>
+                        <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-8 h-8 overflow-hidden rounded-full block ${optionsShown && `hover:cursor-default`}`}>
+                          <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                        </a>
                       </div>
 
                       {/* chat content */}
                       <div className='relative flex flex-col'>
                         {/* chat body */}
                         <div className='flex flex-col w-fit'>
-                          <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryAuthor?.uid}/profile`}>{chatEntryAuthor?.userName}</a></small>
-                          <p className='bg-slate-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px]'>{chatEntryDetails.body}</p>
+                          <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-full text-right ${!optionsShown ? `hover:text-[#94D096]` : `cursor-default`}`}><small className='text-[.55rem] font-bold'>{chatEntryAuthor?.userName}</small></a>
+                          <div className='bg-primary p-2 pl-1 pt-[1px] rounded-lg rounded-tr-none min-w-[75px] max-w-[250px] '>
+                            <p className='w-full h-full break-words relative'>{chatEntryDetails?.body}</p>
+                          </div>
+                        </div>
+                        {/* extra content */}
+                        <div className=' flex justify-between items-center pl-1 opacity-80'>
+                          <small className='text-2xs w-fit'>{createdTimestamp}</small>
+                          <small onClick={() => handleStartReply()} className={`${optionsShown && `text-white`} group-hover:text-white text-transparent`}><UndoOutlinedIcon className={'hover:text-amber-600 hover:cursor-pointer'} sx={{ fontSize: 12 }} /></small>
+                        </div>
+                        {
+                          chatEntryDetails.edited &&
+                            <small className='text-2xs -mt-1 pl-1'>edited</small>
+                        }
+                      </div>
+                    </div>
+                    {/* more options button */}
+                    <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 left-4 group-hover:block ${!optionsShown && `hidden`}`}>
+                      <button onClick={handleShowOptions} className={`hover:text-[#94D096] ${optionsShown && `text-[#94D096]`}`}>
+                        <MoreVertOutlinedIcon className='' />
+                      </button>
+                      <div className={`absolute top-8 left-4 z-[10000] ${optionsShown ? 'block' : 'hidden'} w-20 h-fit bg-gray-300 rounded-lg overflow-hidden`}>
+                        <ul className='text-body font-[400] hover:cursor-pointer text-sm'>
+                          <li onClick={() => handleStartReply()} className='hover:bg-amber-600 hover:text-white py-1 pl-2'>Reply</li>
+                          <li className='hover:bg-primary hover:text-white py-1 pl-2'>Copy</li>
+                          <li onClick={() => handleStartEdit()} className='hover:bg-green-700 hover:text-white py-1 pl-2'>Edit</li>
+                          <li onClick={() => deleteChatEntry(chatEntryDetails.id, chatEntryDetails.forum)} className='hover:bg-error hover:text-white py-1 pl-2'>Remove</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+              </div>
+            :
+              <div className={`relative flex w-full p-2 mb-3 justify-start`}>
+                {/* chatEntry Content */}
+                <div id={'chatEntry-'+chatEntryDetails.id} className={`relative`}>
+
+                  <div className={`relative group pr-10`}>
+                    <div className={`relative flex space-x-2 rounded-xl text-white ${optionsShown && `opacity-50`}`}>
+                      {/* profile thumbnail */}
+                      <div className='relative ml-2'>
+                        <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-8 h-8 overflow-hidden rounded-full block ${optionsShown && `hover:cursor-default`}`}>
+                          <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
+                        </a>
+                      </div>
+
+                      {/* chat content */}
+                      <div className='relative flex flex-col'>
+                        {/* chat body */}
+                        <div className='flex flex-col w-fit'>
+                          <a href={`/user/${chatEntryAuthor?.uid}/profile`} className={`w-full ${!optionsShown ? `hover:text-[#94D096]` : `cursor-default`}`}><small className='text-[.55rem] font-bold'>{chatEntryAuthor?.userName}</small></a>
+                          <div className='bg-slate-700 p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[75px] max-w-[250px] '>
+                            <p className='w-full h-full break-words relative'>{chatEntryDetails?.body}</p>
+                          </div>
                         </div>
                         {/* extra content */}
                         <div className=' flex justify-between items-center pl-1 opacity-80'>
@@ -358,7 +385,7 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
                     </div>
                     {/* more options button */}
                     <div id={'chatEntry-options-menu-'+chatEntryDetails.id} className={`absolute top-1 right-3 group-hover:block ${!optionsShown && `hidden`}`}>
-                      <button onClick={handleShowOptions}>
+                      <button onClick={handleShowOptions} className={`hover:text-[#94D096] ${optionsShown && `text-[#94D096]`}`}>
                         <MoreVertOutlinedIcon className='' />
                       </button>
                       <div className={`absolute top-8 left-4 z-[10000] ${optionsShown ? 'block' : 'hidden'} w-20 h-fit bg-gray-300 rounded-lg overflow-hidden`}>
@@ -376,9 +403,9 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
         chatEntryDetails.type === 'deleted' ?
           <div className={`relative group flex w-full p-2 mb-3 ${isAuthor && `justify-end`} select-none`}>
             <div id={'chatEntry-'+chatEntryDetails.id} className={`group relative opacity-20`}>
-              <div className={`flex space-x-2 rounded-xl text-white`}>
+              <div className={`flex space-x-2 rounded-xl text-white ${isAuthor && 'flex-row-reverse'}`}>
                 {/* profile thumbnail */}
-                <div className='w-8 h-8 overflow-hidden rounded-full'>
+                <div className={`w-8 h-8 overflow-hidden rounded-full ${isAuthor && 'ml-2'}`}>
                   <img src={chatEntryAuthor?.photoURL} alt="user profile picture" className='w-full h-full object-cover' />
                 </div>
 
@@ -387,7 +414,7 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
                   {/* chat body */}
                   <div className='flex flex-col w-fit'>
                     <small className='text-[.55rem] font-bold'><a href={`/user/${chatEntryAuthor?.uid}/profile`}>{chatEntryAuthor?.userName}</a></small>
-                    <p className={`text-xs ${isAuthor ? `bg-primary` : `bg-slate-700`} p-2 pl-1 pt-[1px] rounded-lg rounded-tl-none min-w-[30px] italic`}>Removed</p>
+                    <p className={`text-xs ${isAuthor ? `bg-primary rounded-tr-none` : `rounded-tl-none`} p-2 pl-1 pt-[1px] rounded-lg min-w-[50px] italic`}>Removed</p>
                   </div>
                   {/* extra content */}
                   <div className=' flex justify-between items-center pl-1 opacity-80'>
@@ -409,7 +436,7 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
             </div>
           </div>
       }
-
+      <hr className='m-auto w-11/12 opacity-10'/>
     </div>
   )
 }

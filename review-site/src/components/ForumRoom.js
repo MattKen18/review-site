@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import forumDefaultThumb from '../assets/default-forum-thumbnail.jpg'
 import QueryBuilderOutlinedIcon from '@mui/icons-material/QueryBuilderOutlined';
 import { addChatEntryInFirestore, deleteChatEntryInFirestore, editChatEntryInFirestore, getUserFromFirestore } from '../firebase';
@@ -10,6 +10,14 @@ import ChatEntry from './ChatEntry';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
+import EmojiPicker from 'emoji-picker-react';
+import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
+
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
+
+
+
 
 const ForumRoom = ({forum}) => {
   const [currentUser, setCurrentUser] = useState(null)
@@ -23,6 +31,16 @@ const ForumRoom = ({forum}) => {
   const [entryBeingEdited, setEntryBeingEdited] = useState(null)
   const [entryBeingRepliedTo, setEntryBeingRepliedTo] = useState(null)
 
+  const [emojiPickerShown, setEmojiPickerShown] = useState(false)
+  const [selectedEmoji, setSelectedEmoji] = useState(null)
+  const [cursorTextPosition, setCursorTextPosition] = useState(null)
+
+
+  const [emoji, setEmoji] = useState([])
+
+
+  const bottomRef = useRef(null);
+
   const auth = getAuth()
   
   useEffect(() => {
@@ -35,6 +53,9 @@ const ForumRoom = ({forum}) => {
     })
   }, [])
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [bottomRef.current]);
 
   // Realtime listening to changes to forum i.e. new chat messages and members
   useEffect(() => {
@@ -150,8 +171,10 @@ const ForumRoom = ({forum}) => {
 
   const handleChatEntry = (e) => {
     setChatEntryContent(e.target.value)
+    setEmoji([null, null])
   }
 
+ 
 
   const deleteChatEntry = (chatEntryId, forumId) => {
       deleteChatEntryInFirestore(chatEntryId, forumId).then(result => {
@@ -243,6 +266,120 @@ const ForumRoom = ({forum}) => {
   }, [forumAction])
 
 
+  // const handleEmojiSelect = (emoji) => {
+  //   // let newString = originalString.substring(0, insertIndex) + insertString + originalString.substring(insertIndex);
+  //   // console.log("cursor text position from handle emoji: ", cursorTextPosition)
+  //   // let newChatContent = chatEntryContent.substring(0, cursorTextPosition) + emoji.emoji + chatEntryContent.substring(cursorTextPosition);
+  //   setSelectedEmoji(emoji.emoji)
+  //   // setChatEntryContent(newChatContent)
+  // }
+
+
+  const handleInputClick = (e) => {
+    setCursorTextPosition(e.target.selectionStart)
+    setEmoji([null, null])
+
+  }
+
+
+  const handleEmojiSelect = (emoji) => {
+    const chatInput = document.getElementById('forum-message-input')
+    const cursorPos = chatInput.selectionStart
+
+    setEmoji([emoji, cursorPos])
+    // setEmoji(prev => {
+    //   if (prev == [null, null]) {
+    //     [emoji, cursorPos]
+    //   } else {
+    //     []
+    //   }
+    // })
+
+    // console.log('last emoji position: ', lastEmojiPos)
+    // let newChatContent
+
+    // if (lastEmojiPos !== null) {
+    //   newChatContent = chatEntryContent.substring(0, lastEmojiPos) + emoji + chatEntryContent.substring(lastEmojiPos)
+    //   // setEmojiPos(lastEmojiPos+1)
+    // } else {
+    //   newChatContent = chatEntryContent.substring(0, cursorPos) + emoji + chatEntryContent.substring(cursorPos)
+    //   // setEmojiPos(cursorPos+1)
+    // }
+
+    // setEmoji(lastEmojiPos+1)
+    // setChatEntryContent(newChatContent)
+
+  }
+
+
+  useEffect(() => {
+    // const emojiEmpty = emoji.filter(x => x !== null).length === 0
+    const chatInput = document.getElementById('forum-message-input')
+    const cursorPos = chatInput.selectionStart
+    let newChatContent
+
+    if (emoji.length > 0) {
+      newChatContent = chatEntryContent.substring(0, emoji[1]) + emoji[0] + chatEntryContent.substring(emoji[1])
+    } else {
+      newChatContent = chatEntryContent.substring(0, cursorPos) + emoji + chatEntryContent.substring(cursorPos)
+    }
+  }, [emoji])
+
+
+  useEffect(() => {
+    if (selectedEmoji) {
+
+    }
+    setSelectedEmoji(null)
+
+  }, [cursorTextPosition])
+
+
+
+  // useEffect(() => {
+    
+  //   if (selectedEmoji) {
+  //     const chatInput = document.getElementById('forum-message-input')
+  //     const cursorPos = chatInput.selectionStart
+  //     setCursorTextPosition(chatInput.selectionStart)
+  //     console.log("cursor text pos: ", chatInput.selectionStart)
+  //     if (cursorTextPosition === null) {
+  //       setChatEntryContent(chat => chat+selectedEmoji)
+  //     } else {
+  //       let newChatContent = chatEntryContent.substring(0, cursorPos) + selectedEmoji + chatEntryContent.substring(cursorPos)
+  //       setChatEntryContent(newChatContent)
+  //     }
+  //     // setCursorTextPosition(prevPos => prevPos+1)
+  //     setSelectedEmoji(null)
+  //   }
+
+  // }, [selectedEmoji])
+
+
+
+
+
+  useEffect(() => {
+    // console.log('current text position: ', cursorTextPosition)
+  }, [cursorTextPosition])
+
+
+  // useEffect(() => {
+  //   const input = document.getElementById('forum-message-input')
+
+  //   const handleKeyDown = (e) => {
+  //       if (e.key === 'ArrowLeft') {
+  //         setCursorTextPosition(prev => prev > 0 ? prev-1 : 0)
+  //       } else if (e.key === 'ArrowRight') {
+  //         setCursorTextPosition(prev => prev === chatEntryContent.length-1 ? chatEntryContent.length-1 : prev+1)
+  //       }
+  //   }
+
+  //   input.addEventListener('keydown', handleKeyDown)
+
+  //   return () => input.removeEventListener('keydown', handleKeyDown)
+  // }, [chatEntryContent])
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -251,7 +388,7 @@ const ForumRoom = ({forum}) => {
   }, [alert])
 
   return (
-    <div id={'forum-room'} className='relative flex flex-col w-full'>
+    <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
       {
         alert &&
         <div className='absolute top-0 left-1/2 -translate-x-1/2'>
@@ -278,31 +415,29 @@ const ForumRoom = ({forum}) => {
       </div>
 
       {/* Chat */}
-      <div className='flex-1 bg-slate-900 w-full overflow-y-scroll p-2'>
-        <div className='h-fit min-h-[1000px] mb-44'>
+      <div className='flex-1 bg-slate-900 w-full overflow-y-scroll scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-700 scrollbar-rounded-md p-2 mb-12'>
+        <div className='h-fit min-h-[1000px] px-4'>
           <div className='flex flex-col items-center justify-center mb-10'>
             <p className='font-bold'>Welcome to the Forum!</p>
             <p className='text-xs'>Created on {forum.created.toDate().toDateString()} at {forum.created.toDate().toLocaleTimeString()}</p>
           </div>
           {
             chat.map((chatEntry, key) => (
-              <ChatEntry key={chatEntry.id + "entry" + key} 
-                chatEntryDetails={chatEntry}
-                forumMembers={members}
-                currentUser={currentUser}
-                startEdit={startEdit}
-                startReply={startReply}
-                deleteChatEntry={deleteChatEntry}
-                
-                />
-            ))
+                <ChatEntry key={chatEntry.id + "entry" + key} 
+                  chatEntryDetails={chatEntry}
+                  forumMembers={members}
+                  currentUser={currentUser}
+                  startEdit={startEdit}
+                  startReply={startReply}
+                  deleteChatEntry={deleteChatEntry}
+                  />
+              ))
           }
         </div>
       </div>
 
       {/* Input */}
       <div className='absolute w-full bottom-0 flex text-white'>
-
         <form onSubmit={(e) => addChatEntry(e, 'message', currentUser.uid, forum.id)} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
           {
             entryBeingRepliedTo && forumAction === 'reply' ?
@@ -365,19 +500,32 @@ const ForumRoom = ({forum}) => {
             </div>
           }
 
-          <div className='flex bg-slate-800 p-2 relative z-[10000]'>
-            <div className='w-10 flex items-center justify-center'>
-              <button type='button' className='active:scale-75 duration-90'>
-                <AddOutlinedIcon sx={{ fontSize: 30 }} />
+          <div className='flex space-x-2 h-12 bg-slate-800 p-2 z-[10000]'>
+            <div className='flex items-center justify-center'>
+              <button type='button' className='active:scale-90 duration-90 rounded-lg hover:bg-gray-900 p-1'>
+                <AddOutlinedIcon sx={{ fontSize: 25 }} />
               </button>
             </div>
-            <input 
-              id='forum-message-input'
-              value = {chatEntryContent}
-              onChange = {(e) => handleChatEntry(e)}
-              type="text"
-              className='flex-1 rounded-lg outline-none px-2 border-2 border-slate-700 bg-slate-700'
-            />
+            <div className='flex items-center space-x-2 flex-1 rounded-lg border-2 border-slate-700 bg-slate-700'>
+              <input 
+                id='forum-message-input'
+                value = {chatEntryContent}
+                onChange = {handleChatEntry}
+                onClick = {handleInputClick}
+                type="text"
+                className='flex-1 outline-none bg-inherit px-2'
+              />
+              <button type='button' onClick={() => setEmojiPickerShown(shown => !shown)} className={`rounded-lg hover:opacity-100 ${emojiPickerShown ? `opacity-100` : `opacity-50`} p-1`}>
+               <EmojiEmotionsOutlinedIcon sx={{ fontSize: 25 }} />
+              </button>
+              {
+                emojiPickerShown &&
+                <div className={`absolute -top-[29rem] right-10`}>
+                      <Picker data={data} onEmojiSelect={emoji => handleEmojiSelect(emoji.native)} />
+                  {/* <EmojiPicker height={'23rem'} disableAutoFocus={true} onEmojiClick={handleEmojiSelect} emojiStyle={'native'} /> */}
+                </div>
+              }
+            </div>
             <button className='w-10'>
               <SendOutlinedIcon sx={{ fontSize: 20 }} />
             </button>
