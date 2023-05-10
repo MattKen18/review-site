@@ -12,6 +12,7 @@ import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import EmojiPicker from 'emoji-picker-react';
 import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
+import ContentEditable from 'react-contenteditable'
 
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
@@ -33,14 +34,14 @@ const ForumRoom = ({forum}) => {
 
   const [emojiPickerShown, setEmojiPickerShown] = useState(false)
   const [selectedEmoji, setSelectedEmoji] = useState(null)
-  const [cursorTextPosition, setCursorTextPosition] = useState(null)
+  const [cursorPosition, setCursorPosition] = useState(0)
 
+  const [emojiSelecting, setEmojiSelecting] = useState(false)
 
-  const [emoji, setEmoji] = useState([])
+  const chatInputRef = useRef(null)
 
-
-  const bottomRef = useRef(null);
-
+  const anchorRef = useRef(null)
+  
   const auth = getAuth()
   
   useEffect(() => {
@@ -54,8 +55,13 @@ const ForumRoom = ({forum}) => {
   }, [])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [bottomRef.current]);
+    anchorRef.current.scrollIntoView(false)
+  }, [chat])
+
+
+  // useEffect(() => {
+  //   bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // }, [bottomRef.current]);
 
   // Realtime listening to changes to forum i.e. new chat messages and members
   useEffect(() => {
@@ -66,32 +72,6 @@ const ForumRoom = ({forum}) => {
       setMemberIds(updatedForum.data().members)
       // const oldMembers = {...members}
     })
-
-
-
-
-
-    //   const newMembers = updatedForum.data().members.filter(memberId => !members[memberId])
-    //   // console.log("new Members: ", newMembers)
-    //   // const members = oldMembers.concat(newMembers)
-    //   // setMembers(members)
-    //   // console.log(newMembers)
-
-    //   const updatedMembers = {...members}
-    //   // console.log(updatedMembers)
-      
-    //   newMembers.forEach(memberId => {
-    //     // console.log(memberId)
-    //     getUserFromFirestore(memberId).then(member => {
-    //       // console.log(member)
-    //       // console.log(Object.keys(updatedMembers))
-    //       updatedMembers[memberId] = member
-    //       setMembers(updatedMembers)
-    //     })
-    //   })
-    //   console.log(updatedMembers)
-    // });
-
     return () => unsubscribe()
   }, [])
 
@@ -132,7 +112,7 @@ const ForumRoom = ({forum}) => {
     
   useEffect(() => {
     // if (members) console.log(Object.keys(members))
-    if (members) console.log(members)
+    // if (members) console.log(members)
 
   }, [members])
 
@@ -151,6 +131,7 @@ const ForumRoom = ({forum}) => {
     return () => window.removeEventListener('resize', resizeForum)
   }, [])
 
+
   const addChatEntry = (e, type, userId, forumId) => {
     e.preventDefault()
     if (forumAction === 'edit') {
@@ -168,225 +149,158 @@ const ForumRoom = ({forum}) => {
     }
 
   }
-
-  const handleChatEntry = (e) => {
-    setChatEntryContent(e.target.value)
-    setEmoji([null, null])
-  }
-
- 
-
+  
+  
+  
   const deleteChatEntry = (chatEntryId, forumId) => {
-      deleteChatEntryInFirestore(chatEntryId, forumId).then(result => {
-        if (result) {
-          setAlert({body: "Successfully deleted message", type: "success"})
+    deleteChatEntryInFirestore(chatEntryId, forumId).then(result => {
+      if (result) {
+        setAlert({body: "Successfully deleted message", type: "success"})
         } else {
           setAlert({body: "Error deleting message. Please try again.", type: "error"})
         }
       })
-  }
+    }
 
 
-  const startEdit = (chatEntry, entryAuthor) => {
-    const chatInput = document.getElementById('forum-message-input')
-    setForumAction('edit')
-
-    const chatEntryWithAuthor = {...chatEntry}
-    chatEntryWithAuthor.author = entryAuthor
-
-    setEntryBeingEdited(chatEntryWithAuthor)
-
-    setChatEntryContent(chatEntry.body)
-    chatInput.focus()
-  }
-
-
-  const finishEdit = (chatEntry) => {
-    editChatEntryInFirestore(chatEntry.id, forum.id, chatEntryContent).then(result => {
-      if (result) {
-        setAlert({body: "Successfully deleted message", type: "success"})
-        setChatEntryContent('')
-        setForumAction(null)
-        setEntryBeingEdited(null)
-      } else {
-        setAlert({body: "Error deleting message. Please try again.", type: "error"})
+    const startEdit = (chatEntry, entryAuthor) => {
+      const chatInput = document.getElementById('forum-message-input')
+      setForumAction('edit')
+      
+      const chatEntryWithAuthor = {...chatEntry}
+      chatEntryWithAuthor.author = entryAuthor
+      
+      setEntryBeingEdited(chatEntryWithAuthor)
+      
+      setChatEntryContent(chatEntry.body)
+      chatInput.focus()
+    }
+    
+    
+    const finishEdit = (chatEntry) => {
+      editChatEntryInFirestore(chatEntry.id, forum.id, chatEntryContent).then(result => {
+        if (result) {
+          setAlert({body: "Successfully deleted message", type: "success"})
+          setChatEntryContent('')
+          setForumAction(null)
+          setEntryBeingEdited(null)
+        } else {
+          setAlert({body: "Error deleting message. Please try again.", type: "error"})
+        }
+      })
+    }
+    
+    const finishReply = () => {
+      addChatEntryInFirestore(chatEntryContent, 'message', currentUser.uid, forum.id, entryBeingRepliedTo).then(result => {
+        if (result) {
+          setForumAction(null)
+          setChatEntryContent('')
+          setEntryBeingRepliedTo(null)
+        } else {
+          setAlert({body: "Error deleting message. Please try again.", type: "error"})
       }
     })
   }
   
-  const finishReply = () => {
-    addChatEntryInFirestore(chatEntryContent, 'message', currentUser.uid, forum.id, entryBeingRepliedTo).then(result => {
-      if (result) {
-        setForumAction(null)
-        setChatEntryContent('')
-        setEntryBeingRepliedTo(null)
-      } else {
-        setAlert({body: "Error deleting message. Please try again.", type: "error"})
-      }
-    })
-  }
-
   const cancelReply = () => {
     setForumAction(null)
     setChatEntryContent('')
     setEntryBeingRepliedTo(null)
   }
- 
+  
   const cancelEdit = () => {
     setForumAction(null)
     setChatEntryContent('')
     setEntryBeingEdited(null)
   }
-
+  
   const startReply = (chatEntry, entryAuthor) => {
     const chatInput = document.getElementById('forum-message-input')
-
+    
     setForumAction('reply')
-
+    
     const chatEntryWithAuthor = {...chatEntry}
     chatEntryWithAuthor.author = entryAuthor
     setEntryBeingRepliedTo(chatEntryWithAuthor)
-
+    
     setChatEntryContent('')
     chatInput.focus()
-
+    
+  }
+  
+  const handleCursorPositioning = () => {
+    const selection = window.getSelection()
+    const range = selection.getRangeAt(0)
+    const offset = range.startOffset;
+    setCursorPosition(offset)
   }
 
-
   useEffect(() => {
-    // console.log(entryBeingRepliedTo)
-  }, [entryBeingRepliedTo])
 
 
-  useEffect(() => {
-    if (forumAction === 'edit') {
-    } else if (forumAction === 'reply') {
+    const handleInputNavigations = e => {
+      if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
+        handleCursorPositioning()
+
+        // setCursorPosition(chatInputRef.current.selectionStart)
+        setSelectedEmoji(null)
+      }
+    }
+    
+    const handleInputClick = e => {
+      handleCursorPositioning()
+
+      setSelectedEmoji(null)
+    }
+    
+    const handleInputBlur = e => {
+      handleCursorPositioning()
+    }
+
+    if (chatInputRef.current) {
+      
+      chatInputRef.current.addEventListener('keydown', handleInputNavigations)
+      chatInputRef.current.addEventListener('click', handleInputClick)
+      chatInputRef.current.addEventListener('blur', handleInputBlur)
       
     }
-  }, [forumAction])
 
+    
+    return () => {
+      if (chatInputRef.current) {
+        chatInputRef.current.removeEventListener('keydown', handleInputNavigations)
+        chatInputRef.current.removeEventListener('click', handleInputClick)
+        chatInputRef.current.removeEventListener('blur', handleInputBlur)
+      }
+    }
+    
+    
+  }, [chatInputRef.current])
 
-  // const handleEmojiSelect = (emoji) => {
-  //   // let newString = originalString.substring(0, insertIndex) + insertString + originalString.substring(insertIndex);
-  //   // console.log("cursor text position from handle emoji: ", cursorTextPosition)
-  //   // let newChatContent = chatEntryContent.substring(0, cursorTextPosition) + emoji.emoji + chatEntryContent.substring(cursorTextPosition);
-  //   setSelectedEmoji(emoji.emoji)
-  //   // setChatEntryContent(newChatContent)
-  // }
-
-
-  const handleInputClick = (e) => {
-    setCursorTextPosition(e.target.selectionStart)
-    setEmoji([null, null])
-
+  const handleTextChatEntry = (chatEntry) => {
+    setChatEntryContent(chatEntry)
+    handleCursorPositioning()
+    setEmojiSelecting(false)
   }
-
 
   const handleEmojiSelect = (emoji) => {
-    const chatInput = document.getElementById('forum-message-input')
-    const cursorPos = chatInput.selectionStart
-
-    setEmoji([emoji, cursorPos])
-    // setEmoji(prev => {
-    //   if (prev == [null, null]) {
-    //     [emoji, cursorPos]
-    //   } else {
-    //     []
-    //   }
-    // })
-
-    // console.log('last emoji position: ', lastEmojiPos)
-    // let newChatContent
-
-    // if (lastEmojiPos !== null) {
-    //   newChatContent = chatEntryContent.substring(0, lastEmojiPos) + emoji + chatEntryContent.substring(lastEmojiPos)
-    //   // setEmojiPos(lastEmojiPos+1)
-    // } else {
-    //   newChatContent = chatEntryContent.substring(0, cursorPos) + emoji + chatEntryContent.substring(cursorPos)
-    //   // setEmojiPos(cursorPos+1)
-    // }
-
-    // setEmoji(lastEmojiPos+1)
-    // setChatEntryContent(newChatContent)
-
+    setSelectedEmoji(emoji)
   }
-
-
-  useEffect(() => {
-    // const emojiEmpty = emoji.filter(x => x !== null).length === 0
-    const chatInput = document.getElementById('forum-message-input')
-    const cursorPos = chatInput.selectionStart
-    let newChatContent
-
-    if (emoji.length > 0) {
-      newChatContent = chatEntryContent.substring(0, emoji[1]) + emoji[0] + chatEntryContent.substring(emoji[1])
-    } else {
-      newChatContent = chatEntryContent.substring(0, cursorPos) + emoji + chatEntryContent.substring(cursorPos)
-    }
-  }, [emoji])
-
 
   useEffect(() => {
     if (selectedEmoji) {
-
+      const newChatEntry = chatEntryContent?.substring(0, cursorPosition) + selectedEmoji.native + chatEntryContent.substring(cursorPosition)
+      setChatEntryContent(newChatEntry)
+      setCursorPosition(prev => prev+2)
     }
-    setSelectedEmoji(null)
-
-  }, [cursorTextPosition])
-
-
-
-  // useEffect(() => {
-    
-  //   if (selectedEmoji) {
-  //     const chatInput = document.getElementById('forum-message-input')
-  //     const cursorPos = chatInput.selectionStart
-  //     setCursorTextPosition(chatInput.selectionStart)
-  //     console.log("cursor text pos: ", chatInput.selectionStart)
-  //     if (cursorTextPosition === null) {
-  //       setChatEntryContent(chat => chat+selectedEmoji)
-  //     } else {
-  //       let newChatContent = chatEntryContent.substring(0, cursorPos) + selectedEmoji + chatEntryContent.substring(cursorPos)
-  //       setChatEntryContent(newChatContent)
-  //     }
-  //     // setCursorTextPosition(prevPos => prevPos+1)
-  //     setSelectedEmoji(null)
-  //   }
-
-  // }, [selectedEmoji])
-
-
-
-
-
-  useEffect(() => {
-    // console.log('current text position: ', cursorTextPosition)
-  }, [cursorTextPosition])
-
-
-  // useEffect(() => {
-  //   const input = document.getElementById('forum-message-input')
-
-  //   const handleKeyDown = (e) => {
-  //       if (e.key === 'ArrowLeft') {
-  //         setCursorTextPosition(prev => prev > 0 ? prev-1 : 0)
-  //       } else if (e.key === 'ArrowRight') {
-  //         setCursorTextPosition(prev => prev === chatEntryContent.length-1 ? chatEntryContent.length-1 : prev+1)
-  //       }
-  //   }
-
-  //   input.addEventListener('keydown', handleKeyDown)
-
-  //   return () => input.removeEventListener('keydown', handleKeyDown)
-  // }, [chatEntryContent])
-
+  }, [selectedEmoji])
 
   useEffect(() => {
     setTimeout(() => {
       setAlert(null)
     }, 3000);
   }, [alert])
-
+  
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
       {
@@ -416,7 +330,7 @@ const ForumRoom = ({forum}) => {
 
       {/* Chat */}
       <div className='flex-1 bg-slate-900 w-full overflow-y-scroll scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-700 scrollbar-rounded-md p-2 mb-12'>
-        <div className='h-fit min-h-[1000px] px-4'>
+        <div className='relative h-fit min-h-[1000px] px-4'>
           <div className='flex flex-col items-center justify-center mb-10'>
             <p className='font-bold'>Welcome to the Forum!</p>
             <p className='text-xs'>Created on {forum.created.toDate().toDateString()} at {forum.created.toDate().toLocaleTimeString()}</p>
@@ -433,6 +347,7 @@ const ForumRoom = ({forum}) => {
                   />
               ))
           }
+        <div ref={anchorRef} className='absolute bottom-0'></div>
         </div>
       </div>
 
@@ -507,21 +422,28 @@ const ForumRoom = ({forum}) => {
               </button>
             </div>
             <div className='flex items-center space-x-2 flex-1 rounded-lg border-2 border-slate-700 bg-slate-700'>
-              <input 
+              <ContentEditable
+                className='w-full outline-none bg-inherit px-2'
                 id='forum-message-input'
-                value = {chatEntryContent}
-                onChange = {handleChatEntry}
-                onClick = {handleInputClick}
-                type="text"
-                className='flex-1 outline-none bg-inherit px-2'
+                innerRef={chatInputRef}
+                html={chatEntryContent}
+                onChange={(e) => handleTextChatEntry(e.target.value)}
               />
+              {/* <div 
+                contentEditable={true} 
+                id='forum-message-input'
+                onInput = {(e) => handleTextChatEntry(e.target.innerText)}
+                // type="text"
+                className='flex-1 outline-none bg-inherit px-2'
+                ref={chatInputRef}
+              >{chatEntryContent}</div> */}
               <button type='button' onClick={() => setEmojiPickerShown(shown => !shown)} className={`rounded-lg hover:opacity-100 ${emojiPickerShown ? `opacity-100` : `opacity-50`} p-1`}>
                <EmojiEmotionsOutlinedIcon sx={{ fontSize: 25 }} />
               </button>
               {
                 emojiPickerShown &&
-                <div className={`absolute -top-[29rem] right-10`}>
-                      <Picker data={data} onEmojiSelect={emoji => handleEmojiSelect(emoji.native)} />
+                <div className={`absolute -top-[29rem] right-10 ${emojiSelecting && `pointer-events-none`}`}>
+                  <Picker data={data} onEmojiSelect={handleEmojiSelect} previewPosition={'none'} />
                   {/* <EmojiPicker height={'23rem'} disableAutoFocus={true} onEmojiClick={handleEmojiSelect} emojiStyle={'native'} /> */}
                 </div>
               }
