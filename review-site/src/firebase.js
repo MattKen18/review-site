@@ -1126,7 +1126,7 @@ export const leaveForumRoom = async (forumId, userId) => {
 }
 
 
-export const addChatEntryInFirestore = async (body, type, userId, forumId, replyingTo=null) => {
+export const addChatEntryInFirestore = async (body, type, userId, forumId, replyingTo=null, addOns=[]) => {
   try {
     const forumRef = doc(db, 'forums', forumId)
     const forumSnap = await getDoc(forumRef)
@@ -1138,6 +1138,7 @@ export const addChatEntryInFirestore = async (body, type, userId, forumId, reply
       user: userId,
       replyingTo: replyingTo,
       edited: false,
+      addOns: addOns,
       created: serverTimestamp()
     })
 
@@ -1214,6 +1215,10 @@ export const editChatEntryInFirestore = async (chatEntryId, forumId, body) => {
     console.log(e)
     return false
   }
+
+}
+
+export const updateAddOnToChatEntry = async () => {
 
 }
 

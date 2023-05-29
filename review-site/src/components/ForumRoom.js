@@ -13,11 +13,22 @@ import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
 import EmojiPicker from 'emoji-picker-react';
 import EmojiEmotionsOutlinedIcon from '@mui/icons-material/EmojiEmotionsOutlined';
 import ContentEditable from 'react-contenteditable'
+import TextareaAutosize from 'react-textarea-autosize';
 
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 
 
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
+import VideoCallOutlinedIcon from '@mui/icons-material/VideoCallOutlined';
+import AddLinkOutlinedIcon from '@mui/icons-material/AddLinkOutlined';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+
+
+import ImageAddOn from './ImageAddOn';
+import AddOnsView from './AddOnsView';
+import { chatAddOns, maxAddOns } from '../parameters';
 
 
 const ForumRoom = ({forum}) => {
@@ -38,10 +49,21 @@ const ForumRoom = ({forum}) => {
 
   const [emojiSelecting, setEmojiSelecting] = useState(false)
 
-  const chatInputRef = useRef(null)
+  const [addOptionsShown, setAddOptionsShown] = useState(false)
 
+  const [addOnOption, setAddOnOption] = useState('')
+
+  const [addOns, setAddOns] = useState(chatAddOns) //add-on files
+  const [newAddOn, setNewAddOn] = useState(null)
+
+  const [imageSrcs, setImageSrcs] = useState([])
+
+  const chatInputRef = useRef(null)
   const anchorRef = useRef(null)
-  
+  const chatFormRef = useRef(null)
+  const emojiPickerRef = useRef(null)
+
+
   const auth = getAuth()
   
   useEffect(() => {
@@ -134,6 +156,7 @@ const ForumRoom = ({forum}) => {
 
   const addChatEntry = (e, type, userId, forumId) => {
     e.preventDefault()
+    setEmojiPickerShown(false)
     if (forumAction === 'edit') {
       finishEdit(entryBeingEdited)
     }else if (forumAction === 'reply') {
@@ -156,9 +179,9 @@ const ForumRoom = ({forum}) => {
     deleteChatEntryInFirestore(chatEntryId, forumId).then(result => {
       if (result) {
         setAlert({body: "Successfully deleted message", type: "success"})
-        } else {
-          setAlert({body: "Error deleting message. Please try again.", type: "error"})
-        }
+      } else {
+        setAlert({body: "Error deleting message. Please try again.", type: "error"})
+      }
       })
     }
 
@@ -228,33 +251,52 @@ const ForumRoom = ({forum}) => {
     
   }
   
-  const handleCursorPositioning = () => {
-    const selection = window.getSelection()
-    const range = selection.getRangeAt(0)
-    const offset = range.startOffset;
-    setCursorPosition(offset)
-  }
+  const handleOutsideEmojiClick = (e) => {
+    const emojiPicker = emojiPickerRef.current
+    const inputField = chatInputRef.current
+    const inputForm = chatFormRef.current
+    // const emojiToggleBtn = document.getElementById('emojiPickerToggle')
 
+    if (!emojiPicker.contains(e.target) && !inputForm.contains(e.target)) {
+      setEmojiPickerShown(false)
+    } else {
+      setEmojiPickerShown(true)
+    }
+    
+  }
+  
   useEffect(() => {
 
+    if (emojiPickerShown) {
+      document.addEventListener('click', handleOutsideEmojiClick)
+      return () => document.removeEventListener('click', handleOutsideEmojiClick)
+    }
 
+  }, [emojiPickerShown])
+
+
+  useEffect(() => {
     const handleInputNavigations = e => {
+      console.log(forum.id)
       if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
-        handleCursorPositioning()
 
-        // setCursorPosition(chatInputRef.current.selectionStart)
+        setCursorPosition(chatInputRef.current.selectionStart)
         setSelectedEmoji(null)
+      } else if (e.keyCode === 13) {
+        e.preventDefault()
+        document.getElementById('chat-input-submit-btn').click()
       }
     }
     
     const handleInputClick = e => {
-      handleCursorPositioning()
+      setCursorPosition(chatInputRef.current.selectionStart)
 
       setSelectedEmoji(null)
     }
     
     const handleInputBlur = e => {
-      handleCursorPositioning()
+      setCursorPosition(chatInputRef.current.selectionStart)
+
     }
 
     if (chatInputRef.current) {
@@ -277,23 +319,131 @@ const ForumRoom = ({forum}) => {
     
   }, [chatInputRef.current])
 
+
   const handleTextChatEntry = (chatEntry) => {
+    
     setChatEntryContent(chatEntry)
-    handleCursorPositioning()
+    setCursorPosition(chatInputRef.current.selectionStart)
+
     setEmojiSelecting(false)
   }
+
 
   const handleEmojiSelect = (emoji) => {
     setSelectedEmoji(emoji)
   }
 
+
+  const convertEmoji = (emoji) => {
+    return String.fromCodePoint(parseInt(emoji.unified, 16))
+  }
+
   useEffect(() => {
     if (selectedEmoji) {
-      const newChatEntry = chatEntryContent?.substring(0, cursorPosition) + selectedEmoji.native + chatEntryContent.substring(cursorPosition)
+      const newChatEntry = chatEntryContent?.substring(0, cursorPosition) + convertEmoji(selectedEmoji) + chatEntryContent.substring(cursorPosition)
       setChatEntryContent(newChatEntry)
       setCursorPosition(prev => prev+2)
     }
   }, [selectedEmoji])
+
+  const setChatAddOn = (addOnType) => {
+      setAddOnOption(addOnType)
+
+    // if (addOnOption === addOnType) {
+    //   setChatAddOn('')
+    // } else {
+    //   setAddOnOption(addOnType)
+    // }
+  }
+
+  const updateAddOn = (addOnType, addOn) => {
+    const addOnsCopy = {...addOns}
+    // console.log(addOnsCopy)
+    const updatedAddOn = addOnsCopy[addOnType]
+    updatedAddOn.push(addOn)
+    addOnsCopy[addOnType] = updatedAddOn
+    // addOnsCopy[addOnType] = [...addOnsCopy[addOnType], addOn]
+    setAddOns(addOnsCopy)
+    setAddOnOption('')
+    const newAddOnObj = {}
+    newAddOnObj[addOnType] = addOn
+    setNewAddOn(newAddOnObj)
+
+    // switch (addOnType) {
+    //   case 'images':
+    //     const srcs = []
+    //     const reader = new FileReader()
+    //     reader.onload = () => {
+    //       srcs.push(reader.result)
+    //       // setImageSrcs([reader.result])
+    //       setImageSrcs([...imageSrcs, reader.result])
+    //     }
+    //     reader.readAsDataURL(addOn)
+    //     break
+    // }
+  }
+
+  const clearAddOns = (addOnType) => {
+    setAddOns(chatAddOns)
+  }
+
+  useEffect(() => {
+    if (newAddOn?.addOnType === 'images') {
+      const reader = new FileReader()
+        reader.onload = () => {
+          setImageSrcs([...imageSrcs, reader.result])
+        }
+        reader.readAsDataURL(newAddOn['images']) // this triggers the reader.onload event above
+    }
+  }, [newAddOn])
+
+  useEffect(() => {
+    console.log('image srcs: ', imageSrcs)
+  }, [imageSrcs])
+
+  useEffect(() => {
+    // for (let file of addOns.images) {
+      //   const promise = new Promise((resolve, reject) => {
+        //     const reader = new FileReader();
+        //     reader.onload = () => resolve(reader.result);
+        //     reader.onerror = (error) => reject(error);
+        //     reader.readAsDataURL(file);
+        //   });
+        
+        //   promise
+        //   .then(data => srcs.push(data))
+        //   .catch(error => console.error(error));
+    // }
+    
+    // setImageSrcs(srcs)
+    
+
+
+
+    // const srcs = [] 
+    // console.log('addOn Images:', addOns.images)
+    // console.log('srcs: ', srcs)
+    // for (let file of addOns.images) {
+    //   const reader = new FileReader()
+    //   reader.onload = () => {
+    //     srcs.push(reader.result)
+    //     setImageSrcs(srcs)
+    //   }
+    //   reader.readAsDataURL(file) // this triggers the reader.onload event above
+    // }
+    
+    
+  }, [addOnOption, addOns.images])
+  
+
+  const getAddOnCount = () => {
+    let count = 0
+    for (let addOn in addOns) {
+      count += addOns[addOn].length
+    }
+
+    return count
+  }
 
   useEffect(() => {
     setTimeout(() => {
@@ -330,7 +480,7 @@ const ForumRoom = ({forum}) => {
 
       {/* Chat */}
       <div className='flex-1 bg-slate-900 w-full overflow-y-scroll scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-700 scrollbar-rounded-md p-2 mb-12'>
-        <div className='relative h-fit min-h-[1000px] px-4'>
+        <div className='relative h-fit px-4'>
           <div className='flex flex-col items-center justify-center mb-10'>
             <p className='font-bold'>Welcome to the Forum!</p>
             <p className='text-xs'>Created on {forum.created.toDate().toDateString()} at {forum.created.toDate().toLocaleTimeString()}</p>
@@ -353,7 +503,7 @@ const ForumRoom = ({forum}) => {
 
       {/* Input */}
       <div className='absolute w-full bottom-0 flex text-white'>
-        <form onSubmit={(e) => addChatEntry(e, 'message', currentUser.uid, forum.id)} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
+        <form ref={chatFormRef} onSubmit={(e) => addChatEntry(e, 'message', currentUser.uid, forum.id)} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
           {
             entryBeingRepliedTo && forumAction === 'reply' ?
 
@@ -415,44 +565,97 @@ const ForumRoom = ({forum}) => {
             </div>
           }
 
-          <div className='flex space-x-2 h-12 bg-slate-800 p-2 z-[10000]'>
+          <div className='flex space-x-2 min-h-12 bg-slate-800 p-2 z-[10000]'>
             <div className='flex items-center justify-center'>
-              <button type='button' className='active:scale-90 duration-90 rounded-lg hover:bg-gray-900 p-1'>
+              <button onClick={() => {setAddOptionsShown(shown => !shown); setEmojiPickerShown(false)}} type='button' className={`active:scale-90 duration-90 rounded-lg ${addOptionsShown && `bg-gray-900`} hover:bg-gray-900 p-1`}>
                 <AddOutlinedIcon sx={{ fontSize: 25 }} />
               </button>
             </div>
-            <div className='flex items-center space-x-2 flex-1 rounded-lg border-2 border-slate-700 bg-slate-700'>
-              <ContentEditable
-                className='w-full outline-none bg-inherit px-2'
+            <div className='flex items-center space-x-2 flex-1 h-fit rounded-lg border-2 border-slate-700 bg-slate-700'>
+              <TextareaAutosize 
+                maxRows={4}
                 id='forum-message-input'
-                innerRef={chatInputRef}
-                html={chatEntryContent}
-                onChange={(e) => handleTextChatEntry(e.target.value)}
-              />
-              {/* <div 
-                contentEditable={true} 
-                id='forum-message-input'
-                onInput = {(e) => handleTextChatEntry(e.target.innerText)}
-                // type="text"
-                className='flex-1 outline-none bg-inherit px-2'
                 ref={chatInputRef}
-              >{chatEntryContent}</div> */}
-              <button type='button' onClick={() => setEmojiPickerShown(shown => !shown)} className={`rounded-lg hover:opacity-100 ${emojiPickerShown ? `opacity-100` : `opacity-50`} p-1`}>
+                value={chatEntryContent}
+                onChange={(e) => handleTextChatEntry(e.target.value)}
+                className='flex-1 outline-none bg-inherit px-2 resize-none'
+              />
+              <button type='button' id='emojiPickerToggle' onClick={() => setEmojiPickerShown(shown => !shown)} className={`rounded-lg hover:opacity-100 ${emojiPickerShown ? `opacity-100` : `opacity-50`} p-1`}>
                <EmojiEmotionsOutlinedIcon sx={{ fontSize: 25 }} />
               </button>
               {
                 emojiPickerShown &&
-                <div className={`absolute -top-[29rem] right-10 ${emojiSelecting && `pointer-events-none`}`}>
-                  <Picker data={data} onEmojiSelect={handleEmojiSelect} previewPosition={'none'} />
+                <div ref={emojiPickerRef} id='emoji-picker' className={`absolute -top-[29rem] right-10 ${emojiSelecting && `pointer-events-none`}`}>
+                  <Picker data={data} onEmojiSelect={handleEmojiSelect} previewPosition={'none'}  skinTonePosition={'none'} />
                   {/* <EmojiPicker height={'23rem'} disableAutoFocus={true} onEmojiClick={handleEmojiSelect} emojiStyle={'native'} /> */}
                 </div>
               }
             </div>
-            <button className='w-10'>
+            <button className='w-10' id='chat-input-submit-btn'>
               <SendOutlinedIcon sx={{ fontSize: 20 }} />
             </button>
-
+            {
+              // <div className='px-16 absolute flex flex-col -left-2 -top-64 h-64 backdrop-blur-lg w-full'>
+              //   {/* drop container */}
+              //   {
+              //     addOnOption === 'image' ?
+              //     <ImageAddOn updateAddOn={updateAddOn} clear={clearAddOns} />
+              //     :
+              //     addOnOption === 'video' ?
+              //     <ImageAddOn />
+              //     :
+              //     addOnOption === 'link' ?
+              //     <ImageAddOn />
+              //     :
+              //     addOnOption === 'product' ?
+              //     <ImageAddOn />
+              //     :
+              //     <>
+              //       <AddOnsView addOns={addOns} imageSrcs={imageSrcs} />
+              //     </>
+              //   }
+              //   {/* <hr /> */}
+              //   {/* drop options */}
+              //   {/* <div className='flex space-x-4 w-full py-2 '>
+              //     <button type='button' onClick={() => setChatAddOn('')} className={`mr-10 flex items-center space-x-1 text-primary active:scale-90 font-bold text-sm duration-100 hover:cursor-pointer`}>
+              //       <span className='relative'>
+              //         <Inventory2OutlinedIcon />
+              //         <span className='absolute right-0 top-0 text-2xs bg-highlight w-3 h-3 rounded-sm'>{getAddOnCount()}</span>
+              //         </span>
+              //       <p>Add ons</p>
+              //     </button>
+              //     <button type='button' onClick={() => setChatAddOn('image')} className={`flex items-center space-x-1 ${addOnOption === 'image' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
+              //       <span className=''><AddPhotoAlternateOutlinedIcon /></span>
+              //       <p>Add Image</p>
+              //     </button>
+              //     <button type='button' onClick={() => setChatAddOn('video')} className={`flex items-center space-x-1 ${addOnOption === 'video' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
+              //       <span className=''><VideoCallOutlinedIcon /></span> 
+              //       <p>Add Video</p>
+              //     </button>
+              //     <button type='button' onClick={() => setChatAddOn('link')} className={`flex items-center space-x-1 ${addOnOption === 'link' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
+              //       <span className=''><AddLinkOutlinedIcon /></span>
+              //       <p>Add Link</p>
+              //     </button>
+              //     <button type='button' onClick={() => setChatAddOn('product')} className={`flex items-center space-x-1 ${addOnOption === 'product' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
+              //       <span className=''><ShoppingBagOutlinedIcon /></span>
+              //       <p>Add Product</p>
+              //     </button>
+              //   </div> */}
+              //   {/* <ul className='inline space-y-2 h-full'>
+              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><AddPhotoAlternateOutlinedIcon sx={{ fontSize: 15 }} /></span> Image</span></li>
+              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><VideoCallOutlinedIcon sx={{ fontSize: 15 }} /></span> Video</span></li>
+              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><AddLinkOutlinedIcon sx={{ fontSize: 15 }} /></span> Link</span></li>
+              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><ShoppingBagOutlinedIcon sx={{ fontSize: 15 }} /></span> Product</span></li>
+              //   </ul> */}
+              // </div>
+            }
           </div>
+          {
+            addOptionsShown &&
+            <div className='absolute -top-44 w-full h-44 border-white'>
+              <AddOnsView forumId={forum.id}/>
+            </div>
+          }
         </form>
         {/* <div className='w-10'>
         </div> */}
