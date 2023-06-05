@@ -7,6 +7,8 @@ export const chatAddOns = {
   products: [],
 }
 
+export const uploadableAddOns = ['images', 'videos'] //chat add ons that will be uploaded to s3
+
 export const maxAddOns = {
   images: 3,
   videos: 1,

@@ -3,15 +3,13 @@ import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import RemoveCircleOutlineOutlinedIcon from '@mui/icons-material/RemoveCircleOutlineOutlined';
 import s3Client from '../s3';
 
-
-
-const FileUpload = ({updater, s3Config, allowedTypes, existingFileUrls, stagedFilesArr, maxAllowed}) => {
+const FileUpload = ({updater, s3Config, allowedTypes, type, existingFileUrls, stagedFilesArr, maxAllowed}) => {
   // const [selectedFiles, setSelectedFiles] = useState([])
   const [filesToShow, setFilesToShow] = useState([]) //[[file, fileUrl], ]
   const [draggingOver, setDraggingOver] = useState(null)
   const [isDragging, setIsDragging] = useState(false)
   const [positions, setPositions] = useState({})
-  
+
   const s3 = s3Client(s3Config)
 
   useEffect(() => {

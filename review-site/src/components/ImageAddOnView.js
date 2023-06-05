@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { FileUploader } from "react-drag-drop-files";
 import { maxAddOns } from '../parameters';
 import FileUpload from './FileUpload';
@@ -6,7 +6,7 @@ import FileUpload from './FileUpload';
 
 const fileTypes = ["JPG", "JPEG", "PNG", "GIF"];
 
-const ImageAddOnView = ({forumId, updateAddOn, stagedImages}) => {
+const ImageAddOnView = ({forumId, updater, stagedImages}) => {
   const [addOns, setAddOns] = useState([])
   const [selectedImage, setSelectedImage] = useState(null)
   
@@ -24,6 +24,7 @@ const ImageAddOnView = ({forumId, updateAddOn, stagedImages}) => {
     setSelectedImage(file)
   }
 
+
   useEffect(() => {
     // console.log("selected image: ", selectedImage)
   }, [selectedImage])
@@ -32,9 +33,10 @@ const ImageAddOnView = ({forumId, updateAddOn, stagedImages}) => {
   return (
     <div className='w-full h-full flex flex-row bg-inherit'>
       <FileUpload 
-        updater={updateAddOn}
+        updater={updater}
         s3Config={config}
         allowedTypes={fileTypes}
+        type={'images'}
         existingFileUrls={[]}
         stagedFilesArr={stagedImages}
         maxAllowed={maxAddOns['images']}

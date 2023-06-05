@@ -11,9 +11,11 @@ import ImageAddOnView from './ImageAddOnView';
 
 import s3Client from '../s3';
 
-const AddOnsView = ({forumId}) => {
+
+const AddOnsView = ({updater, stagedImages, forumId}) => {
   const [addOnType, setAddOnType] = useState(Object.keys(chatAddOns)[0])
   const [addOns, setAddOns] = useState(chatAddOns)
+
   // const [addOnView, setAddOnView] = useState(Object.keys(addOns)[0])
 
   const config = {
@@ -30,12 +32,12 @@ const AddOnsView = ({forumId}) => {
     setAddOnType(type)
   }
 
-  const updateAddOn = (addOn=[], type=addOnType) => {
-    const addOnsCopy = {...addOns}
-    addOnsCopy[type] = addOn
-    setAddOns(addOnsCopy)
-    console.log('add on type: ', addOnsCopy)
-  }
+  // const updateAddOn = (addOn=[], type=addOnType) => {
+  //   const addOnsCopy = {...addOns}
+  //   addOnsCopy[type] = addOn
+  //   setAddOns(addOnsCopy)
+  //   console.log('add on type: ', addOnsCopy)
+  // }
 
   const uploadImagesToS3 = async (files) => {
     console.log('files: ', files)
@@ -79,7 +81,7 @@ const AddOnsView = ({forumId}) => {
       {
         addOnType === 'images' ?
         <div className='flex-1 pr-2'>
-        <ImageAddOnView forumId={forumId} updateAddOn={updateAddOn} stagedImages={addOns['images']} />
+          <ImageAddOnView forumId={forumId} updater={updater} stagedImages={stagedImages} />
         </div>
         :
         <></>

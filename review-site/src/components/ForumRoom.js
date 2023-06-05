@@ -28,7 +28,9 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 
 import ImageAddOn from './ImageAddOn';
 import AddOnsView from './AddOnsView';
-import { chatAddOns, maxAddOns } from '../parameters';
+import { chatAddOns, maxAddOns, uploadableAddOns } from '../parameters';
+
+import s3Client from '../s3';
 
 
 const ForumRoom = ({forum}) => {
@@ -51,10 +53,11 @@ const ForumRoom = ({forum}) => {
 
   const [addOptionsShown, setAddOptionsShown] = useState(false)
 
-  const [addOnOption, setAddOnOption] = useState('')
+  const [addOnOption, setAddOnOption] = useState(Object.keys(chatAddOns)[0])
 
   const [addOns, setAddOns] = useState(chatAddOns) //add-on files
   const [newAddOn, setNewAddOn] = useState(null)
+  const [addOnsUploaded, setAddOnsUploaded] = useState(false);
 
   const [imageSrcs, setImageSrcs] = useState([])
 
@@ -63,9 +66,19 @@ const ForumRoom = ({forum}) => {
   const chatFormRef = useRef(null)
   const emojiPickerRef = useRef(null)
 
-
-  const auth = getAuth()
   
+  const auth = getAuth()
+
+  const config = {
+    bucketName: 'test-image-store-weviews',
+    dirName: 'forums/'+forum.id, 
+    region: 'us-east-2',
+    accessKeyId: 'AKIAR74LVHA4ZCOAF7OT',
+    secretAccessKey: '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',
+  }
+
+  const s3 = s3Client(config)
+
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -154,15 +167,14 @@ const ForumRoom = ({forum}) => {
   }, [])
 
 
-  const addChatEntry = (e, type, userId, forumId) => {
-    e.preventDefault()
+  const addChatEntry = (type, userId, forumId, currentAddOns) => {
     setEmojiPickerShown(false)
     if (forumAction === 'edit') {
       finishEdit(entryBeingEdited)
     }else if (forumAction === 'reply') {
       finishReply(entryBeingRepliedTo)
     } else {
-      addChatEntryInFirestore(chatEntryContent, type, userId, forumId).then(result => {
+      addChatEntryInFirestore(chatEntryContent, type, userId, forumId, null, currentAddOns).then(result => {
         if (result) {
           setChatEntryContent('')
         } else {
@@ -348,101 +360,6 @@ const ForumRoom = ({forum}) => {
 
   const setChatAddOn = (addOnType) => {
       setAddOnOption(addOnType)
-
-    // if (addOnOption === addOnType) {
-    //   setChatAddOn('')
-    // } else {
-    //   setAddOnOption(addOnType)
-    // }
-  }
-
-  const updateAddOn = (addOnType, addOn) => {
-    const addOnsCopy = {...addOns}
-    // console.log(addOnsCopy)
-    const updatedAddOn = addOnsCopy[addOnType]
-    updatedAddOn.push(addOn)
-    addOnsCopy[addOnType] = updatedAddOn
-    // addOnsCopy[addOnType] = [...addOnsCopy[addOnType], addOn]
-    setAddOns(addOnsCopy)
-    setAddOnOption('')
-    const newAddOnObj = {}
-    newAddOnObj[addOnType] = addOn
-    setNewAddOn(newAddOnObj)
-
-    // switch (addOnType) {
-    //   case 'images':
-    //     const srcs = []
-    //     const reader = new FileReader()
-    //     reader.onload = () => {
-    //       srcs.push(reader.result)
-    //       // setImageSrcs([reader.result])
-    //       setImageSrcs([...imageSrcs, reader.result])
-    //     }
-    //     reader.readAsDataURL(addOn)
-    //     break
-    // }
-  }
-
-  const clearAddOns = (addOnType) => {
-    setAddOns(chatAddOns)
-  }
-
-  useEffect(() => {
-    if (newAddOn?.addOnType === 'images') {
-      const reader = new FileReader()
-        reader.onload = () => {
-          setImageSrcs([...imageSrcs, reader.result])
-        }
-        reader.readAsDataURL(newAddOn['images']) // this triggers the reader.onload event above
-    }
-  }, [newAddOn])
-
-  useEffect(() => {
-    console.log('image srcs: ', imageSrcs)
-  }, [imageSrcs])
-
-  useEffect(() => {
-    // for (let file of addOns.images) {
-      //   const promise = new Promise((resolve, reject) => {
-        //     const reader = new FileReader();
-        //     reader.onload = () => resolve(reader.result);
-        //     reader.onerror = (error) => reject(error);
-        //     reader.readAsDataURL(file);
-        //   });
-        
-        //   promise
-        //   .then(data => srcs.push(data))
-        //   .catch(error => console.error(error));
-    // }
-    
-    // setImageSrcs(srcs)
-    
-
-
-
-    // const srcs = [] 
-    // console.log('addOn Images:', addOns.images)
-    // console.log('srcs: ', srcs)
-    // for (let file of addOns.images) {
-    //   const reader = new FileReader()
-    //   reader.onload = () => {
-    //     srcs.push(reader.result)
-    //     setImageSrcs(srcs)
-    //   }
-    //   reader.readAsDataURL(file) // this triggers the reader.onload event above
-    // }
-    
-    
-  }, [addOnOption, addOns.images])
-  
-
-  const getAddOnCount = () => {
-    let count = 0
-    for (let addOn in addOns) {
-      count += addOns[addOn].length
-    }
-
-    return count
   }
 
   useEffect(() => {
@@ -450,7 +367,56 @@ const ForumRoom = ({forum}) => {
       setAlert(null)
     }, 3000);
   }, [alert])
+
+  const updateAddOn = (addOn=[], type=addOnOption) => {
+    console.log(addOnOption)
+    console.log(addOn)
+    const addOnsCopy = {...addOns}
+    addOnsCopy[type] = addOn
+    setAddOns(addOnsCopy)
+    console.log('add ons: ', addOnsCopy)
+  }
+
+  const uploadFilesToS3 = async (type, files) => {
+    for (let i=0; i<files.length; i++) {
+      try {
+        if (!files[i][2]) { //upload only the files not already uploaded
+          const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
+          const res = await s3.uploadFile(files[i][0], fileName);
+          // files[i][1] = res.location
+          // files[i][2] = true //successfully uploaded to s3
+
+          const addOnsCopy = {...addOns}
+          addOnsCopy[type][i] = res.location
+          setAddOns(addOnsCopy)
+        }
+      } catch (exception) {
+        console.log(exception);
+      }
+    }
+  }
   
+
+  const createChatEntry = (e) => {
+    e.preventDefault()
+    for (let addOnType in addOns) {
+      if (uploadableAddOns.includes(addOnType)) {
+        uploadFilesToS3(addOnType, addOns[addOnType])
+      }
+    }
+    setAddOnsUploaded(true)
+    setAddOptionsShown(false)
+  }
+
+  useEffect(() => {
+    console.log("Add Ons: ", addOns)
+    if (addOnsUploaded) {
+      addChatEntry('message', currentUser.uid, forum.id, addOns)
+    }
+  }, [addOns, addOnsUploaded])
+
+
+
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
       {
@@ -503,7 +469,7 @@ const ForumRoom = ({forum}) => {
 
       {/* Input */}
       <div className='absolute w-full bottom-0 flex text-white'>
-        <form ref={chatFormRef} onSubmit={(e) => addChatEntry(e, 'message', currentUser.uid, forum.id)} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
+        <form ref={chatFormRef} onSubmit={createChatEntry} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
           {
             entryBeingRepliedTo && forumAction === 'reply' ?
 
@@ -594,66 +560,11 @@ const ForumRoom = ({forum}) => {
             <button className='w-10' id='chat-input-submit-btn'>
               <SendOutlinedIcon sx={{ fontSize: 20 }} />
             </button>
-            {
-              // <div className='px-16 absolute flex flex-col -left-2 -top-64 h-64 backdrop-blur-lg w-full'>
-              //   {/* drop container */}
-              //   {
-              //     addOnOption === 'image' ?
-              //     <ImageAddOn updateAddOn={updateAddOn} clear={clearAddOns} />
-              //     :
-              //     addOnOption === 'video' ?
-              //     <ImageAddOn />
-              //     :
-              //     addOnOption === 'link' ?
-              //     <ImageAddOn />
-              //     :
-              //     addOnOption === 'product' ?
-              //     <ImageAddOn />
-              //     :
-              //     <>
-              //       <AddOnsView addOns={addOns} imageSrcs={imageSrcs} />
-              //     </>
-              //   }
-              //   {/* <hr /> */}
-              //   {/* drop options */}
-              //   {/* <div className='flex space-x-4 w-full py-2 '>
-              //     <button type='button' onClick={() => setChatAddOn('')} className={`mr-10 flex items-center space-x-1 text-primary active:scale-90 font-bold text-sm duration-100 hover:cursor-pointer`}>
-              //       <span className='relative'>
-              //         <Inventory2OutlinedIcon />
-              //         <span className='absolute right-0 top-0 text-2xs bg-highlight w-3 h-3 rounded-sm'>{getAddOnCount()}</span>
-              //         </span>
-              //       <p>Add ons</p>
-              //     </button>
-              //     <button type='button' onClick={() => setChatAddOn('image')} className={`flex items-center space-x-1 ${addOnOption === 'image' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
-              //       <span className=''><AddPhotoAlternateOutlinedIcon /></span>
-              //       <p>Add Image</p>
-              //     </button>
-              //     <button type='button' onClick={() => setChatAddOn('video')} className={`flex items-center space-x-1 ${addOnOption === 'video' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
-              //       <span className=''><VideoCallOutlinedIcon /></span> 
-              //       <p>Add Video</p>
-              //     </button>
-              //     <button type='button' onClick={() => setChatAddOn('link')} className={`flex items-center space-x-1 ${addOnOption === 'link' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
-              //       <span className=''><AddLinkOutlinedIcon /></span>
-              //       <p>Add Link</p>
-              //     </button>
-              //     <button type='button' onClick={() => setChatAddOn('product')} className={`flex items-center space-x-1 ${addOnOption === 'product' &&  `text-success`} hover:text-success font-bold text-sm duration-100 hover:cursor-pointer`}>
-              //       <span className=''><ShoppingBagOutlinedIcon /></span>
-              //       <p>Add Product</p>
-              //     </button>
-              //   </div> */}
-              //   {/* <ul className='inline space-y-2 h-full'>
-              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><AddPhotoAlternateOutlinedIcon sx={{ fontSize: 15 }} /></span> Image</span></li>
-              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><VideoCallOutlinedIcon sx={{ fontSize: 15 }} /></span> Video</span></li>
-              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><AddLinkOutlinedIcon sx={{ fontSize: 15 }} /></span> Link</span></li>
-              //     <li className='float-left group px-2 hover:cursor-pointer'><span className='flex items-center group-hover:translate-x-2 group-hover:text-success font-bold text-sm duration-100 group-hover:cursor-pointer'><span className='hidden group-hover:inline mr-1 '><ShoppingBagOutlinedIcon sx={{ fontSize: 15 }} /></span> Product</span></li>
-              //   </ul> */}
-              // </div>
-            }
           </div>
           {
             addOptionsShown &&
             <div className='absolute -top-44 w-full h-44 border-white'>
-              <AddOnsView forumId={forum.id}/>
+              <AddOnsView updater={updateAddOn} stagedImages={addOns['images']} forumId={forum.id}/>
             </div>
           }
         </form>
