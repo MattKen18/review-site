@@ -554,7 +554,7 @@ const ForumRoom = ({forum}) => {
         <motion.button 
           onClick={() => setPopUpPanelShown(shown => !shown)}
           type='button'
-          className='flex flex-col items-center text-sm font-bold p-2 border-2 border-text-light opacity-70 hover:opacity-100 rounded-md'
+          className='flex flex-col items-center text-sm font-bold p-2 rounded-md bg-primary text-white'
           whileTap={{
             scale: 0.8,
           }}
@@ -565,32 +565,27 @@ const ForumRoom = ({forum}) => {
           </div>
           <div className='flex flex-row items-center space-x-2'>
             <QueryBuilderOutlinedIcon />  
-            <span className='text-success'>{forum.lifespan}</span>
+            <span className=''>{forum.lifespan}</span>
           </div>
         </motion.button>
-        {/* <div className='p-2 text-xs flex flex-col space-y-1'>
-            <button type='button' className='px-2 rounded-md border-2 border-text-light'>Mute</button>
-            <button type='button' className='px-2 rounded-md border-2 border-text-light'>Close</button>
-            <button type='button' className='px-2 rounded-md border-2 border-text-light'>Leave</button>
-        </div> */}
-
-        {/* close forum */}
-        {/* <span className='flex-none absolute top-1/2 -translate-y-1/2 right-5'>X</span> */}
       </div>
 
       {/* Chat */}
       <div ref={chatRef} className='relative flex-1 bg-slate-900 w-full overflow-y-scroll scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-700 scrollbar-rounded-md p-2 max-h-full'>
-        {
-          popUpPanelShown && 
-          <div className='w-40 sticky top-0 right-0'>
-            <ForumPanelPopUp />
-          </div>
-        }
         <div className='relative h-fit px-4'>
           <div className='flex flex-col items-center justify-center mb-10'>
             <p className='font-bold'>Welcome to the Forum!</p>
             <p className='text-xs'>Created on {forum.created.toDate().toDateString()} at {forum.created.toDate().toLocaleTimeString()}</p>
           </div>
+          {
+            popUpPanelShown && 
+            <div className='absolute w-1/4 h-full top-0 right-0 rounded-md'>
+              <div className='w-full h-fit sticky top-0 right-0 z-[100]'>
+                <ForumPanelPopUp forum={forum} />
+              </div>
+
+            </div>
+          }
           {/* chat container */}
           <div className='flex flex-col space-y-3'>
             {
@@ -625,17 +620,6 @@ const ForumRoom = ({forum}) => {
             damping: 0,
           }}
           >
-          {/* <motion.button type='button' className='group w-full' onClick={() => setSeeking(false)}>
-            <span className='group-hover:hidden flex flex-row items-center justify-center space-x-2'>
-              <p>Chat paused due to scrolling</p>
-              <PauseCircleOutlineOutlinedIcon sx={{ fontSize: 20 }} />
-            </span>
-            <span className='hidden group-hover:flex flex-row items-center justify-center space-x-2'>
-              <p>Click to see new messages</p>
-              <ArrowDownwardOutlinedIcon sx={{ fontSize: 20 }} />
-            </span>
-          </motion.button>
-        </motion.div> */}
           <button type='button' className='group w-full' onClick={() => setSeeking(false)}>
             <span className='group-hover:hidden flex flex-row items-center justify-center space-x-2'>
               <PauseCircleOutlineOutlinedIcon sx={{ fontSize: 20 }} />
@@ -718,6 +702,7 @@ const ForumRoom = ({forum}) => {
             </div>
           }
 
+          {/* Chat Input Form */}
           <div className='flex space-x-2 min-h-12 bg-slate-800 p-2 z-[10000]'>
             <div className='flex items-center justify-center'>
               <button onClick={() => {setAddOptionsShown(shown => !shown); setEmojiPickerShown(false)}} type='button' className={`active:scale-90 duration-90 rounded-lg ${addOptionsShown && `bg-gray-900`} hover:bg-gray-900 p-1`}>
@@ -748,16 +733,7 @@ const ForumRoom = ({forum}) => {
               <SendOutlinedIcon sx={{ fontSize: 20 }} />
             </button>
           </div>
-          {/* Add Ons */}
-          {/* {
-            addOptionsShown &&
-            <div className='absolute -top-52 w-full h-52 border-white'>
-              <AddOnsView updater={updateAddOn} stagedImages={addOns['images']} forumId={forum.id}/>
-            </div>
-          } */}
         </form>
-        {/* <div className='w-10'>
-        </div> */}
       </div>
 
     </div>
