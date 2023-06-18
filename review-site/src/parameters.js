@@ -5,6 +5,7 @@ export const chatAddOns = {
   videos: [],
   links: [],
   products: [],
+  reviews: [],
 }
 
 export const uploadableAddOns = ['images', 'videos'] //chat add ons that will be uploaded to s3

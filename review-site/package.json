@@ -19,6 +19,7 @@
     "emoji-mart": "^5.5.2",
     "emoji-picker-react": "^4.4.9",
     "firebase": "^9.13.0",
+    "framer-motion": "^10.12.16",
     "jquery": "^3.6.3",
     "lodash": "^4.17.21",
     "lodash-move": "^1.1.1",
