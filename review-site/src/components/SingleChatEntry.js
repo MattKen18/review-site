@@ -15,15 +15,32 @@ import ChatEntryLine from './ChatEntryLine';
 import { useDispatch } from 'react-redux';
 import { addAlert } from '../slices/alertSlice';
 
-const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteChatEntry}) => {
+const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteChatEntry, startEdit, startReply, entryBeingEdited}) => {
   const [addOnTypeShowing, setAddOnTypeShowing] = useState(Object.keys(chatAddOns)[0])
+  const [chatEntryLines, setChatEntryLines] = useState();
+  console.log(currentUserOwnsEntry)
+  console.log(chatEntry)
+
+  // useEffect(() => {
+  //   const lines = [];
+  //   for (let line of chatEntry.lines) {
+      
+  //     line.addOns = JSON.parse(line.addOns)
+  //     lines.push(line)
+  //   }
+
+  //   setChatEntryLines(lines)
+  // }, [chatEntry])
 
   const dispatch = useDispatch();
   // dispatch(addAlert({body: "Successfully added chat", type: "success"}))
 
   const aggregatedEntryHasAddOns = (entryLine) => {
-    for (let addOnType in entryLine.addOns) {
-      if (entryLine.addOns[addOnType].length) {
+    // console.log(entryLine.addOns);
+    // TODO: remove try catch
+    const entryAddOns = JSON.parse(entryLine.addOns)
+    for (let addOnType in entryAddOns) {
+      if (entryAddOns[addOnType].length > 0) {
         return true
       }
     }
@@ -70,11 +87,12 @@ const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteC
             // TODO: create component for chat entry line in order to have unique addOnTypeShowing
             chatEntry?.lines?.map((entry, key) => (
               // chat entry line
-              <div key={key} className={`w-full pl-2 relative flex group hover:bg-[#1B2536] py-1 rounded-lg ${aggregatedEntryHasAddOns(entry) && entry.type === 'message' && 'mt-4' }`}>
+              <div key={key} className={`w-full pl-2 relative flex group py-1 rounded-lg ${entryBeingEdited?.id === entry.id ? 'bg-secondary hover:bg-secondary animate-pulse' : 'bg-inherit hover:bg-[#1B2536]'} ${aggregatedEntryHasAddOns(entry) && entry.type === 'message' && 'mt-4' }`}>
                 {/* chat content */}
                 <div className='basis-4/5 flex flex-col'>
 
                   {/* Add ons view selector*/}
+                  {console.log(entry.addOns)}
                   <ChatEntryLine hasAddOns={aggregatedEntryHasAddOns(entry)} entry={entry} />
                 </div>
                 {/* options and timestamp */}
@@ -82,8 +100,10 @@ const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteC
                   {
                     entry.type === "message" &&
                     <span className='absolute flex-none flex z-[10] w-24 h-8 rounded-md right-20 -top-6 bg-primary hover:cursor-pointer overflow-hidden'>
+                      {/* reply */}
                       <span className='flex basis-1/3 hover:bg-[#2E3D82] items-center justify-center relative z-0 after:content-[""] after:absolute after:right-0 after:z-10 after:w-[1px] after:h-full after:bg-[#2E3D82]'><UndoOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>
-                      <span className='flex basis-1/3 hover:bg-[#2E3D82] items-center justify-center relative z-0 after:content-[""] after:absolute after:right-0 after:z-10 after:w-[1px] after:h-full after:bg-[#2E3D82]'><CreateOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>
+                      {/* edit */}
+                      <span onClick={() => startEdit(entry, entry?.author)} className='flex basis-1/3 hover:bg-[#2E3D82] items-center justify-center relative z-0 after:content-[""] after:absolute after:right-0 after:z-10 after:w-[1px] after:h-full after:bg-[#2E3D82]'><CreateOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>
                       {
                         currentUserOwnsEntry ?
                         <span role={'button'} onClick={() => {deleteChatEntry(entry.id, entry.forum)}} className='flex basis-1/3 hover:bg-[#2E3D82] items-center justify-center'><DeleteOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>

@@ -1,6 +1,23 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 const AddOnChatEntryView = ({addOns, type}) => {
+  const [addOnsObj, setAddOnsObj] = useState()
+
+  useEffect(() => {
+    console.log("Add Ons: ", addOns)
+    try {
+      // setAddOnsObj(JSON.parse(addOns))
+      setAddOnsObj(JSON.parse(JSON.parse(addOns)));
+      console.log(JSON.parse(JSON.parse(addOns)))
+    } catch (e) {
+      console.log(addOns)
+      setAddOnsObj(JSON.parse(addOns))
+    }
+  }, [addOns])
+
+  useEffect(() => {
+    console.log(addOnsObj)
+  }, [addOnsObj])
 
   // const imagesAdded = useRef(false)
 
@@ -30,9 +47,9 @@ const AddOnChatEntryView = ({addOns, type}) => {
         // Media container
         <div className='h-full w-full flex flex-row flex-start space-x-3'>
           {
-           addOns.images.map((imgSrc, key) => (
+           addOnsObj?.images?.map((imgFile, key) => (
             <div key={key} className='overflow-hidden w-1/3 h-full bg-tertiary rounded-lg'>
-              <img src={imgSrc} alt={`add on image` + key+1} className='object-contain w-full h-full' />
+              <img src={imgFile.url} alt={`add on image` + key+1} className='object-contain w-full h-full' />
             </div>
            )) 
           }

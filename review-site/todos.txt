@@ -1,0 +1,11 @@
+TODO: fix only uploading the first image to aws
+TODO: configure secret in aws
+T̶O̶D̶O̶:̶ f̶i̶x̶ n̶o̶t̶ s̶a̶v̶i̶n̶g̶ f̶i̶l̶e̶ o̶b̶j̶ i̶n̶ s̶e̶s̶s̶i̶o̶n̶ s̶t̶o̶r̶a̶g̶e̶ w̶h̶e̶n̶ p̶a̶g̶e̶ r̶e̶l̶o̶a̶d̶s̶
+T̶O̶D̶O̶:̶ f̶i̶x̶ n̶o̶t̶ b̶e̶i̶n̶g̶ a̶b̶l̶e̶ d̶e̶l̶e̶t̶e̶ c̶h̶a̶t̶ e̶n̶t̶r̶y̶
+T̶O̶D̶O̶:̶ c̶o̶n̶v̶e̶r̶t̶ t̶o̶ u̶s̶i̶n̶g̶ i̶n̶d̶e̶x̶e̶d̶D̶B̶ i̶n̶s̶t̶e̶a̶d̶ o̶f̶ s̶e̶s̶s̶i̶o̶n̶S̶t̶o̶r̶a̶g̶e̶
+TODO: fix user joined forum not showing
+TODO: fix images disappearing when editing chatEntry
+TODO: fix when click on edit and reload page the addOns not clearing
+TODO: fix idexeddb not updating when switching between which entry to edit
+
+

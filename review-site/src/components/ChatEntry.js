@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import SingleChatEntry from './SingleChatEntry';
 import ReplyingChatEntry from './ReplyingChatEntry';
 
-const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, startReply, deleteChatEntry}) => {
+const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, startReply, deleteChatEntry, entryBeingEdited}) => {
   
   const [chatEntryAuthor, setChatEntryAuthor] = useState(null)
   const [isAuthor, setIsAuthor] = useState(null) // if the current user is the author of the chat entry
@@ -16,6 +16,7 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
   
   const [optionsShown, setOptionsShown] = useState(false) // options menu shown or not
 
+  console.log(chatEntryDetails)
   useEffect(() => {
     if (chatEntryDetails.type === 'notification') {
       if (chatEntryDetails.body.includes('joined')) {
@@ -138,6 +139,9 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
           currentUserOwnsEntry={isAuthor}
           getTimestamp={getTimestamp}
           deleteChatEntry={deleteChatEntry}
+          startEdit={startEdit}
+          startReply={startReply}
+          entryBeingEdited={entryBeingEdited}
         />
       }
       {/* <hr className='m-auto w-11/12 opacity-10'/> */}

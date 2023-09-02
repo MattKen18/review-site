@@ -12,8 +12,9 @@ import ImageAddOnView from './ImageAddOnView';
 import s3Client from '../s3';
 
 
-const AddOnsView = ({updater, stagedImages, forumId}) => {
+const AddOnsView = ({updater, stagedImages, forumId, forumAction}) => {
   const [addOnType, setAddOnType] = useState(Object.keys(chatAddOns)[0])
+  const [stagedImagesToSendOver, setStagedImagesToSendOver] = useState([])
   const [addOns, setAddOns] = useState(chatAddOns)
 
   // const [addOnView, setAddOnView] = useState(Object.keys(addOns)[0])

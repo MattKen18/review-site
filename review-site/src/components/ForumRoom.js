@@ -38,6 +38,7 @@ import { addAlert } from '../slices/alertSlice';
 
 import { motion } from 'framer-motion';
 import ForumPanelPopUp from './ForumPanelPopUp';
+import IndexedDB from '../IndexedDB';
 
 
 const ForumRoom = ({forum}) => {
@@ -80,7 +81,13 @@ const ForumRoom = ({forum}) => {
   const chatFormRef = useRef(null)
   const emojiPickerRef = useRef(null)
   
-  
+  const [editFinished, setEditFinished] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [replyFinished, setReplyFinished] = useState(true);
+  const [addChatEntryFinished, setAddChatEntryFinished] = useState(false);
+
+  const [indexedDb, setIndexedDb] = useState(null)
+
   const auth = getAuth()
 
   const config = {
@@ -104,6 +111,15 @@ const ForumRoom = ({forum}) => {
       }
     })
   }, [])
+
+  useEffect(() => {
+    return () => {
+      if (editing) { // when the user refreshes or navigates between forums clear the staged editing images
+        clearStagedImagesInIndexedDB(forum.id)
+      }
+    }
+  }, [editing])
+
 
   useEffect(() => {
     if (!seeking) {
@@ -142,6 +158,7 @@ const ForumRoom = ({forum}) => {
     const unsubscribe = onSnapshot(forumRef, (updatedForum) => {
       // updatedForum.docChanges()
       setChat(updatedForum.data().chat)
+      console.log(updatedForum.data().chat)
       setMemberIds(updatedForum.data().members)
       // const oldMembers = {...members}
     })
@@ -209,7 +226,9 @@ const ForumRoom = ({forum}) => {
     setEmojiPickerShown(false)
     if (forumAction === 'edit') {
       finishEdit(entryBeingEdited)
-    }else if (forumAction === 'reply') {
+      setEditFinished(true)
+      setEditing(false)
+    } else if (forumAction === 'reply') {
       finishReply(entryBeingRepliedTo)
     } else {
       addChatEntryInFirestore(chatEntryContent, type, userId, forumId, null, currentAddOns).then(result => {
@@ -220,7 +239,8 @@ const ForumRoom = ({forum}) => {
         }
       })
     }
-
+    setAddOptionsShown(false)
+    clearStagedImagesInIndexedDB(forumId)
   }
   
   
@@ -236,29 +256,77 @@ const ForumRoom = ({forum}) => {
   }
 
 
+  const clearStagedImagesInIndexedDB = async (forumId) => {
+    const db = new IndexedDB("forumAddOns", "forums-staged-images")
+    await db.addDataToIndexedDB({id: forumId, content: []}, "forums-staged-images") //clear indexedDB staged images
+  }
+
+  useEffect(() => {
+    if (addOptionsShown) {
+      if (forumAction != '') {
+
+      }
+
+    }
+  }, [addOptionsShown])
+
+  useEffect(() => {
+    if (forumAction == null) {
+      setAddOptionsShown(false)
+    } else {
+      setAddOptionsShown(true)
+    }
+  }, [forumAction])
+
   const startEdit = (chatEntry, entryAuthor) => {
+    setEditFinished(false)
+    setEditing(true)
     const chatInput = document.getElementById('forum-message-input')
-    setForumAction('edit')
     
-    const chatEntryWithAuthor = {...chatEntry}
-    chatEntryWithAuthor.author = entryAuthor
-    
-    setEntryBeingEdited(chatEntryWithAuthor)
-    
-    setChatEntryContent(chatEntry.body)
-    chatInput.focus()
+
+    if (entryBeingEdited?.id === chatEntry.id) { // if closing edit
+      console.log(chatEntry.forum)
+      setForumAction(null)
+      setAddOptionsShown(false)
+      setEntryBeingEdited(null)
+      setChatEntryContent('')
+      clearStagedImagesInIndexedDB(chatEntry.forum)
+      setAddOns(chatAddOns)
+      chatInput.blur()
+    } else {
+      setForumAction('edit')
+      
+      const chatEntryWithAuthor = {...chatEntry}
+      chatEntryWithAuthor.author = entryAuthor
+      
+      console.log(chatEntry.addOns)
+      try {
+        const addons = JSON.parse(JSON.parse(chatEntry.addOns))
+        setAddOns(addons)
+      } catch (e) {
+        const addons = JSON.parse(chatEntry.addOns)
+        setAddOns(addons)
+      }
+
+      setEntryBeingEdited(chatEntryWithAuthor)
+      
+      setChatEntryContent(chatEntry.body)
+      chatInput.focus()
+    }
   }
     
     
   const finishEdit = (chatEntry) => {
-    editChatEntryInFirestore(chatEntry.id, forum.id, chatEntryContent).then(result => {
+    console.log(addOns)
+    editChatEntryInFirestore(chatEntry.id, forum.id, chatEntryContent, addOns).then(result => {
       if (result) {
-        setAlert({body: "Successfully deleted message", type: "success"})
+        // setAlert({body: "Successfully deleted message", type: "success"})
+        dispatch(addAlert({body: "Message updated", type: "success"}))
         setChatEntryContent('')
         setForumAction(null)
         setEntryBeingEdited(null)
       } else {
-        setAlert({body: "Error deleting message. Please try again.", type: "error"})
+        dispatch(addAlert({body: "Something went wrong 😞 Please try again!", type: "success"}))
       }
     })
   }
@@ -415,33 +483,69 @@ const ForumRoom = ({forum}) => {
     // console.log(addOn)
     const addOnsCopy = {...addOns}
     addOnsCopy[type] = addOn
+    console.log(addOnsCopy)
     setAddOns(addOnsCopy)
     // console.log('add ons: ', addOnsCopy)
   }
 
   const uploadFilesToS3 = async (type, files) => {
-    for (let i=0; i<files.length; i++) {
-      try {
-        if (!files[i][2]) { //upload only the files not already uploaded
-          const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
-          const res = await s3.uploadFile(files[i][0], fileName);
+    console.log("files: ", files)
 
-          const addOnsCopy = {...addOns}
-          addOnsCopy[type][i] = res.location
-          addChatEntry('message', currentUser.uid, forum.id, addOnsCopy)
+    try {
+      const addOnsCopy = {...addOns}
+      for (let i=0; i<files.length; i++) {
+        if (!files[i].uploaded) { //upload only the files not already uploaded
+          const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
+          const res = await s3.uploadFile(files[i].fileObj, fileName);
+
+          addOnsCopy[type][i].fileObj = {} //no need to save the fileObj in firestore
+          addOnsCopy[type][i].url = res.location
+          addOnsCopy[type][i].uploaded = true
+
+          //TODO: convert addOnsCopy to json
+          
+          console.log("Json: ", JSON.stringify(addOnsCopy))
+          addChatEntry('message', currentUser.uid, forum.id, JSON.stringify(addOnsCopy))
           resetAddOns()
-          return true
         }
-      } catch (exception) {
-        console.log(exception);
-        return false
       }
+      console.log(addOnsCopy)
+      return true
+    } catch (e) {
+      console.log(e);
+      return false
     }
+
+    // for (let i=0; i<files.length; i++) {
+    //   try {
+    //     if (!files[i].uploaded) { //upload only the files not already uploaded
+    //       const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
+    //       const res = await s3.uploadFile(files[i].fileObj, fileName);
+
+    //       const addOnsCopy = {...addOns}
+    //       addOnsCopy[type][i].fileObj = {} //no need to save the fileObj in firestore
+    //       addOnsCopy[type][i].url = res.location
+    //       addOnsCopy[type][i].uploaded = true
+
+    //       console.log(addOnsCopy)
+
+    //       //TODO: convert addOnsCopy to json
+          
+    //       console.log("Json: ", JSON.stringify(addOnsCopy))
+    //       addChatEntry('message', currentUser.uid, forum.id, JSON.stringify(addOnsCopy))
+    //       resetAddOns()
+    //       return true
+    //     }
+    //   } catch (exception) {
+    //     console.log(exception);
+    //     return false
+    //   }
+    // }
   }
-  
 
   const createChatEntry = (e) => {
     e.preventDefault()
+    console.log(addOns);
     for (let addOnType in addOns) {
       if (uploadableAddOns.includes(addOnType) && addOns[addOnType].length) {
         uploadFilesToS3(addOnType, addOns[addOnType])
@@ -506,6 +610,7 @@ const ForumRoom = ({forum}) => {
   }
 
   useEffect(() => {
+    console.log(chat);
     if (chat.length) {
       let [firstAggregatedChatEntry, currentChat] = chatGrouper({...chat[0], lines: []}, chat) 
       const newAggregatedChat = [firstAggregatedChatEntry]
@@ -517,14 +622,45 @@ const ForumRoom = ({forum}) => {
       }
       
       setAggregatedChat(newAggregatedChat)
+      console.log(newAggregatedChat)
     }
   }, [chat])
 
 
+  useEffect(() => {
+    console.log(aggregatedChat);
+  }, [aggregatedChat])
   // useEffect(() => {
   //   dispatch(addAlert({body: "Successfully loaded!", type: "success"}))
   // }, [])
   
+  const addOnCount = () => {
+    let count = 0
+    console.log(addOns)
+    for (let addOnType in addOns) {
+      count += addOns[addOnType].length
+    }
+
+    console.log(count)
+
+    return count
+  }
+  
+  const loadAddOnsFromIndexedDB = async (db) => {
+    // load images
+    const imagesAddOn = await db.getDataFromIndexedDB("forums-staged-images", forum.id)
+    updateAddOn(imagesAddOn.content, 'images')
+  }
+
+
+  useEffect(() => {
+    const db = new IndexedDB("forumAddOns", "forums-staged-images")
+    setIndexedDb(db)
+
+    loadAddOnsFromIndexedDB(db)
+  }, [])
+
+
 
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
@@ -598,6 +734,7 @@ const ForumRoom = ({forum}) => {
                       startEdit={startEdit}
                       startReply={startReply}
                       deleteChatEntry={deleteChatEntry}
+                      entryBeingEdited={entryBeingEdited}
                       className={'h-fit'}
                     />
                     <hr className='bg-slate-200 w-[90%] m-auto opacity-20' />
@@ -635,14 +772,20 @@ const ForumRoom = ({forum}) => {
       {/* Input */}
       <div className='sticky w-full bottom-0 flex flex-col text-white'>
         {
+          forumAction === 'edit' &&
+          <div className='h-30 w-full bg-white'>
+
+          </div>
+        }
+        {
           addOptionsShown &&
           <div className='w-full border-white'>
-            <AddOnsView updater={updateAddOn} stagedImages={addOns['images']} forumId={forum.id}/>
+            <AddOnsView updater={updateAddOn} stagedImages={addOns['images']} forumId={forum.id} forumAction={forumAction} />
           </div>
         }  
         <form ref={chatFormRef} onSubmit={createChatEntry} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
           {
-            entryBeingRepliedTo && forumAction === 'reply' ?
+            entryBeingRepliedTo && forumAction !== 'reply' ?
 
             <div className={`relative h-fit p-2 mb-2 backdrop-blur-md w-fit min-w-[200px] mx-12 text-white border-l-4 border-l-amber-700`}>
               <p className='font-bold text-sm'>Replying to: </p>
@@ -672,7 +815,7 @@ const ForumRoom = ({forum}) => {
               </button>
             </div>
             :
-            entryBeingEdited && forumAction === 'edit' &&
+            entryBeingEdited && forumAction !== 'edit' &&
             <div className={`relative h-fit p-2 mb-2 backdrop-blur-md w-fit min-w-[200px] mx-12 text-white border-l-4 border-l-green-700`}>
             <p className='font-bold text-sm'>Editing: </p>
             <div className={`relative group flex w-full p-2 mb-3`}>
@@ -704,8 +847,9 @@ const ForumRoom = ({forum}) => {
 
           {/* Chat Input Form */}
           <div className='flex space-x-2 min-h-12 bg-slate-800 p-2 z-[10000]'>
-            <div className='flex items-center justify-center'>
-              <button onClick={() => {setAddOptionsShown(shown => !shown); setEmojiPickerShown(false)}} type='button' className={`active:scale-90 duration-90 rounded-lg ${addOptionsShown && `bg-gray-900`} hover:bg-gray-900 p-1`}>
+            <div className='relative flex items-center justify-center'>
+              <span className={`z-[100] absolute -top-2 left-0 font-bold hover:opacity-100 text-success`}>{addOnCount()}</span>
+              <button onClick={() => {setAddOptionsShown(shown => !shown); setEmojiPickerShown(false)}} type='button' className={`active:scale-90 duration-90 rounded-lg ${addOptionsShown && `bg-gray-900`} bg-gray-900 p-1`}>
                 <AddOutlinedIcon sx={{ fontSize: 25 }} />
               </button>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { chatAddOns } from '../parameters'
 import AddOnChatEntryView from './AddOnChatEntryView'
 import ArrowRightOutlinedIcon from '@mui/icons-material/ArrowRightOutlined';
@@ -8,6 +8,9 @@ const ChatEntryLine = ({hasAddOns, entry}) => {
   const [addOnTypeShowing, setAddOnTypeShowing] = useState(Object.keys(chatAddOns)[0])
 
   const dispatch = useDispatch();
+  useEffect(() => {
+    console.log(entry)
+  }, [entry])
 
   const capitalize = (word) => {
     return word[0].toUpperCase() + word.slice(1)
@@ -38,7 +41,7 @@ const ChatEntryLine = ({hasAddOns, entry}) => {
           <p className='pl-2'>{entry?.body}</p>
         :
         entry.type === 'notification' ?
-          <p className='pl-2'></p>
+          <p className='pl-2'>{entry?.body}</p>
         :
         entry.type === 'deleted' &&
           <p className='pl-2 text-sm opacity-30'>Message deleted</p>

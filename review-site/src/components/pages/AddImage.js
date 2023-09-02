@@ -4,7 +4,7 @@ import AddCircleOutlinedIcon from '@mui/icons-material/AddCircleOutlined';
 import RemoveCircleOutlinedIcon from '@mui/icons-material/RemoveCircleOutlined';
 
 const S3_BUCKET ='test-image-store-weviews';
-const REGION ='us-east-2';
+const REGION ='us-east-2'; 
 const ACCESS_ID ='AKIAR74LVHA4ZCOAF7OT';
 const SECRET_ACCESS_KEY ='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';
 
