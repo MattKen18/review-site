@@ -146,13 +146,13 @@ class IndexedDB {
 
     getDataFromIndexedDB = async (storeName, key) => {
         await this.waitForDBReady();
-
-        const transaction = this.#database.transaction(storeName, "readonly");
-        const store = transaction.objectStore(storeName);
-
+        
         try {
-        const getRequest = store.get(key);
-        return new Promise((resolve, reject) => {
+            const transaction = this.#database.transaction(storeName, "readonly");
+            const store = transaction.objectStore(storeName);
+
+            const getRequest = store.get(key);
+            return new Promise((resolve, reject) => {
             getRequest.onsuccess = e => resolve(e.target.result);
             
             getRequest.onerror = e => reject(new Error("Error retrieving data", e.target.error));

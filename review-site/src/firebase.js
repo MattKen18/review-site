@@ -994,7 +994,7 @@ export const createForumInFirestore = async (userId, forumData) => {
       maxNumOfMembers: forumData.maxNumOfMembers,
       lifespan: forumData.lifespan,
       members: [userId],
-      thumbnail: '', //forumData.thumbnail
+      thumbnail: forumData.thumbnail,
       chat: [],
       created: serverTimestamp(),
     })

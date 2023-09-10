@@ -692,6 +692,7 @@ const ForumRoom = ({forum}) => {
     }
   }
 
+
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
       {/* Forum Header */}
@@ -699,7 +700,7 @@ const ForumRoom = ({forum}) => {
        
         {/* title and topic */}
         <div className='w-16 h-16 rounded-lg overflow-hidden'>
-          <img src={forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
+          <img src={forum.thumbnail ? forum.thumbnail : forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
         </div>
         <div className='flex flex-col flex-1 h-full'>
           <h1 className='font-bold text-lg'>{forum.name}</h1>

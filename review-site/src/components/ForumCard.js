@@ -140,7 +140,7 @@ const ForumCard = ({forum, enterForum, leaveForum, active}) => {
       <div onClick={() => enterForum(forum)} className={`${optionsShown && `blur-[1px]`} relative z-0 flex space-x-2 items-center py-2 px-1 h-full w-full`}>
         <div className='w-1/5 h-full flex items-center justify-center'>
           <div className='h-12 w-12 rounded-lg overflow-hidden'>
-            <img src={forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
+            <img src={forum.thumbnail ? forum.thumbnail : forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
           </div>
         </div>
         <div className='flex flex-col flex-1 justify-between'>
