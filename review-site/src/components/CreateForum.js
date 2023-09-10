@@ -114,12 +114,6 @@ const CreateForum = ({user, addForumToState}) => {
 
   return (
     <div className='relative w-7/12 pt-10'>
-      {
-        alert &&
-        <div className='absolute top-0 left-1/2 -translate-x-1/2'>
-          <Alert content={{body: alert.body, type: alert.type}} />
-        </div>
-      }
       <h1 className='font-bold text-xl text-center'>Create Forum</h1>
       <form id='create-forum-form' className='pt-10 flex flex-col space-y-8' autoComplete='off' onSubmit={createNewForum}>
         <div className='flex flex-col space-y-2 justify-center'>

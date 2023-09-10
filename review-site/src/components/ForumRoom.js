@@ -27,6 +27,7 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
 import ArrowDownwardOutlinedIcon from '@mui/icons-material/ArrowDownwardOutlined';
 import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 
 import ImageAddOn from './ImageAddOn';
 import AddOnsView from './AddOnsView';
@@ -39,6 +40,7 @@ import { addAlert } from '../slices/alertSlice';
 import { motion } from 'framer-motion';
 import ForumPanelPopUp from './ForumPanelPopUp';
 import IndexedDB from '../IndexedDB';
+import { updateChatSnap } from '../slices/userForumsSlice';
 
 
 const ForumRoom = ({forum}) => {
@@ -157,14 +159,14 @@ const ForumRoom = ({forum}) => {
     const forumRef = doc(db, 'forums', forum.id)
     const unsubscribe = onSnapshot(forumRef, (updatedForum) => {
       // updatedForum.docChanges()
+      // updateUserForums({...updatedForum.data(), id: forum.id})
       setChat(updatedForum.data().chat)
-      console.log(updatedForum.data().chat)
+      // console.log(updatedForum.data().chat)
       setMemberIds(updatedForum.data().members)
       // const oldMembers = {...members}
     })
     return () => unsubscribe()
   }, [])
-
 
   useEffect(() => {
 
@@ -203,6 +205,7 @@ const ForumRoom = ({forum}) => {
   useEffect(() => {
     // if (members) console.log(Object.keys(members))
     // if (members) console.log(members)
+    console.log(Object.keys(members))
 
   }, [members])
 
@@ -235,7 +238,7 @@ const ForumRoom = ({forum}) => {
         if (result) {
           setChatEntryContent('')
         } else {
-          setAlert({body: "Error sending message. Please try again.", type: "error"})
+          dispatch(addAlert({body: "Error sending message. Please try again.", type: "error"}))
         }
       })
     }
@@ -255,10 +258,18 @@ const ForumRoom = ({forum}) => {
       })
   }
 
+  useEffect(() => {
+    if (chat) {
+      console.log(chat[0])
+      const chatSnap = chat.length ? chat[chat.length-1].body : '' // last chat entry
+      
+      dispatch(updateChatSnap({body: chatSnap, forumId: forum.id}))
+    }
+  }, [chat])
 
   const clearStagedImagesInIndexedDB = async (forumId) => {
     const db = new IndexedDB("forumAddOns", "forums-staged-images")
-    await db.addDataToIndexedDB({id: forumId, content: []}, "forums-staged-images") //clear indexedDB staged images
+    await db.addDataToIndexedDB({id: forumId, content: []}, "forums-staged-images") // clear indexedDB staged images
   }
 
   useEffect(() => {
@@ -295,24 +306,34 @@ const ForumRoom = ({forum}) => {
       chatInput.blur()
     } else {
       setForumAction('edit')
-      
       const chatEntryWithAuthor = {...chatEntry}
       chatEntryWithAuthor.author = entryAuthor
       
       console.log(chatEntry.addOns)
+      let addons = []
       try {
-        const addons = JSON.parse(JSON.parse(chatEntry.addOns))
+        addons = JSON.parse(JSON.parse(chatEntry.addOns))
         setAddOns(addons)
       } catch (e) {
-        const addons = JSON.parse(chatEntry.addOns)
+        addons = JSON.parse(chatEntry.addOns)
         setAddOns(addons)
       }
-
+      
+      updateIndexedDB(indexedDb, addons[addOnOption])
       setEntryBeingEdited(chatEntryWithAuthor)
       
       setChatEntryContent(chatEntry.body)
       chatInput.focus()
     }
+  }
+
+  const updateIndexedDB = async (db, files) => {
+    const data = {
+      id: forum.id,
+      content: files,
+    }
+    console.log(data)
+    await db.addDataToIndexedDB(data, "forums-staged-images") // updates it
   }
     
     
@@ -490,6 +511,9 @@ const ForumRoom = ({forum}) => {
 
   const uploadFilesToS3 = async (type, files) => {
     console.log("files: ", files)
+    
+    // if user only removed a file without adding any, there will be no new files to upload
+    const noFilesUploaded = true 
 
     try {
       const addOnsCopy = {...addOns}
@@ -500,15 +524,13 @@ const ForumRoom = ({forum}) => {
 
           addOnsCopy[type][i].fileObj = {} //no need to save the fileObj in firestore
           addOnsCopy[type][i].url = res.location
-          addOnsCopy[type][i].uploaded = true
-
-          //TODO: convert addOnsCopy to json
-          
-          console.log("Json: ", JSON.stringify(addOnsCopy))
-          addChatEntry('message', currentUser.uid, forum.id, JSON.stringify(addOnsCopy))
-          resetAddOns()
+          addOnsCopy[type][i].uploaded = true          
         }
       }
+
+      addChatEntry('message', currentUser.uid, forum.id, addOnsCopy)
+      resetAddOns()
+
       console.log(addOnsCopy)
       return true
     } catch (e) {
@@ -660,17 +682,18 @@ const ForumRoom = ({forum}) => {
     loadAddOnsFromIndexedDB(db)
   }, [])
 
+  const copyCode = () => {
+    try {
+      navigator.clipboard.writeText(forum.id);
+      dispatch(addAlert({body: "Code copied to clipboard!", type:"success"}))
+    } catch (e) {
+      dispatch(addAlert({body: "Error copying code to clipboard", type: "error"}))
 
+    }
+  }
 
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
-      {
-        alert &&
-        <motion.div className='absolute top-0 left-1/2 -translate-x-1/2'>
-          <Alert content={{body: alert.body, type: alert.type}} />
-        </motion.div>
-      }
-
       {/* Forum Header */}
       <div className='relative flex flex-row items-center h-20 bg-slate-800 p-2 space-x-4 text-light-text'>
        
@@ -681,8 +704,12 @@ const ForumRoom = ({forum}) => {
         <div className='flex flex-col flex-1 h-full'>
           <h1 className='font-bold text-lg'>{forum.name}</h1>
           <p className='text-xs leading-3 font-light border-l-4 border-highlight pl-1 mb-1 italic'>{forum.topic}</p>
-          <div className=''>
-            <small className='leading-3 text-xs font-bold'>Forum code: <span className='text-highlight px-1 bg-secondary rounded-md'>{forum.id}</span></small>
+          <div className='leading-3 text-xs font-bold mt-2 flex flex-row space-x-2 items-center'>
+            <p className=''>
+              Forum code: 
+            </p>
+            <span className='text-highlight px-1 bg-secondary rounded-md'>{forum.id}</span>
+            <ContentCopyOutlinedIcon onClick={() => copyCode()} className={'hover:scale-110 active:scale-100 hover:cursor-pointer hover:text-highlight'} sx={{fontSize: 12}}/>
           </div>
         </div>
 
@@ -697,7 +724,7 @@ const ForumRoom = ({forum}) => {
           >
           <div className='flex w-full flex-row items-center space-x-2'>
             <GroupsOutlinedIcon />
-            <p>{forum.members.length}</p>
+            <p>{Object.keys(members).length}</p>
           </div>
           <div className='flex flex-row items-center space-x-2'>
             <QueryBuilderOutlinedIcon />  
@@ -717,7 +744,7 @@ const ForumRoom = ({forum}) => {
             popUpPanelShown && 
             <div className='absolute w-1/4 h-full top-0 right-0 rounded-md'>
               <div className='w-full h-fit sticky top-0 right-0 z-[100]'>
-                <ForumPanelPopUp forum={forum} />
+                <ForumPanelPopUp forum={forum} memberIds={Object.keys(members)} />
               </div>
 
             </div>
@@ -737,7 +764,10 @@ const ForumRoom = ({forum}) => {
                       entryBeingEdited={entryBeingEdited}
                       className={'h-fit'}
                     />
-                    <hr className='bg-slate-200 w-[90%] m-auto opacity-20' />
+                    {
+                      chatEntry.type != 'notification' &&
+                      <hr className='bg-slate-200 w-[90%] m-auto opacity-20' />
+                    }
                   </>
                 ))
             }

@@ -195,12 +195,16 @@ const FileUpload = ({
 
   const deleteFile = (key) => {
     const files = [...filesToShow]
+    console.log(files)
     files.splice(key, 1)
     setFilesToShow(files)
     updateIndexedDB(db, files)
+    console.log(files)
     // updateSessionStorage(type, files)
     updater(files)
   }
+
+
 
   const handleFileDragStart = (e, index) => {
     e.dataTransfer.setData("text", index)

@@ -3,12 +3,50 @@ import forumDefaultThumb from '../assets/default-forum-thumbnail.jpg'
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import MoreVertOutlinedIcon from '@mui/icons-material/MoreVertOutlined';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getUserFromFirestore } from '../firebase';
+import { db, getForum, getUserForums, getUserFromFirestore } from '../firebase';
+import { collection, doc, limit, onSnapshot, orderBy, query, where } from 'firebase/firestore';
+
+import { selectForums } from '../slices/userForumsSlice';
+import { useSelector } from 'react-redux';
 
 const ForumCard = ({forum, enterForum, leaveForum, active}) => {
   const [userJoined, setUserJoined] = useState(true) //if the user is a member of the forum
   const [optionsShown, setOptionsShown] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+  const [chatSnap, setChatSnap] = useState({}) // the most recent chatEntry
+  const [memberIds, setMemberIds] = useState([])
+
+  // const forums = useSelector(selectForums)
+
+  // useEffect(() => {
+  //   console.log(forum)
+  //   console.log(forums)
+  //   for (let forumObj of forums) {
+  //     if (Object.keys(forumObj).includes(forum.id)) {
+  //       setChatSnap(forumObj[forum.id])
+  //       console.log(forumObj)
+  //     }
+  //   }
+  // }, [forums])
+
+  // useEffect(() => {
+  //   const checkChat = async () => {
+  //     const userForum = await getForum(forum.id)
+  //     const chatSnap = {}
+  //     chatSnap[forum.id] = {
+  //       body: userForum.chat.length ? userForum.chat[userForum.chat.length-1].body : ""
+  //     }
+  //     console.log(chatSnap)
+  //     return chatSnap   
+  //   }
+
+  //   const checkChatInterval = setInterval(() => {
+  //     // const chatSnap = checkChat()
+  //     // setChatSnap(chatSnap)
+  //   }, [1000])
+
+  //   return () => clearInterval(checkChatInterval)
+  // }, [])
 
   // const toggleOptionsMenu = () => {
   //   const optionsMenu = document.getElementById('options-menu-'+forum.id)
@@ -18,8 +56,33 @@ const ForumCard = ({forum, enterForum, leaveForum, active}) => {
   //   } else {
   //     optionsMenu.style.display = 'block'
   //     setOptionsShown(true)
-  //   }
+  //   } 
   // }
+
+  useEffect(() => {
+    const chat = forum.chat[forum.chat.length-1]
+    setChatSnap(chat)
+  }, [forum])
+
+  useEffect(() => {
+    const q = query(collection(db, 'chatEntries'), where('forum', '==', forum.id), orderBy('created', 'desc'), limit(1))
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      // console.log(querySnapshot)
+      querySnapshot.forEach(doc => {
+        console.log(doc.data())
+        setChatSnap(doc.data())
+      })
+      // querySnapshot.docChanges().forEach(change => {
+      //   if (change.type === "added") {
+      //     console.log(change.doc.data())
+      //     setChatSnap(change.doc.data())
+
+      //   }
+      // })
+    }, (error) => console.log(error))
+    return () => unsubscribe()
+  }, [])
+
 
   const auth = getAuth()
 
@@ -33,6 +96,12 @@ const ForumCard = ({forum, enterForum, leaveForum, active}) => {
       }
     })
   }, [])
+
+  const getLastChatEntry = () => {
+    const entry = chatSnap ? chatSnap.body : "Start chatting!"
+    
+    return entry
+  }
 
   useEffect(() => {
     const optionsMenu = document.getElementById('options-menu-'+forum.id)
@@ -81,7 +150,7 @@ const ForumCard = ({forum, enterForum, leaveForum, active}) => {
           </div>
           <div className='flex items-center h-[25px]'>
             {/* most recent chat */}
-            <p className='rounded-xl text-[.65rem]'>new300User: Hello There!</p>
+            <p className='rounded-xl text-[.65rem]'>{getLastChatEntry()}</p>
           </div>
         </div>
       </div>
@@ -104,7 +173,7 @@ const ForumCard = ({forum, enterForum, leaveForum, active}) => {
           </ul>
         </div>
       </div>
-      <span className={`${optionsShown && `blur-[1px]`} absolute flex-none top-1 right-2 text-[.65rem] text-success`}>{forum.lifespan} mins</span>
+      <span className={`${optionsShown && `blur-[1px]`} absolute flex-none top-1 right-2 text-[.65rem] font-bold text-success`}>{forum.lifespan} mins</span>
     </div>
   )
 }

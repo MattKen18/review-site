@@ -1057,25 +1057,26 @@ export const joinForumWithCode = async (forumId, userId, userName) => {
     const forumRef = doc(db, 'forums', forumId)
     const forumSnap = await getDoc(forumRef)
     
-    // const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
-    //   type: 'notification',
-    //   body: userName + " just joined the forum",
-    //   forum: forumId,
-    //   user: userId,
-    //   replyingTo: null,
-    //   addOns: '',
-    //   created: serverTimestamp()
-    // })
-    addChatEntryInFirestore(userName + " just joined the forum",
-                             'notification',
-                             userId,
-                             forumId,
-                             null,
-                             chatAddOns)
+    const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
+      type: 'notification',
+      body: userName + " just joined the forum",
+      forum: forumId,
+      user: userId,
+      replyingTo: null,
+      addOns: '',
+      created: serverTimestamp()
+    })
+    // addChatEntryInFirestore(userName + " just joined the forum",
+    //                          'notification',
+    //                          userId,
+    //                          forumId,
+    //                          null,
+    //                          chatAddOns)
 
-    // const chatEntrySnap = await getDoc(chatEntryRef)
+    const chatEntrySnap = await getDoc(chatEntryRef)
 
     await setDoc(forumRef, {
+      chat: [...forumSnap.data().chat, chatEntrySnap.data()],
       members: [...forumSnap.data().members, userId],
     }, {merge: true})
 
@@ -1104,28 +1105,28 @@ export const leaveForumRoom = async (forumId, userId) => {
     const userForums = [...userSnap.data().forums]
     userForums.splice(userForums.indexOf(forumId), 1)
 
-    addChatEntryInFirestore(userSnap.data().userName + " has left the forum",
-    'notification',
-    userId,
-    forumId,
-    null,
-    chatAddOns)
+    // addChatEntryInFirestore(userSnap.data().userName + " has left the forum",
+    // 'notification',
+    // userId,
+    // forumId,
+    // null,
+    // chatAddOns)
 
-    // const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
-    //   type: 'notification',
-    //   body: userSnap.data().userName + " has left the forum",
-    //   forum: forumId,
-    //   user: userId,
-    //   replyingTo: null,
-    //   created: serverTimestamp()
-    // })
+    const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
+      type: 'notification',
+      body: userSnap.data().userName + " has left the forum",
+      forum: forumId,
+      user: userId,
+      replyingTo: null,
+      created: serverTimestamp()
+    })
 
-    // const chatEntrySnap = await getDoc(chatEntryRef)
+    const chatEntrySnap = await getDoc(chatEntryRef)
 
-    // await setDoc(forumRef, {
-    //   members: forumMembers,
-    //   chat: [...forumSnap.data().chat, chatEntrySnap.data()]
-    // }, {merge: true})
+    await setDoc(forumRef, {
+      members: forumMembers,
+      chat: [...forumSnap.data().chat, chatEntrySnap.data()]
+    }, {merge: true})
 
     await setDoc(userRef, {
       forums: userForums
@@ -1158,7 +1159,8 @@ export const addChatEntryInFirestore = async (body, type, userId, forumId, reply
 
     const chatEntrySnap = await getDoc(chatEntryRef)
 
-    console.log(chatEntrySnap.data());
+    console.log(chatEntrySnap.data())
+    console.log(forumSnap.data())
     await setDoc(forumRef, {
       chat: [...forumSnap.data().chat, {...chatEntrySnap.data(), id: chatEntryRef.id}] 
     }, {merge:true})

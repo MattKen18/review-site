@@ -6,7 +6,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import QueryBuilderOutlinedIcon from '@mui/icons-material/QueryBuilderOutlined';
 import ProfileThumbnail from './ProfileThumbnail';
 
-const ForumPanelPopUp = ({forum}) => {
+const ForumPanelPopUp = ({forum, memberIds}) => {
   const [members, setMembers] = useState([])
 
   const [membersConvertedToFirestoreUsers, setMembersConvertedToFirestoreUsers] = useState(false)
@@ -15,7 +15,7 @@ const ForumPanelPopUp = ({forum}) => {
     
     const getConvertedMembers = async () => {
       const firestoreMembers = []
-      for (let memberId of forum.members) {
+      for (let memberId of memberIds) {
         const user = await getUserFromFirestore(memberId)
       
         firestoreMembers.push(user)
@@ -26,8 +26,12 @@ const ForumPanelPopUp = ({forum}) => {
     // gets users from firestore from members list
     getConvertedMembers()
 
-  }, [forum])
+  }, [memberIds])
   
+  useEffect(() => {
+    console.log(memberIds)
+  }, [memberIds])
+
   return (
     <div className='w-full h-3/4 min-h-[200px] bg-white rounded-md overflow-hidden flex flex-col'>
       <div className='flex-1'>

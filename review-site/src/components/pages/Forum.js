@@ -7,6 +7,10 @@ import ForumCard from '../ForumCard'
 import ForumRoom from '../ForumRoom'
 import JoinForum from '../JoinForum'
 
+import { useDispatch } from 'react-redux'
+import { addAlert } from '../../slices/alertSlice'
+import { updateForums } from '../../slices/userForumsSlice'
+
 const Forum = () => {
   const [currentUser, setCurrentUser] = useState(null)
   const [forumOption, setForumOption] = useState(null) //join or create forum
@@ -15,7 +19,9 @@ const Forum = () => {
   const [activeForum, setActiveForum] = useState(null) //forum object
   
   const [alert, setAlert] = useState(null)
+  
   const auth = getAuth()
+  const dispatch = useDispatch()
 
 
   useEffect(() => {
@@ -30,6 +36,8 @@ const Forum = () => {
   }, [])
 
 
+
+
   useEffect(() => {
     if (currentUser) {
       getUserForums(currentUser.uid).then(forums => {
@@ -40,14 +48,30 @@ const Forum = () => {
   }, [currentUser])
 
 
+  // const updateUserForums = (forum) => {
+  //   console.log(forum)
+  //   const forums = [...userForums]
+
+  //   for (let i=0; i<forums.length; i++) {
+  //     // console.log(forums[i].id + " : " + forum.id)
+  //     if (forums[i].id === forum.id) {
+  //       forums[i] = forum
+  //       // console.log(forums[i].chat)
+  //     }
+  //   }
+  //   setUserForums(forums)
+  // }
+
   const addForumToState = (forum) => {
     if (forum) {
       setUserForums([...userForums, forum])
       setActiveForum(forum)
       setForumOption(null)
-      setAlert({body: "Forum Created", type: "success"})
+
+      dispatch(addAlert({body: "Forum Created", type: "success"}))
+      // setAlert({body: "Forum Created", type: "success"})
     } else {
-      setAlert({body: "Error Creating Forum. Please try again", type: "error"})
+      dispatch(addAlert({body: "Error Creating Forum. Please try again", type: "error"}))
     }
     
   }
@@ -82,7 +106,24 @@ const Forum = () => {
     })
   }
   
-  
+  useEffect(() => {
+    if (userForums) {
+      const forums = []
+      for (let forum of userForums) {
+        const forumObj = {}
+        console.log(forum.chat)
+        forumObj[forum.id] = {
+          body: forum.chat[forum.chat.length-1] ? forum.chat[forum.chat.length-1].body : 'Start the convo...',
+        }
+        forums.push(forumObj)
+
+      }
+      console.log(forums)
+      dispatch(updateForums({forums: forums}))
+    }
+  }, [userForums])
+
+
   useEffect(() => {
     
   }, [activeForum])
@@ -151,12 +192,12 @@ const Forum = () => {
         </div>
       </aside>
       <div className='relative flex-1 min-h-screen bg-gray-100 flex justify-center basis-3/4'>
-        {
+        {/* {
           alert &&
           <div className='absolute top-0 left-1/2 -translate-x-1/2'>
             <Alert content={{body: alert.body, type: alert.type}} />
           </div>
-        }
+        } */}
         {
           activeForum ?
             <>

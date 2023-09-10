@@ -3,9 +3,11 @@ TODO: configure secret in aws
 T̶O̶D̶O̶:̶ f̶i̶x̶ n̶o̶t̶ s̶a̶v̶i̶n̶g̶ f̶i̶l̶e̶ o̶b̶j̶ i̶n̶ s̶e̶s̶s̶i̶o̶n̶ s̶t̶o̶r̶a̶g̶e̶ w̶h̶e̶n̶ p̶a̶g̶e̶ r̶e̶l̶o̶a̶d̶s̶
 T̶O̶D̶O̶:̶ f̶i̶x̶ n̶o̶t̶ b̶e̶i̶n̶g̶ a̶b̶l̶e̶ d̶e̶l̶e̶t̶e̶ c̶h̶a̶t̶ e̶n̶t̶r̶y̶
 T̶O̶D̶O̶:̶ c̶o̶n̶v̶e̶r̶t̶ t̶o̶ u̶s̶i̶n̶g̶ i̶n̶d̶e̶x̶e̶d̶D̶B̶ i̶n̶s̶t̶e̶a̶d̶ o̶f̶ s̶e̶s̶s̶i̶o̶n̶S̶t̶o̶r̶a̶g̶e̶
-TODO: fix user joined forum not showing
-TODO: fix images disappearing when editing chatEntry
-TODO: fix when click on edit and reload page the addOns not clearing
-TODO: fix idexeddb not updating when switching between which entry to edit
-
-
+T̶O̶D̶O̶:̶ f̶i̶x̶ u̶s̶e̶r̶ j̶o̶i̶n̶e̶d̶ f̶o̶r̶u̶m̶ n̶o̶t̶ s̶h̶o̶w̶i̶n̶g̶
+T̶O̶D̶O̶:̶ f̶i̶x̶ i̶m̶a̶g̶e̶s̶ d̶i̶s̶a̶p̶p̶e̶a̶r̶i̶n̶g̶ w̶h̶e̶n̶ e̶d̶i̶t̶i̶n̶g̶ c̶h̶a̶t̶E̶n̶t̶r̶y̶
+T̶O̶D̶O̶:̶ f̶i̶x̶ w̶h̶e̶n̶ c̶l̶i̶c̶k̶ o̶n̶ e̶d̶i̶t̶ a̶n̶d̶ r̶e̶l̶o̶a̶d̶ p̶a̶g̶e̶ t̶h̶e̶ a̶d̶d̶O̶n̶s̶ n̶o̶t̶ c̶l̶e̶a̶r̶i̶n̶g̶
+T̶O̶D̶O̶:̶ f̶i̶x̶ i̶d̶e̶x̶e̶d̶d̶b̶ n̶o̶t̶ u̶p̶d̶a̶t̶i̶n̶g̶ w̶h̶e̶n̶ s̶w̶i̶t̶c̶h̶i̶n̶g̶ b̶e̶t̶w̶e̶e̶n̶ w̶h̶i̶c̶h̶ e̶n̶t̶r̶y̶ t̶o̶ e̶d̶i̶t̶
+T̶O̶D̶O̶:̶ a̶d̶d̶ e̶d̶i̶t̶e̶d̶ f̶l̶a̶g̶ o̶n̶ c̶h̶a̶t̶ e̶n̶t̶r̶i̶e̶s̶ t̶h̶a̶t̶ h̶a̶v̶e̶ b̶e̶e̶n̶ e̶d̶i̶t̶e̶d̶
+TODO: fix user image and user name not being loaded in messages when user leaves the forum 
+TODO: implement undo functionality for deleting chatEntry
+TODO: Add owner/creator tag to user in forum

@@ -41,7 +41,7 @@ const AddOnChatEntryView = ({addOns, type}) => {
   
 
   return (
-    <div className='w-full h-[300px] mt-2 mb-2'>
+    <div className='w-full h-[300px] mb-2'>
       {
         type == 'images' ?
         // Media container
