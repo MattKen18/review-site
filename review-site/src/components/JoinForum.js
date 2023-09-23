@@ -1,16 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { joinForumWithCode } from '../firebase'
+import { useDispatch } from 'react-redux'
+import { addAlert } from '../slices/alertSlice'
 
 const JoinForum = ({user, joinForum}) => {
   const [forumCode, setForumCode] = useState('')
   const [forumName, setForumName] = useState('')
 
+  const dispatch = useDispatch()
+
   const joinForumRoomWithCode = (e) => {
     e.preventDefault()
 
-    console.log("forumCode: ", forumCode)
-    joinForumWithCode(forumCode, user.uid, user.userName).then(forumId => {
+    joinForumWithCode(forumCode, user.uid, user.userName)
+    .then(forumId => {
       joinForum(forumId)
+      dispatch(addAlert({body: "Joined forum!", type: "success"}))
+    })
+    .catch(e => {
+      dispatch(addAlert({body: "Error joining forum", type: "error"}))
     })
   }
 

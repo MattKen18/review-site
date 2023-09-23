@@ -24,13 +24,23 @@ import VideoCallOutlinedIcon from '@mui/icons-material/VideoCallOutlined';
 import AddLinkOutlinedIcon from '@mui/icons-material/AddLinkOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-
+import PauseCircleOutlineOutlinedIcon from '@mui/icons-material/PauseCircleOutlineOutlined';
+import ArrowDownwardOutlinedIcon from '@mui/icons-material/ArrowDownwardOutlined';
+import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 
 import ImageAddOn from './ImageAddOn';
 import AddOnsView from './AddOnsView';
 import { chatAddOns, maxAddOns, uploadableAddOns } from '../parameters';
 
 import s3Client from '../s3';
+import { useDispatch } from 'react-redux';
+import { addAlert } from '../slices/alertSlice';
+
+import { motion } from 'framer-motion';
+import ForumPanelPopUp from './ForumPanelPopUp';
+import IndexedDB from '../IndexedDB';
+import { updateChatSnap } from '../slices/userForumsSlice';
 
 
 const ForumRoom = ({forum}) => {
@@ -38,35 +48,48 @@ const ForumRoom = ({forum}) => {
   const [alert, setAlert] = useState(null)
   const [chatEntryContent, setChatEntryContent] = useState('')
   const [chat, setChat] = useState([]) // array of firestore chatEntry objects
+  const [aggregatedChat, setAggregatedChat] = useState([]) // array of joined chat entries
   const [members, setMembers] = useState({}) // object of user objects
   const [memberIds, setMemberIds] = useState([])
   
   const [forumAction, setForumAction] = useState(null) //if user is editing message or replying to message
   const [entryBeingEdited, setEntryBeingEdited] = useState(null)
   const [entryBeingRepliedTo, setEntryBeingRepliedTo] = useState(null)
-
+  
   const [emojiPickerShown, setEmojiPickerShown] = useState(false)
   const [selectedEmoji, setSelectedEmoji] = useState(null)
   const [cursorPosition, setCursorPosition] = useState(0)
-
+  
   const [emojiSelecting, setEmojiSelecting] = useState(false)
-
+  
   const [addOptionsShown, setAddOptionsShown] = useState(false)
+  const [popUpPanelShown, setPopUpPanelShown] = useState(false)
 
   const [addOnOption, setAddOnOption] = useState(Object.keys(chatAddOns)[0])
-
+  
   const [addOns, setAddOns] = useState(chatAddOns) //add-on files
   const [newAddOn, setNewAddOn] = useState(null)
   const [addOnsUploaded, setAddOnsUploaded] = useState(false);
 
   const [imageSrcs, setImageSrcs] = useState([])
+  
+  const [scrollingUp, setScrollingUp] = useState(false)
+  const [prevScrollTop, setPrevScrollTop] = useState(0)
+  const [atBottom, setAtBottom] = useState(true)
+  const [seeking, setSeeking] = useState(false) //if user scroll within the chat
 
   const chatInputRef = useRef(null)
-  const anchorRef = useRef(null)
+  const chatRef = useRef(null)
   const chatFormRef = useRef(null)
   const emojiPickerRef = useRef(null)
-
   
+  const [editFinished, setEditFinished] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [replyFinished, setReplyFinished] = useState(true);
+  const [addChatEntryFinished, setAddChatEntryFinished] = useState(false);
+
+  const [indexedDb, setIndexedDb] = useState(null)
+
   const auth = getAuth()
 
   const config = {
@@ -76,9 +99,11 @@ const ForumRoom = ({forum}) => {
     accessKeyId: 'AKIAR74LVHA4ZCOAF7OT',
     secretAccessKey: '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',
   }
-
+  
+  const dispatch = useDispatch()
+  
   const s3 = s3Client(config)
-
+  
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -90,26 +115,58 @@ const ForumRoom = ({forum}) => {
   }, [])
 
   useEffect(() => {
-    anchorRef.current.scrollIntoView(false)
-  }, [chat])
+    return () => {
+      if (editing) { // when the user refreshes or navigates between forums clear the staged editing images
+        clearStagedImagesInIndexedDB(forum.id)
+      }
+    }
+  }, [editing])
 
 
-  // useEffect(() => {
-  //   bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  // }, [bottomRef.current]);
+  useEffect(() => {
+    if (!seeking) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight
+    }
+  }, [chat, aggregatedChat, seeking])
+
+
+  // handles stopping automatic scrolling to bottom when user is scrolling
+  useEffect(() => {
+    if (chatRef.current) {
+      const handleScrollStop = () => {
+        const currentScrollTop = chatRef.current.scrollTop
+        const scrollHeight = chatRef.current.scrollHeight;
+        const clientHeight = chatRef.current.clientHeight;
+
+        // Calculate the maximum scrollable value
+        const maxScroll = scrollHeight - clientHeight;
+
+        if (currentScrollTop >= maxScroll-10) { // add a 10 px threshold
+          setSeeking(false)
+        } else {
+          setSeeking(true)
+        }
+      }
+      chatRef.current.addEventListener('scroll', handleScrollStop)
+  
+      return () => window.removeEventListener('scroll', handleScrollStop)
+    }
+  }, [chatRef.current, prevScrollTop])
+
 
   // Realtime listening to changes to forum i.e. new chat messages and members
   useEffect(() => {
     const forumRef = doc(db, 'forums', forum.id)
     const unsubscribe = onSnapshot(forumRef, (updatedForum) => {
       // updatedForum.docChanges()
+      // updateUserForums({...updatedForum.data(), id: forum.id})
       setChat(updatedForum.data().chat)
+      // console.log(updatedForum.data().chat)
       setMemberIds(updatedForum.data().members)
       // const oldMembers = {...members}
     })
     return () => unsubscribe()
   }, [])
-
 
   useEffect(() => {
 
@@ -148,6 +205,7 @@ const ForumRoom = ({forum}) => {
   useEffect(() => {
     // if (members) console.log(Object.keys(members))
     // if (members) console.log(members)
+    console.log(Object.keys(members))
 
   }, [members])
 
@@ -171,68 +229,137 @@ const ForumRoom = ({forum}) => {
     setEmojiPickerShown(false)
     if (forumAction === 'edit') {
       finishEdit(entryBeingEdited)
-    }else if (forumAction === 'reply') {
+      setEditFinished(true)
+      setEditing(false)
+    } else if (forumAction === 'reply') {
       finishReply(entryBeingRepliedTo)
     } else {
       addChatEntryInFirestore(chatEntryContent, type, userId, forumId, null, currentAddOns).then(result => {
         if (result) {
           setChatEntryContent('')
         } else {
-          setAlert({body: "Error sending message. Please try again.", type: "error"})
+          dispatch(addAlert({body: "Error sending message. Please try again.", type: "error"}))
         }
       })
     }
-
+    setAddOptionsShown(false)
+    clearStagedImagesInIndexedDB(forumId)
   }
   
   
   
-  const deleteChatEntry = (chatEntryId, forumId) => {
+  const deleteChatEntry = (chatEntryId, forumId=forum.id) => {
     deleteChatEntryInFirestore(chatEntryId, forumId).then(result => {
       if (result) {
-        setAlert({body: "Successfully deleted message", type: "success"})
+        dispatch(addAlert({body: "Message deleted", type: "error"}))
       } else {
-        setAlert({body: "Error deleting message. Please try again.", type: "error"})
+        dispatch(addAlert({body: "Error deleting message. Please try again.", type: "error"}))
       }
       })
-    }
+  }
 
-
-    const startEdit = (chatEntry, entryAuthor) => {
-      const chatInput = document.getElementById('forum-message-input')
-      setForumAction('edit')
+  useEffect(() => {
+    if (chat) {
+      console.log(chat[0])
+      const chatSnap = chat.length ? chat[chat.length-1].body : '' // last chat entry
       
+      dispatch(updateChatSnap({body: chatSnap, forumId: forum.id}))
+    }
+  }, [chat])
+
+  const clearStagedImagesInIndexedDB = async (forumId) => {
+    const db = new IndexedDB("forumAddOns", "forums-staged-images")
+    await db.addDataToIndexedDB({id: forumId, content: []}, "forums-staged-images") // clear indexedDB staged images
+  }
+
+  useEffect(() => {
+    if (addOptionsShown) {
+      if (forumAction != '') {
+
+      }
+
+    }
+  }, [addOptionsShown])
+
+  useEffect(() => {
+    if (forumAction == null) {
+      setAddOptionsShown(false)
+    } else {
+      setAddOptionsShown(true)
+    }
+  }, [forumAction])
+
+  const startEdit = (chatEntry, entryAuthor) => {
+    setEditFinished(false)
+    setEditing(true)
+    const chatInput = document.getElementById('forum-message-input')
+    
+
+    if (entryBeingEdited?.id === chatEntry.id) { // if closing edit
+      console.log(chatEntry.forum)
+      setForumAction(null)
+      setAddOptionsShown(false)
+      setEntryBeingEdited(null)
+      setChatEntryContent('')
+      clearStagedImagesInIndexedDB(chatEntry.forum)
+      setAddOns(chatAddOns)
+      chatInput.blur()
+    } else {
+      setForumAction('edit')
       const chatEntryWithAuthor = {...chatEntry}
       chatEntryWithAuthor.author = entryAuthor
       
+      console.log(chatEntry.addOns)
+      let addons = []
+      try {
+        addons = JSON.parse(JSON.parse(chatEntry.addOns))
+        setAddOns(addons)
+      } catch (e) {
+        addons = JSON.parse(chatEntry.addOns)
+        setAddOns(addons)
+      }
+      
+      updateIndexedDB(indexedDb, addons[addOnOption])
       setEntryBeingEdited(chatEntryWithAuthor)
       
       setChatEntryContent(chatEntry.body)
       chatInput.focus()
     }
-    
-    
-    const finishEdit = (chatEntry) => {
-      editChatEntryInFirestore(chatEntry.id, forum.id, chatEntryContent).then(result => {
-        if (result) {
-          setAlert({body: "Successfully deleted message", type: "success"})
-          setChatEntryContent('')
-          setForumAction(null)
-          setEntryBeingEdited(null)
-        } else {
-          setAlert({body: "Error deleting message. Please try again.", type: "error"})
-        }
-      })
+  }
+
+  const updateIndexedDB = async (db, files) => {
+    const data = {
+      id: forum.id,
+      content: files,
     }
+    console.log(data)
+    await db.addDataToIndexedDB(data, "forums-staged-images") // updates it
+  }
     
-    const finishReply = () => {
-      addChatEntryInFirestore(chatEntryContent, 'message', currentUser.uid, forum.id, entryBeingRepliedTo).then(result => {
-        if (result) {
-          setForumAction(null)
-          setChatEntryContent('')
-          setEntryBeingRepliedTo(null)
-        } else {
-          setAlert({body: "Error deleting message. Please try again.", type: "error"})
+    
+  const finishEdit = (chatEntry) => {
+    console.log(addOns)
+    editChatEntryInFirestore(chatEntry.id, forum.id, chatEntryContent, addOns).then(result => {
+      if (result) {
+        // setAlert({body: "Successfully deleted message", type: "success"})
+        dispatch(addAlert({body: "Message updated", type: "success"}))
+        setChatEntryContent('')
+        setForumAction(null)
+        setEntryBeingEdited(null)
+      } else {
+        dispatch(addAlert({body: "Something went wrong 😞 Please try again!", type: "success"}))
+      }
+    })
+  }
+    
+  const finishReply = () => {
+    addChatEntryInFirestore(chatEntryContent, 'message', currentUser.uid, forum.id, entryBeingRepliedTo).then(result => {
+      if (result) {
+        setForumAction(null)
+        setChatEntryContent('')
+        setEntryBeingRepliedTo(null)
+      } else {
+        setAlert({body: "Error deleting message. Please try again.", type: "error"})
       }
     })
   }
@@ -269,10 +396,14 @@ const ForumRoom = ({forum}) => {
     const inputForm = chatFormRef.current
     // const emojiToggleBtn = document.getElementById('emojiPickerToggle')
 
-    if (!emojiPicker.contains(e.target) && !inputForm.contains(e.target)) {
-      setEmojiPickerShown(false)
-    } else {
-      setEmojiPickerShown(true)
+    try {
+      if (!emojiPicker.contains(e.target) && !inputForm.contains(e.target)) {
+        setEmojiPickerShown(false)
+      } else {
+        setEmojiPickerShown(true)
+      }
+    } catch (e) {
+      console.log(e)
     }
     
   }
@@ -289,7 +420,7 @@ const ForumRoom = ({forum}) => {
 
   useEffect(() => {
     const handleInputNavigations = e => {
-      console.log(forum.id)
+      // console.log(forum.id)
       if (e.keyCode === 37 || e.keyCode === 38 || e.keyCode === 39 || e.keyCode === 40) {
 
         setCursorPosition(chatInputRef.current.selectionStart)
@@ -369,109 +500,323 @@ const ForumRoom = ({forum}) => {
   }, [alert])
 
   const updateAddOn = (addOn=[], type=addOnOption) => {
-    console.log(addOnOption)
-    console.log(addOn)
+    // console.log(addOnOption)
+    // console.log(addOn)
     const addOnsCopy = {...addOns}
     addOnsCopy[type] = addOn
+    console.log(addOnsCopy)
     setAddOns(addOnsCopy)
-    console.log('add ons: ', addOnsCopy)
+    // console.log('add ons: ', addOnsCopy)
   }
 
   const uploadFilesToS3 = async (type, files) => {
-    for (let i=0; i<files.length; i++) {
-      try {
-        if (!files[i][2]) { //upload only the files not already uploaded
-          const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
-          const res = await s3.uploadFile(files[i][0], fileName);
-          // files[i][1] = res.location
-          // files[i][2] = true //successfully uploaded to s3
+    console.log("files: ", files)
+    
+    // if user only removed a file without adding any, there will be no new files to upload
+    const noFilesUploaded = true 
 
-          const addOnsCopy = {...addOns}
-          addOnsCopy[type][i] = res.location
-          setAddOns(addOnsCopy)
+    try {
+      const addOnsCopy = {...addOns}
+      for (let i=0; i<files.length; i++) {
+        if (!files[i].uploaded) { //upload only the files not already uploaded
+          const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
+          const res = await s3.uploadFile(files[i].fileObj, fileName);
+
+          addOnsCopy[type][i].fileObj = {} //no need to save the fileObj in firestore
+          addOnsCopy[type][i].url = res.location
+          addOnsCopy[type][i].uploaded = true          
         }
-      } catch (exception) {
-        console.log(exception);
       }
+
+      addChatEntry('message', currentUser.uid, forum.id, addOnsCopy)
+      resetAddOns()
+
+      console.log(addOnsCopy)
+      return true
+    } catch (e) {
+      console.log(e);
+      return false
     }
+
+    // for (let i=0; i<files.length; i++) {
+    //   try {
+    //     if (!files[i].uploaded) { //upload only the files not already uploaded
+    //       const fileName = new Date().toString().split(" ").slice(0, 5).join("-") + '-'+i
+    //       const res = await s3.uploadFile(files[i].fileObj, fileName);
+
+    //       const addOnsCopy = {...addOns}
+    //       addOnsCopy[type][i].fileObj = {} //no need to save the fileObj in firestore
+    //       addOnsCopy[type][i].url = res.location
+    //       addOnsCopy[type][i].uploaded = true
+
+    //       console.log(addOnsCopy)
+
+    //       //TODO: convert addOnsCopy to json
+          
+    //       console.log("Json: ", JSON.stringify(addOnsCopy))
+    //       addChatEntry('message', currentUser.uid, forum.id, JSON.stringify(addOnsCopy))
+    //       resetAddOns()
+    //       return true
+    //     }
+    //   } catch (exception) {
+    //     console.log(exception);
+    //     return false
+    //   }
+    // }
   }
-  
 
   const createChatEntry = (e) => {
     e.preventDefault()
+    console.log(addOns);
     for (let addOnType in addOns) {
-      if (uploadableAddOns.includes(addOnType)) {
+      if (uploadableAddOns.includes(addOnType) && addOns[addOnType].length) {
         uploadFilesToS3(addOnType, addOns[addOnType])
+        .then((success) => {
+          setAddOnsUploaded(true)
+          setAddOptionsShown(false)
+        })
+        .catch(error => console.log(error))
+        return
       }
     }
-    setAddOnsUploaded(true)
-    setAddOptionsShown(false)
+    addChatEntry('message', currentUser.uid, forum.id, addOns)
+    resetAddOns()
+    return
+
+  }
+
+  const resetAddOns = () => {
+    setAddOns(chatAddOns)
+  }
+
+  // useEffect(() => {
+  //   console.log("Add Ons: ", addOns)
+  //   if (addOnsUploaded) {
+  //     addChatEntry('message', currentUser.uid, forum.id, addOns)
+  //     // setAddOnsUploaded(false)
+  //   }
+  // }, [addOns, addOnsUploaded])
+
+  const getTimestamp = (chatEntry) => {
+    let createdTimestamp = null;
+    let replyCreatedTimestamp = null;
+
+    const fullTime = chatEntry.created.toDate().toLocaleTimeString().split(':')
+    const condensedTime = fullTime.slice(0, 2).join(":") + " " +fullTime[fullTime.length-1].split(' ')[1]
+    createdTimestamp = condensedTime
+
+    if (chatEntry.replyingTo) {
+      const fullTime = chatEntry.replyingTo.created.toDate().toLocaleTimeString().split(':')
+      const condensedTime = fullTime.slice(0, 2).join(":") + " " +fullTime[fullTime.length-1].split(' ')[1]
+      replyCreatedTimestamp = condensedTime
+    }
+
+    return [createdTimestamp, replyCreatedTimestamp]
+  }
+
+  // TODO: add support for transferring addons to aggregated chat entry
+  //       look into using useMemo
+    
+  // groups sequential chat entries from the same author
+  const chatGrouper = (chatEntry, chat, count=0) => {
+    if (chat.length) {
+      if (chat[0].user !== chatEntry.user) {
+        return [chatEntry, chat, count]
+      } 
+      // updates each entry in the aggregated chat entry's lines with it's created timestamp 
+      chat[0].timestamp = getTimestamp(chat[0])[0]
+
+      return chatGrouper({...chatEntry, lines: [...chatEntry.lines, chat[0]]}, chat.slice(1), count++)
+    }
+    return [chatEntry, chat, count]
   }
 
   useEffect(() => {
-    console.log("Add Ons: ", addOns)
-    if (addOnsUploaded) {
-      addChatEntry('message', currentUser.uid, forum.id, addOns)
-    }
-  }, [addOns, addOnsUploaded])
+    console.log(chat);
+    if (chat.length) {
+      let [firstAggregatedChatEntry, currentChat] = chatGrouper({...chat[0], lines: []}, chat) 
+      const newAggregatedChat = [firstAggregatedChatEntry]
 
+      while (currentChat.length) {
+        const [aggregatedChatEntry, restOfChat] = chatGrouper({...currentChat[0], lines: []}, currentChat, 0)
+        currentChat = [...restOfChat]
+        newAggregatedChat.push(aggregatedChatEntry)
+      }
+      
+      setAggregatedChat(newAggregatedChat)
+      console.log(newAggregatedChat)
+    }
+  }, [chat])
+
+
+  useEffect(() => {
+    console.log(aggregatedChat);
+  }, [aggregatedChat])
+  // useEffect(() => {
+  //   dispatch(addAlert({body: "Successfully loaded!", type: "success"}))
+  // }, [])
+  
+  const addOnCount = () => {
+    let count = 0
+    console.log(addOns)
+    for (let addOnType in addOns) {
+      count += addOns[addOnType].length
+    }
+
+    console.log(count)
+
+    return count
+  }
+  
+  const loadAddOnsFromIndexedDB = async (db) => {
+    // load images
+    const imagesAddOn = await db.getDataFromIndexedDB("forums-staged-images", forum.id)
+    updateAddOn(imagesAddOn.content, 'images')
+  }
+
+
+  useEffect(() => {
+    const db = new IndexedDB("forumAddOns", "forums-staged-images")
+    setIndexedDb(db)
+
+    loadAddOnsFromIndexedDB(db)
+  }, [])
+
+  const copyCode = () => {
+    try {
+      navigator.clipboard.writeText(forum.id);
+      dispatch(addAlert({body: "Code copied to clipboard!", type:"success"}))
+    } catch (e) {
+      dispatch(addAlert({body: "Error copying code to clipboard", type: "error"}))
+
+    }
+  }
 
 
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
-      {
-        alert &&
-        <div className='absolute top-0 left-1/2 -translate-x-1/2'>
-          <Alert content={{body: alert.body, type: alert.type}} />
-        </div>
-      }
-
       {/* Forum Header */}
-      <div className='relative flex h-16 bg-slate-200 p-2 pr-20 space-x-4'>
-        <div className='w-12 h-12 rounded-lg overflow-hidden'>
-          <img src={forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
+      <div className='relative flex flex-row items-center h-20 bg-slate-800 p-2 space-x-4 text-light-text'>
+       
+        {/* title and topic */}
+        <div className='w-16 h-16 rounded-lg overflow-hidden'>
+          <img src={forum.thumbnail ? forum.thumbnail : forumDefaultThumb} alt="forum thumbnail" className='w-full h-full object-cover' />
         </div>
-        <div className='flex flex-col flex-1'>
-          <div className='flex flex-col -space-y-2'>
-            <h1 className='font-bold text-xl'>{forum.name}</h1>
-            <small className='font-light'>{forum.topic}</small>
+        <div className='flex flex-col flex-1 h-full'>
+          <h1 className='font-bold text-lg'>{forum.name}</h1>
+          <p className='text-xs leading-3 font-light border-l-4 border-highlight pl-1 mb-1 italic'>{forum.topic}</p>
+          <div className='leading-3 text-xs font-bold mt-2 flex flex-row space-x-2 items-center'>
+            <p className=''>
+              Forum code: 
+            </p>
+            <span className='text-highlight px-1 bg-secondary rounded-md'>{forum.id}</span>
+            <ContentCopyOutlinedIcon onClick={() => copyCode()} className={'hover:scale-110 active:scale-100 hover:cursor-pointer hover:text-highlight'} sx={{fontSize: 12}}/>
           </div>
-          <small className='font-bold text-[.55rem]'>Forum Code: {forum.id}</small>
         </div>
-        <div className='flex items-center text-sm'>
-          <p className=''><QueryBuilderOutlinedIcon /> <span className='text-success'>{forum.lifespan} mins</span></p>
-        </div>
-        <span className='flex-none absolute top-1/2 -translate-y-1/2 right-5'>X</span>
+
+        {/* member count and timing */}
+        <motion.button 
+          onClick={() => setPopUpPanelShown(shown => !shown)}
+          type='button'
+          className='flex flex-col items-center text-sm font-bold p-2 rounded-md bg-primary text-white'
+          whileTap={{
+            scale: 0.8,
+          }}
+          >
+          <div className='flex w-full flex-row items-center space-x-2'>
+            <GroupsOutlinedIcon />
+            <p>{Object.keys(members).length}</p>
+          </div>
+          <div className='flex flex-row items-center space-x-2'>
+            <QueryBuilderOutlinedIcon />  
+            <span className=''>{forum.lifespan}</span>
+          </div>
+        </motion.button>
       </div>
 
       {/* Chat */}
-      <div className='flex-1 bg-slate-900 w-full overflow-y-scroll scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-700 scrollbar-rounded-md p-2 mb-12'>
+      <div ref={chatRef} className='relative flex-1 bg-slate-900 w-full overflow-y-scroll scrollbar-thin scrollbar-track-slate-800 scrollbar-thumb-slate-700 scrollbar-rounded-md p-2 max-h-full'>
         <div className='relative h-fit px-4'>
           <div className='flex flex-col items-center justify-center mb-10'>
             <p className='font-bold'>Welcome to the Forum!</p>
             <p className='text-xs'>Created on {forum.created.toDate().toDateString()} at {forum.created.toDate().toLocaleTimeString()}</p>
           </div>
           {
-            chat.map((chatEntry, key) => (
-                <ChatEntry key={chatEntry.id + "entry" + key} 
-                  chatEntryDetails={chatEntry}
-                  forumMembers={members}
-                  currentUser={currentUser}
-                  startEdit={startEdit}
-                  startReply={startReply}
-                  deleteChatEntry={deleteChatEntry}
-                  />
-              ))
+            popUpPanelShown && 
+            <div className='absolute w-1/4 h-full top-0 right-0 rounded-md'>
+              <div className='w-full h-fit sticky top-0 right-0 z-[100]'>
+                <ForumPanelPopUp forum={forum} memberIds={Object.keys(members)} />
+              </div>
+
+            </div>
           }
-        <div ref={anchorRef} className='absolute bottom-0'></div>
+          {/* chat container */}
+          <div className='flex flex-col space-y-3'>
+            {
+              aggregatedChat.map((chatEntry, key) => (
+                  <> 
+                    <ChatEntry key={chatEntry.id + "entry" + key} 
+                      chatEntryDetails={chatEntry}
+                      forumMembers={members}
+                      currentUser={currentUser}
+                      startEdit={startEdit}
+                      startReply={startReply}
+                      deleteChatEntry={deleteChatEntry}
+                      entryBeingEdited={entryBeingEdited}
+                      className={'h-fit'}
+                    />
+                    {
+                      chatEntry.type != 'notification' &&
+                      <hr className='bg-slate-200 w-[90%] m-auto opacity-20' />
+                    }
+                  </>
+                ))
+            }
+          </div>
+          <br />
         </div>
       </div>
+      {
+        seeking &&
+        <motion.div 
+          className={`absolute z-[1000] flex items-center justify-center px-2 py-1 ${addOptionsShown ? `right-10 bottom-72` : `right-10 bottom-20`} bg-primary text-white rounded-md`}
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          transition={{
+            type: "spring",
+            stiffness: 50,
+            damping: 0,
+          }}
+          >
+          <button type='button' className='group w-full' onClick={() => setSeeking(false)}>
+            <span className='group-hover:hidden flex flex-row items-center justify-center space-x-2'>
+              <PauseCircleOutlineOutlinedIcon sx={{ fontSize: 20 }} />
+            </span>
+            <span className='hidden group-hover:flex flex-row items-center justify-center space-x-2'>
+              <ArrowDownwardOutlinedIcon sx={{ fontSize: 20 }} />
+            </span>
+          </button>
+        </motion.div>
+
+      }
 
       {/* Input */}
-      <div className='absolute w-full bottom-0 flex text-white'>
+      <div className='sticky w-full bottom-0 flex flex-col text-white'>
+        {
+          forumAction === 'edit' &&
+          <div className='h-30 w-full bg-white'>
+
+          </div>
+        }
+        {
+          addOptionsShown &&
+          <div className='w-full border-white'>
+            <AddOnsView updater={updateAddOn} stagedImages={addOns['images']} forumId={forum.id} forumAction={forumAction} />
+          </div>
+        }  
         <form ref={chatFormRef} onSubmit={createChatEntry} className='relative flex flex-col flex-1' autoComplete='off' autoCapitalize='sentences'>
           {
-            entryBeingRepliedTo && forumAction === 'reply' ?
+            entryBeingRepliedTo && forumAction !== 'reply' ?
 
             <div className={`relative h-fit p-2 mb-2 backdrop-blur-md w-fit min-w-[200px] mx-12 text-white border-l-4 border-l-amber-700`}>
               <p className='font-bold text-sm'>Replying to: </p>
@@ -501,7 +846,7 @@ const ForumRoom = ({forum}) => {
               </button>
             </div>
             :
-            entryBeingEdited && forumAction === 'edit' &&
+            entryBeingEdited && forumAction !== 'edit' &&
             <div className={`relative h-fit p-2 mb-2 backdrop-blur-md w-fit min-w-[200px] mx-12 text-white border-l-4 border-l-green-700`}>
             <p className='font-bold text-sm'>Editing: </p>
             <div className={`relative group flex w-full p-2 mb-3`}>
@@ -531,9 +876,11 @@ const ForumRoom = ({forum}) => {
             </div>
           }
 
+          {/* Chat Input Form */}
           <div className='flex space-x-2 min-h-12 bg-slate-800 p-2 z-[10000]'>
-            <div className='flex items-center justify-center'>
-              <button onClick={() => {setAddOptionsShown(shown => !shown); setEmojiPickerShown(false)}} type='button' className={`active:scale-90 duration-90 rounded-lg ${addOptionsShown && `bg-gray-900`} hover:bg-gray-900 p-1`}>
+            <div className='relative flex items-center justify-center'>
+              <span className={`z-[100] absolute -top-2 left-0 font-bold hover:opacity-100 text-success`}>{addOnCount()}</span>
+              <button onClick={() => {setAddOptionsShown(shown => !shown); setEmojiPickerShown(false)}} type='button' className={`active:scale-90 duration-90 rounded-lg ${addOptionsShown && `bg-gray-900`} bg-gray-900 p-1`}>
                 <AddOutlinedIcon sx={{ fontSize: 25 }} />
               </button>
             </div>
@@ -561,15 +908,7 @@ const ForumRoom = ({forum}) => {
               <SendOutlinedIcon sx={{ fontSize: 20 }} />
             </button>
           </div>
-          {
-            addOptionsShown &&
-            <div className='absolute -top-44 w-full h-44 border-white'>
-              <AddOnsView updater={updateAddOn} stagedImages={addOns['images']} forumId={forum.id}/>
-            </div>
-          }
         </form>
-        {/* <div className='w-10'>
-        </div> */}
       </div>
 
     </div>

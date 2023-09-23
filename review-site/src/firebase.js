@@ -7,6 +7,7 @@ import { useDispatch } from "react-redux";
 import { setShownReviews } from "./slices/reviewsSlice";
 import { serverTimestamp } from 'firebase/firestore'
 import { FolderOpenIcon } from "@heroicons/react/24/solid";
+import { chatAddOns } from "./parameters";
 // import { getAuth } from 'firebase/auth'
 
 // Your web app's Firebase configuration
@@ -993,7 +994,7 @@ export const createForumInFirestore = async (userId, forumData) => {
       maxNumOfMembers: forumData.maxNumOfMembers,
       lifespan: forumData.lifespan,
       members: [userId],
-      thumbnail: '', //forumData.thumbnail
+      thumbnail: forumData.thumbnail,
       chat: [],
       created: serverTimestamp(),
     })
@@ -1062,14 +1063,21 @@ export const joinForumWithCode = async (forumId, userId, userName) => {
       forum: forumId,
       user: userId,
       replyingTo: null,
+      addOns: '',
       created: serverTimestamp()
     })
+    // addChatEntryInFirestore(userName + " just joined the forum",
+    //                          'notification',
+    //                          userId,
+    //                          forumId,
+    //                          null,
+    //                          chatAddOns)
 
     const chatEntrySnap = await getDoc(chatEntryRef)
 
     await setDoc(forumRef, {
+      chat: [...forumSnap.data().chat, chatEntrySnap.data()],
       members: [...forumSnap.data().members, userId],
-      chat: [...forumSnap.data().chat, chatEntrySnap.data()]
     }, {merge: true})
 
     addForumToUser(userId, forumId)
@@ -1096,6 +1104,13 @@ export const leaveForumRoom = async (forumId, userId) => {
 
     const userForums = [...userSnap.data().forums]
     userForums.splice(userForums.indexOf(forumId), 1)
+
+    // addChatEntryInFirestore(userSnap.data().userName + " has left the forum",
+    // 'notification',
+    // userId,
+    // forumId,
+    // null,
+    // chatAddOns)
 
     const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
       type: 'notification',
@@ -1126,7 +1141,7 @@ export const leaveForumRoom = async (forumId, userId) => {
 }
 
 
-export const addChatEntryInFirestore = async (body, type, userId, forumId, replyingTo=null, addOns={}) => {
+export const addChatEntryInFirestore = async (body, type, userId, forumId, replyingTo=null, addOns=chatAddOns) => {
   try {
     const forumRef = doc(db, 'forums', forumId)
     const forumSnap = await getDoc(forumRef)
@@ -1138,16 +1153,17 @@ export const addChatEntryInFirestore = async (body, type, userId, forumId, reply
       user: userId,
       replyingTo: replyingTo,
       edited: false,
-      addOns: addOns,
+      addOns: JSON.stringify(addOns),
       created: serverTimestamp()
     })
 
     const chatEntrySnap = await getDoc(chatEntryRef)
 
+    console.log(chatEntrySnap.data())
+    console.log(forumSnap.data())
     await setDoc(forumRef, {
       chat: [...forumSnap.data().chat, {...chatEntrySnap.data(), id: chatEntryRef.id}] 
     }, {merge:true})
-
     return true
 
   } catch (e) {
@@ -1188,7 +1204,7 @@ export const deleteChatEntryInFirestore = async (chatEntryId, forumId) => {
 }
 
 
-export const editChatEntryInFirestore = async (chatEntryId, forumId, body) => {
+export const editChatEntryInFirestore = async (chatEntryId, forumId, body, addOns=chatAddOns) => {
   try {
     const forumRef = doc(db, 'forums', forumId)
     const forumSnap = await getDoc(forumRef)
@@ -1198,6 +1214,7 @@ export const editChatEntryInFirestore = async (chatEntryId, forumId, body) => {
       if (chatEntry.id === chatEntryId) {
         try {
           chatEntry.body = body
+          chatEntry.addOns = JSON.stringify(addOns)
           chatEntry.edited = true
         } catch (e) {
           console.log(e)

@@ -12,8 +12,9 @@ import ImageAddOnView from './ImageAddOnView';
 import s3Client from '../s3';
 
 
-const AddOnsView = ({updater, stagedImages, forumId}) => {
+const AddOnsView = ({updater, stagedImages, forumId, forumAction}) => {
   const [addOnType, setAddOnType] = useState(Object.keys(chatAddOns)[0])
+  const [stagedImagesToSendOver, setStagedImagesToSendOver] = useState([])
   const [addOns, setAddOns] = useState(chatAddOns)
 
   // const [addOnView, setAddOnView] = useState(Object.keys(addOns)[0])
@@ -62,7 +63,7 @@ const AddOnsView = ({updater, stagedImages, forumId}) => {
   }
 
   return (
-    <div className='w-full h-full flex space-x-2 bg-slate-900 pl-2'>
+    <div className='w-full h-full flex space-x-2 bg-slate-900 pl-2 py-1'>
       {/* <button onClick={() => uploadImagesToS3(addOns['images'])}>Upload</button> */}
       {/* options selector */}
       <div className='flex basis-2/12 flex-col'>
