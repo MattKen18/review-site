@@ -6,6 +6,7 @@ import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import CreateOutlinedIcon from '@mui/icons-material/CreateOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import PriorityHighOutlinedIcon from '@mui/icons-material/PriorityHighOutlined';
+import ReplayOutlinedIcon from '@mui/icons-material/ReplayOutlined';
 
 import AddOnChatEntryView from './AddOnChatEntryView';
 import { chatAddOns } from '../parameters';
@@ -15,7 +16,7 @@ import { useDispatch } from 'react-redux';
 import { addAlert } from '../slices/alertSlice';
 import { NavLink } from 'react-router-dom';
 
-const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteChatEntry, startEdit, startReply, entryBeingEdited}) => {
+const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteChatEntry, restoreChatEntry, startEdit, startReply, entryBeingEdited, writtenByForumOwner}) => {
   const [addOnTypeShowing, setAddOnTypeShowing] = useState(Object.keys(chatAddOns)[0])
   const [chatEntryLines, setChatEntryLines] = useState();
 
@@ -69,6 +70,10 @@ const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteC
               <span className='underline-none font-bold opacity-60 group-hover:opacity-100 duration-100'>@</span>
               <span className='underline underline-offset-2'>{chatEntry?.author?.userName}</span>
             </NavLink>
+            {
+              writtenByForumOwner &&
+              <span className='text-primary'> <span className='opacity-70'>&bull;</span> owner</span>
+            }
           </span>
 
           {/* chat body*/}
@@ -92,7 +97,7 @@ const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteC
                   {/* options and timestamp */}
                   <div className='hidden basis-1/5 justify-end group-hover:flex text-gray-100 text-xs'>
                     {
-                      entry.type === "message" &&
+                      entry.type === "message" ?
                       <span className='absolute flex-none flex z-[10] w-24 h-8 rounded-md right-20 -top-6 bg-primary hover:cursor-pointer overflow-hidden'>
                         {/* reply */}
                         <span className='flex basis-1/3 hover:bg-[#2E3D82] items-center justify-center relative z-0 after:content-[""] after:absolute after:right-0 after:z-10 after:w-[1px] after:h-full after:bg-[#2E3D82]'><UndoOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>
@@ -110,7 +115,14 @@ const SingleChatEntry = ({chatEntry, currentUserOwnsEntry, getTimestamp, deleteC
                           :
                           <span className='flex basis-1/3 hover:bg-[#2E3D82] items-center justify-center'><PriorityHighOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>
                         }
+                      </span> 
+                      :
+                      entry.type === "deleted" && currentUserOwnsEntry &&
+                      <span className='absolute flex-none flex z-[10] w-fit h-8 rounded-md right-20 -top-6 bg-primary hover:cursor-pointer overflow-hidden'>
+                        {/* undo delete */}
+                          <span role={'button'} onClick={() => {restoreChatEntry(entry.id, entry.forum)}} className='flex w-full px-2 hover:bg-[#2E3D82] items-center justify-center'><ReplayOutlinedIcon sx={{ fontSize: '1.15rem' }} /></span>
                       </span>
+
                     }
                     <span className='px-2 relative z-[0] opacity-60 font-light flex-end flex flex-col -space-y-2'>
                       <p className=''>

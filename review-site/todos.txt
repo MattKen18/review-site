@@ -1,5 +1,6 @@
-TODO: fix only uploading the first image to aws
+T̶O̶D̶O̶:̶ f̶i̶x̶ o̶n̶l̶y̶ u̶p̶l̶o̶a̶d̶i̶n̶g̶ t̶h̶e̶ f̶i̶r̶s̶t̶ i̶m̶a̶g̶e̶ t̶o̶ a̶w̶s̶
 TODO: configure secret in aws
+TODO: fix error when updating profile pic
 T̶O̶D̶O̶:̶ f̶i̶x̶ n̶o̶t̶ s̶a̶v̶i̶n̶g̶ f̶i̶l̶e̶ o̶b̶j̶ i̶n̶ s̶e̶s̶s̶i̶o̶n̶ s̶t̶o̶r̶a̶g̶e̶ w̶h̶e̶n̶ p̶a̶g̶e̶ r̶e̶l̶o̶a̶d̶s̶
 T̶O̶D̶O̶:̶ f̶i̶x̶ n̶o̶t̶ b̶e̶i̶n̶g̶ a̶b̶l̶e̶ d̶e̶l̶e̶t̶e̶ c̶h̶a̶t̶ e̶n̶t̶r̶y̶
 T̶O̶D̶O̶:̶ c̶o̶n̶v̶e̶r̶t̶ t̶o̶ u̶s̶i̶n̶g̶ i̶n̶d̶e̶x̶e̶d̶D̶B̶ i̶n̶s̶t̶e̶a̶d̶ o̶f̶ s̶e̶s̶s̶i̶o̶n̶S̶t̶o̶r̶a̶g̶e̶
@@ -10,4 +11,13 @@ T̶O̶D̶O̶:̶ f̶i̶x̶ i̶d̶e̶x̶e̶d̶d̶b̶ n̶o̶t̶ u̶p̶d̶a̶t̶i̶n
 T̶O̶D̶O̶:̶ a̶d̶d̶ e̶d̶i̶t̶e̶d̶ f̶l̶a̶g̶ o̶n̶ c̶h̶a̶t̶ e̶n̶t̶r̶i̶e̶s̶ t̶h̶a̶t̶ h̶a̶v̶e̶ b̶e̶e̶n̶ e̶d̶i̶t̶e̶d̶
 TODO: fix user image and user name not being loaded in messages when user leaves the forum 
 TODO: implement undo functionality for deleting chatEntry
-TODO: Add owner/creator tag to user in forum
+T̶O̶D̶O̶:̶ A̶d̶d̶ o̶w̶n̶e̶r̶/̶c̶r̶e̶a̶t̶o̶r̶ t̶a̶g̶ t̶o̶ u̶s̶e̶r̶ i̶n̶ f̶o̶r̶u̶m̶
+T̶O̶D̶O̶:̶ C̶h̶e̶c̶k̶ i̶f̶ f̶o̶r̶u̶m̶ i̶s̶ f̶u̶l̶l̶ b̶e̶f̶o̶r̶e̶ a̶d̶d̶i̶n̶g̶ u̶s̶e̶r̶
+T̶O̶D̶O̶:̶ u̶p̶a̶t̶e̶ f̶o̶r̶u̶m̶ c̶a̶r̶d̶ w̶h̶e̶n̶ c̶h̶a̶t̶ e̶n̶t̶r̶y̶ e̶d̶i̶t̶e̶d̶
+TODO: change how user joined forum looks into a bubble
+TODO: speed up how chat entries are added
+TODO: fix bug with showing wrong thing when loading chat 
+
+
+
+

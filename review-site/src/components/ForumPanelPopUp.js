@@ -6,7 +6,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import QueryBuilderOutlinedIcon from '@mui/icons-material/QueryBuilderOutlined';
 import ProfileThumbnail from './ProfileThumbnail';
 
-const ForumPanelPopUp = ({forum, memberIds}) => {
+const ForumPanelPopUp = ({forum, memberIds, memberCount}) => {
   const [members, setMembers] = useState([])
 
   const [membersConvertedToFirestoreUsers, setMembersConvertedToFirestoreUsers] = useState(false)
@@ -39,7 +39,7 @@ const ForumPanelPopUp = ({forum, memberIds}) => {
         <div className='flex flex-row space-x-4 justify-center items-center bg-slate-200 text-sm'>
           <span className='flex flex-row space-x-1 items-center justify-center'>
             <GroupsOutlinedIcon />
-            <p>{members.length}</p>
+            <p>{memberCount}</p>
           </span>
 
           <span className='flex flex-row space-x-1 items-center justify-center'>

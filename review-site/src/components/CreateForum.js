@@ -87,12 +87,21 @@ const CreateForum = ({user, addForumToState}) => {
   }
 
   const handleMaxMembers = (e) => {
-    if (e.target.value > maximumNumberOfParticipants) {
+    setMaxNumOfMembers(e.target.value)
+    // if (e.target.value > maximumNumberOfParticipants) {
+    //   setMaxNumOfMembers(maximumNumberOfParticipants)
+    // } else if (e.target.value < minimumNumberOfParticipants) {
+    //   setMaxNumOfMembers(minimumNumberOfParticipants)
+    // } else {
+    //   setMaxNumOfMembers(parseInt(e.target.value, 10))
+    // }
+  }
+
+  const ensureMembersWithinLimits = () => {
+    if (maxNumOfMembers < 2) {
+      setMaxNumOfMembers(2)
+    } else if (maxNumOfMembers > maximumNumberOfParticipants) {
       setMaxNumOfMembers(maximumNumberOfParticipants)
-    }else if (e.target.value < minimumNumberOfParticipants) {
-      setMaxNumOfMembers(minimumNumberOfParticipants)
-    } else {
-      setMaxNumOfMembers(parseInt(e.target.value, 10))
     }
   }
 
@@ -114,9 +123,6 @@ const CreateForum = ({user, addForumToState}) => {
           thumbnail: url,
         }
         setLoading(true)
-        setTimeout(() => {
-          
-        }, 3000);
         createForumInFirestore(user.uid, forumData).then(forum => {
           setLoading(false)
           if (forum) {
@@ -270,6 +276,7 @@ const CreateForum = ({user, addForumToState}) => {
               className='w-20 outline-none p-2 rounded-md opacity-90 text-center'
               value={maxNumOfMembers}
               onChange={handleMaxMembers}
+              onBlur={() => ensureMembersWithinLimits()}
               min={2}
               max={1000}
               required
