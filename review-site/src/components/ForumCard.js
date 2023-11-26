@@ -69,8 +69,10 @@ const ForumCard = ({forum, enterForum, leaveForum, active}) => {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       // console.log(querySnapshot)
       querySnapshot.forEach(doc => {
-        console.log(doc.data())
-        setChatSnap(doc.data())
+        // console.log(doc.data())
+        if (!doc.data().deleted) {
+          setChatSnap(doc.data())
+        }
       })
       // querySnapshot.docChanges().forEach(change => {
       //   if (change.type === "added") {

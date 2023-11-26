@@ -18,9 +18,10 @@ const JoinForum = ({user, joinForum}) => {
       dispatch(addAlert({body: "Joined forum!", type: "success"}))
     })
     .catch(e => {
-      dispatch(addAlert({body: "Error joining forum", type: "error"}))
+      dispatch(addAlert({body: e.message, type: "error"}))
     })
   }
+
 
   return (
     <div className='pt-10'>

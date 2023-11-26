@@ -1056,6 +1056,10 @@ export const joinForumWithCode = async (forumId, userId, userName) => {
   try {
     const forumRef = doc(db, 'forums', forumId)
     const forumSnap = await getDoc(forumRef)
+
+    if (forumSnap.data().members.length === forumSnap.data().maxNumOfMembers) {
+      throw new Error("Forum is full.")
+    }
     
     const chatEntryRef = await addDoc(collection(db, 'chatEntries'), {
       type: 'notification',
@@ -1081,12 +1085,12 @@ export const joinForumWithCode = async (forumId, userId, userName) => {
     }, {merge: true})
 
     addForumToUser(userId, forumId)
-
     return getForum(forumId)
 
   } catch (e) {
     console.log(e)
-    return null
+    throw e
+    // return null
   }
 }
 
@@ -1190,9 +1194,9 @@ export const deleteChatEntryInFirestore = async (chatEntryId, forumId) => {
       chat: newChat
     }, {merge: true})
     
-    //delete ChatEntry document
-    const chatEntryRef = doc(db, 'chatEntries', chatEntryId)
-    await deleteDoc(chatEntryRef);
+    // delete ChatEntry document
+    // const chatEntryRef = doc(db, 'chatEntries', chatEntryId)
+    // await deleteDoc(chatEntryRef);
 
     return true
 
@@ -1203,6 +1207,34 @@ export const deleteChatEntryInFirestore = async (chatEntryId, forumId) => {
 
 }
 
+export const restoreChatEntryInFirestore = async(chatEntryId, forumId) => {
+  try {
+    const forumRef = doc(db, 'forums', forumId)
+    const chatEntryRef = doc(db, 'chatEntries', chatEntryId)
+
+    const forumSnap = await getDoc(forumRef)
+    const updatedForumChat = [...forumSnap.data().chat]
+
+    for (let chatEntry of updatedForumChat) {
+      if (chatEntry.id === chatEntryId) {
+        chatEntry.type = 'message' //no longer deleted
+      }
+    }
+
+    await setDoc(chatEntryRef, {
+      type: 'message'
+    }, {merge: true})
+  
+    await setDoc(forumRef, {
+      chat: updatedForumChat
+    }, {merge: true})
+    
+    return true
+  } catch (e) {
+    console.log('error')
+    throw e
+  }
+}
 
 export const editChatEntryInFirestore = async (chatEntryId, forumId, body, addOns=chatAddOns) => {
   try {
@@ -1224,6 +1256,12 @@ export const editChatEntryInFirestore = async (chatEntryId, forumId, body, addOn
     
     await setDoc(forumRef, {
       chat: newChat,
+    }, {merge: true})
+
+    const chatEntryRef = doc(db, 'chatEntries', chatEntryId)
+
+    await setDoc(chatEntryRef, {
+      body: body
     }, {merge: true})
 
     return true

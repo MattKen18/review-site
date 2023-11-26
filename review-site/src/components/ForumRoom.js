@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import forumDefaultThumb from '../assets/default-forum-thumbnail.jpg'
 import QueryBuilderOutlinedIcon from '@mui/icons-material/QueryBuilderOutlined';
-import { addChatEntryInFirestore, deleteChatEntryInFirestore, editChatEntryInFirestore, getUserFromFirestore } from '../firebase';
+import { addChatEntryInFirestore, deleteChatEntryInFirestore, editChatEntryInFirestore, getUserFromFirestore, restoreChatEntryInFirestore } from '../firebase';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { Alert } from '@mui/material';
 import { doc, onSnapshot } from "firebase/firestore";
@@ -42,13 +42,16 @@ import ForumPanelPopUp from './ForumPanelPopUp';
 import IndexedDB from '../IndexedDB';
 import { updateChatSnap } from '../slices/userForumsSlice';
 
+import Loader from './Loader';
+
 
 const ForumRoom = ({forum}) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [alert, setAlert] = useState(null)
   const [chatEntryContent, setChatEntryContent] = useState('')
   const [chat, setChat] = useState([]) // array of firestore chatEntry objects
-  const [aggregatedChat, setAggregatedChat] = useState([]) // array of joined chat entries
+  const [aggregatedChat, setAggregatedChat] = useState(null) // array of joined chat entries
+  const [chatEmpty, setChatEmpty] = useState(false)
   const [members, setMembers] = useState({}) // object of user objects
   const [memberIds, setMemberIds] = useState([])
   
@@ -89,6 +92,8 @@ const ForumRoom = ({forum}) => {
   const [addChatEntryFinished, setAddChatEntryFinished] = useState(false);
 
   const [indexedDb, setIndexedDb] = useState(null)
+
+  const [chatLoading, setChatLoading] = useState(true)
 
   const auth = getAuth()
 
@@ -256,6 +261,16 @@ const ForumRoom = ({forum}) => {
         dispatch(addAlert({body: "Error deleting message. Please try again.", type: "error"}))
       }
       })
+  }
+
+  const restoreChatEntry = (chatEntryId, forumId=forum.id) => {
+    restoreChatEntryInFirestore(chatEntryId, forumId)
+    .then(result =>
+      dispatch(addAlert({body: "Message restored", type: "success"}))
+    )
+    .catch(error =>
+      dispatch(addAlert({body: "Message restore failed", type: "error"}))
+    )
   }
 
   useEffect(() => {
@@ -632,7 +647,7 @@ const ForumRoom = ({forum}) => {
   }
 
   useEffect(() => {
-    console.log(chat);
+    // console.log(chat);
     if (chat.length) {
       let [firstAggregatedChatEntry, currentChat] = chatGrouper({...chat[0], lines: []}, chat) 
       const newAggregatedChat = [firstAggregatedChatEntry]
@@ -644,13 +659,25 @@ const ForumRoom = ({forum}) => {
       }
       
       setAggregatedChat(newAggregatedChat)
-      console.log(newAggregatedChat)
+      // console.log(newAggregatedChat)
+    } else {
+      setAggregatedChat([])
     }
+
+    setChatLoading(false)
   }, [chat])
 
 
   useEffect(() => {
-    console.log(aggregatedChat);
+    // console.log(aggregatedChat);
+    if (aggregatedChat != null) {
+      if (aggregatedChat.length == 0) {
+        setChatEmpty(true)
+      } else {
+        setChatEmpty(false)
+      }
+      setChatLoading(false)
+    }
   }, [aggregatedChat])
   // useEffect(() => {
   //   dispatch(addAlert({body: "Successfully loaded!", type: "success"}))
@@ -658,12 +685,12 @@ const ForumRoom = ({forum}) => {
   
   const addOnCount = () => {
     let count = 0
-    console.log(addOns)
+    // console.log(addOns)
     for (let addOnType in addOns) {
       count += addOns[addOnType].length
     }
 
-    console.log(count)
+    // console.log(count)
 
     return count
   }
@@ -693,6 +720,10 @@ const ForumRoom = ({forum}) => {
   }
 
 
+  useEffect(() => {
+    // console.log(aggregatedChat)
+  }, [aggregatedChat])
+
   return (
     <div id={'forum-room'} className='relative flex flex-col w-full overflow-hidden'>
       {/* Forum Header */}
@@ -718,14 +749,14 @@ const ForumRoom = ({forum}) => {
         <motion.button 
           onClick={() => setPopUpPanelShown(shown => !shown)}
           type='button'
-          className='flex flex-col items-center text-sm font-bold p-2 rounded-md bg-primary text-white'
+          className='flex flex-col text-sm font-bold p-2 rounded-md bg-primary text-white'
           whileTap={{
             scale: 0.8,
           }}
           >
           <div className='flex w-full flex-row items-center space-x-2'>
             <GroupsOutlinedIcon />
-            <p>{Object.keys(members).length}</p>
+            <p>{Object.keys(members).length}/{forum.maxNumOfMembers}</p>
           </div>
           <div className='flex flex-row items-center space-x-2'>
             <QueryBuilderOutlinedIcon />  
@@ -745,7 +776,7 @@ const ForumRoom = ({forum}) => {
             popUpPanelShown && 
             <div className='absolute w-1/4 h-full top-0 right-0 rounded-md'>
               <div className='w-full h-fit sticky top-0 right-0 z-[100]'>
-                <ForumPanelPopUp forum={forum} memberIds={Object.keys(members)} />
+                <ForumPanelPopUp forum={forum} memberIds={Object.keys(members)} memberCount={Object.keys(members).length} />
               </div>
 
             </div>
@@ -753,7 +784,21 @@ const ForumRoom = ({forum}) => {
           {/* chat container */}
           <div className='flex flex-col space-y-3'>
             {
-              aggregatedChat.map((chatEntry, key) => (
+              chatLoading ?
+              <div className='w-11/12 m-auto mt-20'>
+                <div className='w-40 m-auto flex flex-row justify-center items-center animate-pulse my-5'>
+                  <Loader params={{
+                    content: [''],
+                    type: 'bars',
+                    color: '#3F51B5',
+                    height: '30px',
+                    width: '30px',
+                  }} />
+                </div>
+              </div>
+              :
+              aggregatedChat.length ?
+              aggregatedChat?.map((chatEntry, key) => (
                   <> 
                     <ChatEntry key={chatEntry.id + "entry" + key} 
                       chatEntryDetails={chatEntry}
@@ -763,7 +808,9 @@ const ForumRoom = ({forum}) => {
                       startReply={startReply}
                       deleteChatEntry={deleteChatEntry}
                       entryBeingEdited={entryBeingEdited}
+                      restoreChatEntry={restoreChatEntry}
                       className={'h-fit'}
+                      writtenByForumOwner={forum.owner === chatEntry.user}
                     />
                     {
                       chatEntry.type != 'notification' &&
@@ -771,6 +818,15 @@ const ForumRoom = ({forum}) => {
                     }
                   </>
                 ))
+              :
+              !aggregatedChat.length && chatEmpty &&
+              <div className='w-full h-[200px] flex flex-col items-center justify-center'>
+                <p>It's so quiet here...</p>
+                <br />
+                <p>Invite users with this code:
+                  <span className='font-bold px-2 py-[1px] text-highlight opacity-50 rounded-md bg-tertiary'>{forum.id}</span>
+                </p>
+              </div>
             }
           </div>
           <br />

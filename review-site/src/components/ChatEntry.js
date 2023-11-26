@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import SingleChatEntry from './SingleChatEntry';
 import ReplyingChatEntry from './ReplyingChatEntry';
 
-const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, startReply, deleteChatEntry, entryBeingEdited}) => {
+const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, startReply, deleteChatEntry, restoreChatEntry, entryBeingEdited, writtenByForumOwner}) => {
   
   const [chatEntryAuthor, setChatEntryAuthor] = useState(null)
   const [isAuthor, setIsAuthor] = useState(null) // if the current user is the author of the chat entry
@@ -139,9 +139,11 @@ const ChatEntry = ({chatEntryDetails, forumMembers, currentUser, startEdit, star
           currentUserOwnsEntry={isAuthor}
           getTimestamp={getTimestamp}
           deleteChatEntry={deleteChatEntry}
+          restoreChatEntry={restoreChatEntry}
           startEdit={startEdit}
           startReply={startReply}
           entryBeingEdited={entryBeingEdited}
+          writtenByForumOwner={writtenByForumOwner}
         />
       }
       {/* <hr className='m-auto w-11/12 opacity-10'/> */}
