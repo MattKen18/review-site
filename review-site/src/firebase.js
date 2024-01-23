@@ -13,7 +13,7 @@ import { chatAddOns } from "./parameters";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDhzKr50ZMYVHqi6fsvvodmkyEv_N84OBM",
+  apiKey: "AIzaSyDhzKr50ZMYVHqi6fsvvodmkyEv_N84OBM", // close your eyes...
   authDomain: "reviews-site-8a0b4.firebaseapp.com",
   projectId: "reviews-site-8a0b4",
   storageBucket: "reviews-site-8a0b4.appspot.com",
